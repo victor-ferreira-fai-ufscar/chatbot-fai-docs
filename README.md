@@ -1,64 +1,112 @@
 # Chatbot FAI Docs
 
-Protótipo simples para testar localmente um chatbot que consulta os PDFs do projeto.
+Protótipo simples de chatbot para consultar os PDFs do projeto usando embeddings e Supabase.
 
-Nesta primeira versão, a solução faz o seguinte:
+## Visão simples da arquitetura
 
-- lê os PDFs da pasta `docs/sil`
-- extrai o texto e divide em trechos
-- recupera os trechos mais parecidos com a pergunta usando TF-IDF
-- envia a pergunta com esse contexto para um modelo compatível com a API da OpenAI
-- exibe a resposta em uma interface local com Streamlit
+A ideia do projeto agora é esta:
 
-Isso permite começar com algo pequeno e funcional, sem depender de uma arquitetura mais pesada agora.
+1. ler os PDFs da pasta `docs/sil`
+2. quebrar o texto em trechos menores
+3. gerar embeddings desses trechos
+4. salvar os embeddings no Postgres do Supabase com `pgvector`
+5. quando o usuário perguntar algo, buscar os trechos mais próximos
+6. enviar a pergunta e o contexto para o modelo de resposta
 
-## Documentos atuais
+Em termos práticos, o fluxo é:
 
-1. [2026-02-23 - EMBRAPII MANUAL DE PROCEDIMENTOS INTERNOS.pdf](./docs/sil/2026-02-23%20-%20EMBRAPII%20MANUAL%20DE%20PROCEDIMENTOS%20INTERNOS.pdf)
-2. [Manual do Coordenador esboço 6.pdf](./docs/sil/Manual%20do%20Coordenador%20esboço%206.pdf)
+`PDFs -> embeddings -> Supabase pgvector -> contexto -> LLM -> resposta`
 
-## Stack
+## Por que Supabase
 
-- Python
-- [uv](https://github.com/astral-sh/uv)
-- Streamlit
-- pypdf
-- scikit-learn
-- OpenAI SDK
+Escolhemos Supabase porque ele simplifica bastante o entendimento do time:
 
-## Como rodar localmente
+- o banco vetorial fica em Postgres, que é familiar
+- `pgvector` resolve a busca semântica sem adicionar outra ferramenta separada
+- a migração futura continua simples, porque a aplicação fala com Postgres
+- o projeto continua com uma arquitetura pequena e legível
 
-### 1. Instalar o `uv`
+## Estrutura do código
 
-Consulte a documentação oficial: [astral-sh/uv](https://github.com/astral-sh/uv)
-
-### 2. Criar o ambiente e instalar dependências
-
-```bash
-uv sync
+```text
+.
+├── app.py
+├── docs/
+│   ├── SUPABASE.md
+│   └── sil/
+├── pyproject.toml
+└── src/
+    └── chatbot_fai_docs/
+        ├── config.py
+        ├── embeddings.py
+        ├── llm.py
+        ├── models.py
+        ├── pdfs.py
+        ├── service.py
+        └── vector_store.py
 ```
 
-### 3. Configurar variáveis de ambiente
+## O que cada parte faz
 
-Crie um arquivo `.env` a partir do exemplo:
+- `app.py`: interface Streamlit
+- `config.py`: leitura das variáveis de ambiente
+- `pdfs.py`: leitura dos PDFs e criação dos chunks
+- `embeddings.py`: geração dos embeddings
+- `vector_store.py`: gravação e busca vetorial no Postgres/Supabase
+- `service.py`: orquestra o fluxo do RAG
+- `llm.py`: monta a chamada para o modelo de resposta
+
+## Como rodar
+
+### 1. Configurar ambiente
 
 ```bash
 cp .env.example .env
 ```
 
-### 4. Executar o app
+Preencha pelo menos:
+
+```env
+DATABASE_URL=postgresql://postgres:<SUA-SENHA>@db.<PROJECT-REF>.supabase.co:5432/postgres
+OPENAI_API_KEY=<SUA_CHAVE>
+OPENAI_BASE_URL=https://api.openai.com/v1
+OPENAI_MODEL=gpt-4.1-mini
+EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+EMBEDDING_DIMENSION=384
+CHUNK_SIZE=1200
+CHUNK_OVERLAP=200
+```
+
+### 2. Instalar dependências
+
+```bash
+uv sync
+```
+
+### 3. Rodar a interface
 
 ```bash
 uv run streamlit run app.py
 ```
 
-O app abrirá localmente no navegador.
+Na primeira execução, o app:
 
-## Modelos suportados neste MVP
+- lê os PDFs
+- gera os embeddings
+- cria a tabela se necessário
+- sincroniza os chunks no banco
 
-### OpenAI API
+## Supabase
 
-Exemplo de `.env`:
+O guia objetivo de configuração do projeto Supabase está em [docs/SUPABASE.md](./docs/SUPABASE.md).
+
+## Modelos de resposta
+
+Hoje o app já funciona com provedores compatíveis com a API da OpenAI.
+
+Exemplos:
+
+### OpenAI
 
 ```env
 OPENAI_API_KEY=<SUA_CHAVE>
@@ -66,11 +114,7 @@ OPENAI_BASE_URL=https://api.openai.com/v1
 OPENAI_MODEL=gpt-4.1-mini
 ```
 
-### Ollama local
-
-Se quiser rodar com modelo local usando Ollama, a interface já aceita base URL compatível com OpenAI.
-
-Exemplo de `.env`:
+### Ollama
 
 ```env
 OPENAI_API_KEY=ollama
@@ -78,38 +122,15 @@ OPENAI_BASE_URL=http://localhost:11434/v1
 OPENAI_MODEL=llama3.2:3b
 ```
 
-Depois, na barra lateral do app, você também pode ajustar o modelo manualmente.
+## Estado atual do protótipo
 
-## Estrutura atual
-
-```text
-.
-├── app.py
-├── docs/
-│   └── sil/
-├── pyproject.toml
-└── src/
-    └── chatbot_fai_docs/
-        └── rag.py
-```
-
-## Limitações desta versão
-
-- a recuperação é simples, usando TF-IDF, então ainda não é um RAG mais robusto com embeddings
-- a extração depende do texto disponível no PDF; PDFs com texto ruim ou imagem escaneada podem exigir OCR depois
-- ainda não há persistência de conversa, autenticação ou publicação na web
+- os 2 PDFs atuais já foram processados localmente durante a validação
+- a arquitetura foi reduzida para um único caminho principal com Supabase/Postgres
+- o objetivo agora é facilitar entendimento e continuidade pelo time
 
 ## Próximos passos naturais
 
-1. Trocar a busca TF-IDF por embeddings.
-2. Adicionar OCR para PDFs escaneados.
-3. Permitir upload de novos documentos pela interface.
-4. Evoluir depois para integração com a área de coordenadores.
-
-## Contexto inicial do projeto
-
-Links de referência:
-
-- Área de Coordenadores: https://sistemas.fai.ufscar.br/Coordenadores/Projeto/Listar
-- Repositório GitHub: https://github.com/victor-ferreira-fai-ufscar/chatbot-fai-docs
-- Manuais/DOCS de exemplo (Sil): https://teams.microsoft.com/l/message/19:9fae0f1d72a74dca9d0a24fce056a7bd@thread.v2/1775481371366?context=%7B%22contextType%22%3A%22chat%22%7D
+1. Adicionar um comando separado de ingestão para não reprocessar tudo a cada reload do Streamlit.
+2. Criar filtros por documento e página.
+3. Adicionar OCR caso apareçam PDFs escaneados.
+4. Evoluir a interface depois que o comportamento do RAG estiver estável.
