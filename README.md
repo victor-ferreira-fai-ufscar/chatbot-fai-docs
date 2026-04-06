@@ -13,9 +13,10 @@ João Pedro Da Silva | FAI•UFSCar e Victor Ferreira | FAI•UFSCar, seguem os 
 - GPT
 - Gemini
 
-## Linguagens
+## Linguagens/Tecnologias
 
 - Python
+    - UV <https://github.com/astral-sh/uv>
 - Streamlit
 
 ## Anotações (OneNote)
