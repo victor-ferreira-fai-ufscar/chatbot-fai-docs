@@ -1,0 +1,16 @@
+[project]
+name = "chatbot-fai-docs"
+version = "0.1.0"
+description = "Protótipo simples de chatbot para consultar documentos PDF localmente"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "openai>=1.75.0",
+    "pypdf>=5.4.0",
+    "python-dotenv>=1.0.1",
+    "scikit-learn>=1.5.2",
+    "streamlit>=1.44.1",
+]
+
+[tool.uv]
+package = false
