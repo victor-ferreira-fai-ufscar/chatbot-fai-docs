@@ -15,9 +15,16 @@ class PostgresVectorStore:
         self.embedding_dimension = embedding_dimension
 
     def ensure_ready(self) -> None:
-        with self._connect() as connection:
+        # Primeiro, precisamos habilitar a extensão numa conexão crua (sem registrar o vector)
+        # porque o pgvector exige que a extensão já exista no banco para registrar o tipo.
+        with psycopg.connect(self.database_url) as connection:
             with connection.cursor() as cursor:
                 cursor.execute("CREATE EXTENSION IF NOT EXISTS vector")
+            connection.commit()
+
+        # Agora conectamos normalmente com o tipo vector já ativado no psycopg
+        with self._connect() as connection:
+            with connection.cursor() as cursor:
                 cursor.execute(
                     f"""
                     CREATE TABLE IF NOT EXISTS document_chunks (
@@ -75,16 +82,16 @@ class PostgresVectorStore:
                 )
             connection.commit()
 
-    def delete_missing(self, active_chunk_ids: set[str]) -> None:
+    def delete_by_source(self, sources: list[str]) -> None:
+        if not sources:
+            return
+
         with self._connect() as connection:
             with connection.cursor() as cursor:
-                if not active_chunk_ids:
-                    cursor.execute("DELETE FROM document_chunks")
-                else:
-                    cursor.execute(
-                        "DELETE FROM document_chunks WHERE NOT (chunk_id = ANY(%s))",
-                        (list(active_chunk_ids),),
-                    )
+                cursor.execute(
+                    "DELETE FROM document_chunks WHERE source = ANY(%s)",
+                    (list(sources),),
+                )
             connection.commit()
 
     def search(self, query_embedding: list[float], top_k: int) -> list[SearchResult]:

@@ -1,80 +1,53 @@
 # Chatbot FAI Docs
 
-Protótipo simples de chatbot para consultar os PDFs do projeto usando embeddings e Supabase.
+Sistema de RAG Avançado (Retrieval-Augmented Generation) operando localmente e integrando base de conhecimento de PDFs com PostgreSQL (Supabase) via arquitetura *Two-Stage* (Busca Vetorial + Re-ranking).
 
-## Visão simples da arquitetura
+## 🧩 Visão simples da arquitetura
 
-A ideia do projeto agora é esta:
+Em termos práticos, o fluxo otimizado é:
+`PDFs -> Markdown (PyMuPDF) -> Chunking Geométrico -> HuggingFace Embeddings -> pgvector (Busca Primária) -> Cross-Encoder (Juiz Re-ranker) -> LLM Rápido (Streaming) -> Usuário`
 
-1. ler os PDFs da pasta `docs/sil`
-2. quebrar o texto em trechos menores
-3. gerar embeddings desses trechos
-4. salvar os embeddings no Postgres do Supabase com `pgvector`
-5. quando o usuário perguntar algo, buscar os trechos mais próximos
-6. enviar a pergunta e o contexto para o modelo de resposta
+1. Ler os PDFs extraindo sua formatação inteligente em **Markdown** (`pymupdf4llm`).
+2. Quebrar o texto respeitando fluxogramas e listas.
+3. Gerar embeddings pela CPU nativa sem gastar VRAM.
+4. Recuperar os 20 resultados mais relevantes no Postgres.
+5. Recalcular a relevância lógica (0 a 10) dos 20 por meio do **Re-ranking**.
+6. Enviar apenas os 5 textos perfeitos no *Contexto Limpo* para a IA formatar a resposta na tela letra a letra.
 
-Em termos práticos, o fluxo é:
+## 📦 Funcionalidade das Dependências Principais
 
-`PDFs -> embeddings -> Supabase pgvector -> contexto -> LLM -> resposta`
-
-## Por que Supabase
-
-Escolhemos Supabase porque ele simplifica bastante o entendimento do time:
-
-- o banco vetorial fica em Postgres, que é familiar
-- `pgvector` resolve a busca semântica sem adicionar outra ferramenta separada
-- a migração futura continua simples, porque a aplicação fala com Postgres
-- o projeto continua com uma arquitetura pequena e legível
-
-## Estrutura do código
-
-```text
-.
-├── app.py
-├── docs/
-│   ├── SUPABASE.md
-│   └── sil/
-├── pyproject.toml
-└── src/
-    └── chatbot_fai_docs/
-        ├── config.py
-        ├── embeddings.py
-        ├── llm.py
-        ├── models.py
-        ├── pdfs.py
-        ├── service.py
-        └── vector_store.py
-```
+- **`pymupdf4llm`**: Transforma os PDFs brutos em strings de Markdown perfeitamente delimitadas (preserva Tabelas, Listas e intersecções). Acabita com textos colados.
+- **`sentence-transformers`**: Motor duplo. Cria os Embeddings (transforma texto em matemática) e, na segunda fase, instancia o `CrossEncoder` que opera a nossa mágica chamada Re-ranking cruzado na recuperação final.
+- **`pgvector` (PostgreSQL)**: Recebe os vetores. Permite buscarmos instantaneamente por Semântica Lógica (Distância de Cosseno) diretamente por linguagem SQL.
+- **`openai` & `google-genai`**: Bibliotecas responsáveis que atuam como clientes de conversa. Suportam localmente o `Ollama` ou na nuvem o Gemini/GPT-4.
+- **`streamlit`**: Empacota o backend como um Chat Dinâmico bonito Web para uso do colaborador.
 
 ## O que cada parte faz
 
-- `app.py`: interface Streamlit
-- `config.py`: leitura das variáveis de ambiente
-- `pdfs.py`: leitura dos PDFs e criação dos chunks
-- `embeddings.py`: geração dos embeddings
-- `vector_store.py`: gravação e busca vetorial no Postgres/Supabase
-- `service.py`: orquestra o fluxo do RAG
-- `llm.py`: monta a chamada para o modelo de resposta
+- `app.py`: Interface Streamlit, lida com UI e Streaming (`st.write_stream`).
+- `config.py`: Gestão limpa das variáveis de ambiente (`CHUNK_SIZE`, Modelos Rerankers).
+- `pdfs.py`: Leitura rica de PDFs para Markdown e conversão pro banco.
+- `embeddings.py`: Gera os cálculos vetoriais e carrega o Juiz Local Reranker (`CrossEncoder`).
+- `vector_store.py`: Gravação e busca de SQL Rápido no Supabase.
+- `service.py`: Maestro! Orquestra o tempo da pesquisa e filtra (Rerank) os achados.
 
 ## Como rodar
 
-### 1. Configurar ambiente
+### 1. Configurar ambiente (`.env`)
 
-```bash
-cp .env.example .env
-```
-
-Preencha pelo menos:
+Preencha a chave dos bancos e os parâmetros da Engine:
 
 ```env
 DATABASE_URL=postgresql://postgres:<SUA-SENHA>@db.<PROJECT-REF>.supabase.co:5432/postgres
-OPENAI_API_KEY=<SUA_CHAVE>
-OPENAI_BASE_URL=https://api.openai.com/v1
-OPENAI_MODEL=gpt-4.1-mini
+
+# Otimizado para performance e busca profunda:
+CHUNK_SIZE=500
+CHUNK_OVERLAP=100
+
+# Motores Locais Open Source:
 EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
 EMBEDDING_DIMENSION=384
-CHUNK_SIZE=1200
-CHUNK_OVERLAP=200
+RERANKER_MODEL=cross-encoder/ms-marco-MiniLM-L-6-v2
 ```
 
 ### 2. Instalar dependências
@@ -89,48 +62,23 @@ uv sync
 uv run streamlit run app.py
 ```
 
-Na primeira execução, o app:
+Na primeira execução, o app processará os blocos demoradamente e baixará pequenos pedaços do HuggingFace. A partir da segunda inicialização o cache assume, a ferramenta voa em fração de segundos.
 
-- lê os PDFs
-- gera os embeddings
-- cria a tabela se necessário
-- sincroniza os chunks no banco
+## Modelos Open Source Recomendados (Ollama)
 
-## Supabase
-
-O guia objetivo de configuração do projeto Supabase está em [docs/SUPABASE.md](./docs/SUPABASE.md).
-
-## Modelos de resposta
-
-Hoje o app já funciona com provedores compatíveis com a API da OpenAI.
-
-Exemplos:
-
-### OpenAI
-
+O APP não requer internet para conversar, utilize uma destas engrenagens:
 ```env
-OPENAI_API_KEY=<SUA_CHAVE>
-OPENAI_BASE_URL=https://api.openai.com/v1
-OPENAI_MODEL=gpt-4.1-mini
-```
-
-### Ollama
-
-```env
-OPENAI_API_KEY=ollama
+# Exemplo 1: Lama (Facebook)
 OPENAI_BASE_URL=http://localhost:11434/v1
 OPENAI_MODEL=llama3.2:3b
+
+# Exemplo 2: Gemma (Google Local)
+OPENAI_BASE_URL=http://localhost:11434/v1
+OPENAI_MODEL=gemma3:1b
 ```
 
-## Estado atual do protótipo
+## Próximos passos e Integrações Futuras
 
-- os 2 PDFs atuais já foram processados localmente durante a validação
-- a arquitetura foi reduzida para um único caminho principal com Supabase/Postgres
-- o objetivo agora é facilitar entendimento e continuidade pelo time
-
-## Próximos passos naturais
-
-1. Adicionar um comando separado de ingestão para não reprocessar tudo a cada reload do Streamlit.
-2. Criar filtros por documento e página.
-3. Adicionar OCR caso apareçam PDFs escaneados.
-4. Evoluir a interface depois que o comportamento do RAG estiver estável.
+1. **OCR Avançado (Fallback Híbrido)**: Adaptar a estrutura Google Cloud Vision para resgatar informações presas em *Scans* onde a extração da CPU resulta vaza ou corrompida.
+2. Adicionar filtros rígidos de busca baseados em Data/Versão ou Títulos Específicos do Tópico do PDF dentro da Query Postgres.
+3. Expandir Chatbot RAG em Omnichannel (FastAPI), separando do Streamlit para deploy em aplicativos mobile, Whatsapp e sistemas acadêmicos corporativos.

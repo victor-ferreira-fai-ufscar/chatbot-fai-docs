@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+import json
 import os
+import subprocess
+import time
+import urllib.request
 from pathlib import Path
 
 import streamlit as st
@@ -26,6 +30,52 @@ def current_pdf_signature(pdf_files: list[Path]) -> tuple[tuple[str, int, int], 
     )
 
 
+def start_ollama():
+    try:
+        urllib.request.urlopen("http://localhost:11434/", timeout=0.2)
+        return
+    except Exception:
+        pass
+        
+    try:
+        if os.name == 'nt':
+            CREATE_NO_WINDOW = 0x08000000
+            subprocess.Popen(["ollama", "serve"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, creationflags=CREATE_NO_WINDOW)
+        else:
+            subprocess.Popen(["ollama", "serve"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        time.sleep(1.5)
+    except Exception:
+        pass
+
+
+def get_ollama_models(base_url: str) -> list[tuple[str, str]]:
+    if not base_url:
+        base_url = "http://localhost:11434"
+    
+    if base_url.endswith("/v1"):
+        api_url = base_url[:-3] + "/api/tags"
+    elif base_url.endswith("/v1/"):
+        api_url = base_url[:-4] + "/api/tags"
+    elif "/v1" in base_url:
+        api_url = base_url.replace("/v1", "/api/tags")
+    else:
+        api_url = base_url.rstrip("/") + "/api/tags"
+
+    try:
+        req = urllib.request.Request(api_url)
+        with urllib.request.urlopen(req, timeout=2) as response:
+            data = json.loads(response.read().decode("utf-8"))
+            models = []
+            for item in data.get("models", []):
+                name = item.get("name", "")
+                details = item.get("details", {})
+                param_size = details.get("parameter_size", "?B")
+                models.append((name, f"{name} ({param_size})"))
+            return models
+    except Exception:
+        return []
+
+
 @st.cache_resource(show_spinner=False)
 def load_rag_service(
     *,
@@ -44,6 +94,7 @@ def load_rag_service(
         embedding_dimension=embedding_dimension,
         chunk_size=chunk_size,
         chunk_overlap=chunk_overlap,
+        reranker_model=AppConfig.from_env().reranker_model
     )
     service = RagService(config)
     sync_result = service.sync_documents()
@@ -53,15 +104,21 @@ def load_rag_service(
 def provider_defaults(provider: str) -> tuple[str, str, str]:
     if provider == "Ollama local":
         return (
-            default_value("OPENAI_BASE_URL", "http://localhost:11434/v1"),
-            default_value("OPENAI_API_KEY", "ollama"),
-            default_value("OPENAI_MODEL", "llama3.2:3b"),
+            default_value("OLLAMA_BASE_URL", "http://localhost:11434/v1"),
+            default_value("OLLAMA_API_KEY", "ollama"),
+            default_value("OLLAMA_MODEL", "llama3.2:3b"),
+        )
+    elif provider == "Google Gemini":
+        return (
+            "",
+            default_value("GEMINI_API_KEY", ""),
+            default_value("GEMINI_MODEL", "gemini-2.5-flash"),
         )
 
     return (
         default_value("OPENAI_BASE_URL", "https://api.openai.com/v1"),
         default_value("OPENAI_API_KEY", ""),
-        default_value("OPENAI_MODEL", "gpt-4.1-mini"),
+        default_value("OPENAI_MODEL", "gpt-4o-mini"),
     )
 
 
@@ -78,23 +135,60 @@ except ValueError as exc:
 
 with st.sidebar:
     st.header("Configuração")
-    provider = st.selectbox("Modelo", ["OpenAI API", "Ollama local"])
+    provider = st.selectbox("Modelo de Resposta (LLM)", ["OpenAI API", "Ollama local", "Google Gemini"])
     base_url_default, api_key_default, model_default = provider_defaults(provider)
 
     st.caption("Arquitetura: PDFs -> embeddings -> Supabase pgvector -> resposta")
 
-    database_url = st.text_input(
-        "DATABASE_URL do Supabase/Postgres",
-        value=(env_config.database_url if env_config else ""),
-        help="Use a connection string Postgres do projeto Supabase.",
-    )
+    # Valores extraídos em background
+    database_url = env_config.database_url if env_config else ""
 
-    base_url = st.text_input("Base URL", value=base_url_default)
-    model = st.text_input("Modelo", value=model_default)
-    api_key = st.text_input("API key", value=api_key_default, type="password")
+    if provider == "OpenAI API":
+        model = st.selectbox(
+            "Modelo", 
+            [
+                "gpt-3.5-turbo",
+                "gpt-4-turbo",
+                "gpt-4o",
+                "gpt-4o-mini",
+                "gpt-4.1",
+                "gpt-4.1-mini",
+                "gpt-5.2",
+                "gpt-5.2-mini"
+            ], 
+            index=3
+        )
+        api_key = st.text_input("API key", value=api_key_default, type="password")
+        base_url = base_url_default
+    elif provider == "Google Gemini":
+        model = st.selectbox("Modelo", ["gemini-2.5-flash", "gemini-1.5-pro", "gemini-1.5-flash"], index=0)
+        api_key = st.text_input("API key", value=api_key_default, type="password")
+        base_url = base_url_default
+    else:
+        base_url = base_url_default
+        
+        start_ollama()
+        
+        local_models = get_ollama_models(base_url)
+        if local_models:
+            model_options = [m[0] for m in local_models]
+            model_labels = [m[1] for m in local_models]
+            
+            selected_idx = 0
+            if model_default in model_options:
+                selected_idx = model_options.index(model_default)
+            
+            selected_label = st.selectbox("Modelo", options=model_labels, index=selected_idx)
+            model = model_options[model_labels.index(selected_label)]
+        else:
+            model = st.text_input("Modelo (ex: llama3.2:3b)", value=model_default)
+            st.caption("Nenhum modelo local detectado ou Ollama não está rodando.")
+            
+        api_key = api_key_default
+
     top_k = st.slider("Trechos recuperados", min_value=2, max_value=8, value=4)
 
-    with st.expander("Embeddings"):
+    with st.expander("Modelo RAG (Banco Vetorial e Embeddings)"):
         embedding_model = st.text_input(
             "Modelo de embedding",
             value=(
@@ -181,38 +275,54 @@ if question:
     if provider == "OpenAI API" and not api_key.strip():
         answer = "Defina uma API key para usar a OpenAI API."
         search_results = []
+    elif provider == "Google Gemini" and not api_key.strip():
+        answer = "Defina uma API key para usar a API do Google Gemini."
+        search_results = []
     else:
-        with st.spinner("Consultando o modelo..."):
-            try:
-                answer, search_results = rag_service.answer_question(
-                    question=question,
-                    chat_history=st.session_state.messages,
-                    settings=ChatSettings(
-                        api_key=api_key.strip() or "ollama",
-                        model=model.strip(),
-                        base_url=base_url.strip(),
-                    ),
-                    top_k=top_k,
-                )
-            except Exception as exc:
-                answer = f"Erro ao consultar o modelo: {exc}"
-                search_results = []
+        status_container = st.status("Iniciando processamento...", expanded=True)
+        try:
+            def update_status(text):
+                status_container.write(f"🔄 {text}")
+                status_container.update(label=text)
+
+            answer, search_results = rag_service.answer_question(
+                question=question,
+                chat_history=st.session_state.messages,
+                settings=ChatSettings(
+                    provider=provider,
+                    api_key=api_key.strip() or ("ollama" if provider == "Ollama local" else ""),
+                    model=model.strip(),
+                    base_url=base_url.strip(),
+                ),
+                top_k=top_k,
+                status_callback=update_status,
+            )
+            status_container.update(label="Contexto RAG finalizado!", state="complete", expanded=False)
+        except Exception as exc:
+            status_container.update(label="Erro no processo!", state="error")
+            answer = f"Erro ao consultar o modelo: {exc}"
+            search_results = []
 
     source_lines = [
         f"- {item.chunk.source}, página {item.chunk.page}, similaridade {item.score:.3f}"
         for item in search_results
     ]
 
+    with st.chat_message("assistant"):
+        if isinstance(answer, str):
+            full_answer = answer
+            st.markdown(full_answer)
+        else:
+            full_answer = st.write_stream(answer)
+            
+        if source_lines:
+            with st.expander("Fontes usadas"):
+                for src in source_lines:
+                    st.write(src)
+
     assistant_message = {
         "role": "assistant",
-        "content": answer,
+        "content": full_answer,
         "sources": source_lines,
     }
     st.session_state.messages.append(assistant_message)
-
-    with st.chat_message("assistant"):
-        st.markdown(answer)
-        if source_lines:
-            with st.expander("Fontes usadas"):
-                for source in source_lines:
-                    st.markdown(source)

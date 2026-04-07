@@ -1,5 +1,19 @@
 .venv/
 __pycache__/
+*.pyc
+
+# Testes e Arquivos soltos
 .pytest_cache/
-.streamlit/
+.teste_connex_supabase.py
+debug_pdf.py
+
+# Caches de Estado do Projeto e Arquivos de Ambiente
 .env
+.sync_state.json
+docs/sil/.sync_state.json
+.streamlit/
+.vscode/
+
+# Ignore de Sistema Operacional
+.DS_Store
+Thumbs.db

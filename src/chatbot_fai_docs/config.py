@@ -16,6 +16,7 @@ class AppConfig:
     embedding_dimension: int
     chunk_size: int
     chunk_overlap: int
+    reranker_model: str
 
     @classmethod
     def from_env(cls, *, docs_dir: Path | None = None) -> "AppConfig":
@@ -30,6 +31,7 @@ class AppConfig:
                 "EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2"
             ).strip(),
             embedding_dimension=int(os.getenv("EMBEDDING_DIMENSION", "384")),
-            chunk_size=int(os.getenv("CHUNK_SIZE", "1200")),
-            chunk_overlap=int(os.getenv("CHUNK_OVERLAP", "200")),
+            chunk_size=int(os.getenv("CHUNK_SIZE", "500")),
+            chunk_overlap=int(os.getenv("CHUNK_OVERLAP", "100")),
+            reranker_model=os.getenv("RERANKER_MODEL", "cross-encoder/ms-marco-MiniLM-L-6-v2").strip(),
         )
