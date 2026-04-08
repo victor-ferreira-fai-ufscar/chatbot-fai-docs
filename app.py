@@ -149,14 +149,16 @@ with st.sidebar:
         model = st.selectbox(
             "Modelo", 
             [
-                "gpt-3.5-turbo",
-                "gpt-4-turbo",
-                "gpt-4o",
-                "gpt-4o-mini",
                 "gpt-4.1",
-                "gpt-4.1-mini"
+                "gpt-4.1-mini",
+                "gpt-5.2",
+                "gpt-5.2-pro",
+                "gpt-5.4-mini",
+                "gpt-5.4-nano",
+                "gpt-5.4-pro",
+                "gpt-5.4"
             ], 
-            index=3
+            index=0
         )
         api_key = st.text_input("API key", value=api_key_default, type="password")
         base_url = base_url_default
