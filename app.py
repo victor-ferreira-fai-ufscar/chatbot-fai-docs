@@ -85,8 +85,9 @@ def load_rag_service(
     embedding_dimension: int,
     chunk_size: int,
     chunk_overlap: int,
+    reranker_model: str,
+    reranker_threshold: float,
 ):
-    _signature = signature
     config = AppConfig(
         docs_dir=ROOT_DIR / "docs" / "sil",
         database_url=database_url,
@@ -94,7 +95,8 @@ def load_rag_service(
         embedding_dimension=embedding_dimension,
         chunk_size=chunk_size,
         chunk_overlap=chunk_overlap,
-        reranker_model=AppConfig.from_env().reranker_model
+        reranker_model=reranker_model,
+        reranker_threshold=reranker_threshold,
     )
     service = RagService(config)
     sync_result = service.sync_documents()
@@ -152,9 +154,7 @@ with st.sidebar:
                 "gpt-4o",
                 "gpt-4o-mini",
                 "gpt-4.1",
-                "gpt-4.1-mini",
-                "gpt-5.2",
-                "gpt-5.2-mini"
+                "gpt-4.1-mini"
             ], 
             index=3
         )
@@ -216,6 +216,16 @@ with st.sidebar:
             value=(env_config.chunk_overlap if env_config else 200),
             step=50,
         )
+        reranker_threshold = st.number_input(
+            "Reranker threshold",
+            value=(env_config.reranker_threshold if env_config else 0.0),
+            step=0.1,
+            format="%.2f"
+        )
+        reranker_model = st.text_input(
+            "Modelo de Rerank",
+            value=(env_config.reranker_model if env_config else "cross-encoder/ms-marco-MiniLM-L-6-v2")
+        )
 
     if st.button("Limpar conversa", use_container_width=True):
         st.session_state.messages = []
@@ -243,6 +253,8 @@ with st.spinner(
             embedding_dimension=int(embedding_dimension),
             chunk_size=int(chunk_size),
             chunk_overlap=int(chunk_overlap),
+            reranker_model=reranker_model,
+            reranker_threshold=float(reranker_threshold),
         )
     except Exception as exc:
         st.error(f"Erro ao preparar o RAG: {exc}")

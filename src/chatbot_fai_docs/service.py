@@ -95,6 +95,9 @@ class RagService:
             status_callback("Aplicando Re-ranking de relevância cruzada...")
         search_results = self.reranker.rerank(question, raw_results, top_k=top_k)
         
+        # Filter by threshold
+        search_results = [res for res in search_results if res.score >= self.config.reranker_threshold]
+        
         if status_callback:
             status_callback("Puxando conexões e montando resposta...")
         answer = self.chat_client.answer(

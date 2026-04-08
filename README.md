@@ -80,5 +80,3 @@ OPENAI_MODEL=gemma3:1b
 ## Próximos passos e Integrações Futuras
 
 1. **OCR Avançado (Fallback Híbrido)**: Adaptar a estrutura Google Cloud Vision para resgatar informações presas em *Scans* onde a extração da CPU resulta vaza ou corrompida.
-2. Adicionar filtros rígidos de busca baseados em Data/Versão ou Títulos Específicos do Tópico do PDF dentro da Query Postgres.
-3. Expandir Chatbot RAG em Omnichannel (FastAPI), separando do Streamlit para deploy em aplicativos mobile, Whatsapp e sistemas acadêmicos corporativos.

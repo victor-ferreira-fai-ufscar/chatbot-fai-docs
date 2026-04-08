@@ -17,6 +17,7 @@ class AppConfig:
     chunk_size: int
     chunk_overlap: int
     reranker_model: str
+    reranker_threshold: float
 
     @classmethod
     def from_env(cls, *, docs_dir: Path | None = None) -> "AppConfig":
@@ -34,4 +35,5 @@ class AppConfig:
             chunk_size=int(os.getenv("CHUNK_SIZE", "500")),
             chunk_overlap=int(os.getenv("CHUNK_OVERLAP", "100")),
             reranker_model=os.getenv("RERANKER_MODEL", "cross-encoder/ms-marco-MiniLM-L-6-v2").strip(),
+            reranker_threshold=float(os.getenv("RERANKER_THRESHOLD", "0.0")),
         )
