@@ -1,29 +1,14 @@
-import hashlib
+import sys
 from pathlib import Path
-
-def get_file_hash(filepath: Path) -> str:
-    """Computes the MD5 hash and appends the file size for robust lightweight syncing."""
-    if not filepath.exists():
-        return ""
-    
-    file_size = filepath.stat().st_size
-    hasher = hashlib.md5()
-    
-    # Read the file in chunks to handle potentially large PDFs
-    with open(filepath, "rb") as f:
-        for chunk in iter(lambda: f.read(4096), b""):
-            hasher.update(chunk)
-            
-    md5_hash = hasher.hexdigest()
-    return f"{md5_hash}_{file_size}"
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 def get_current_date_time_pt_br() -> tuple[str, str]:
     """Retorna a data e hora formatada em PT-BR para o fuso de São Paulo."""
-    from datetime import datetime
     try:
-        from zoneinfo import ZoneInfo
         tz = ZoneInfo("America/Sao_Paulo")
     except Exception:
+        # Fallback caso zoneinfo falhe em alguns ambientes Windows sem tzdata
         from datetime import timezone, timedelta
         tz = timezone(timedelta(hours=-3))
         
@@ -41,3 +26,17 @@ def get_current_date_time_pt_br() -> tuple[str, str]:
     time_str = now.strftime("%H:%M")
     
     return date_str, time_str
+
+def test():
+    print("--- Testando lógica de formatação ---")
+    date_str, time_str = get_current_date_time_pt_br()
+    print(f"Data formatada: {date_str}")
+    print(f"Hora formatada: {time_str}")
+    
+    # Simular a substituição que o ChatClient faria
+    sample_prompt = "Data: {{DATA_ATUAL}} | Hora: {{HORA_ATUAL}}"
+    result = sample_prompt.replace("{{DATA_ATUAL}}", date_str).replace("{{HORA_ATUAL}}", time_str)
+    print(f"Prompt resultante: {result}")
+
+if __name__ == "__main__":
+    test()

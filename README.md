@@ -1,41 +1,54 @@
 # Chatbot FAI Docs
 
-Sistema de RAG Avançado (Retrieval-Augmented Generation) operando localmente e integrando base de conhecimento de PDFs com PostgreSQL (Supabase) via arquitetura *Two-Stage* (Busca Vetorial + Re-ranking).
+Sistema de RAG Avançado (Retrieval-Augmented Generation) operando localmente e integrando base de conhecimento de PDFs com PostgreSQL (Supabase) via arquitetura *Two-Stage* (Busca Vetorial + Re-ranking). O projeto evoluiu para uma arquitetura Full-Stack moderna.
 
-## 🧩 Visão simples da arquitetura
+## 🏗️ Arquitetura do Sistema
 
-Em termos práticos, o fluxo otimizado é:
-`PDFs -> Markdown (PyMuPDF) -> Chunking Geométrico -> HuggingFace Embeddings -> pgvector (Busca Primária) -> Cross-Encoder (Juiz Re-ranker) -> LLM Rápido (Streaming) -> Usuário`
+O projeto adota uma arquitetura cliente-servidor robusta:
+
+- **Frontend (Next.js):** Interface de chat moderna, responsiva e com suporte completo a Markdown, gerenciamento de estado de sessões e histórico de conversas.
+- **Backend (FastAPI):** API REST em Python focada em alta performance, gerenciamento do RAG, streaming de respostas de LLMs (Google GenAI / OpenAI / Ollama) e persistência de dados.
+- **Banco de Dados (PostgreSQL + Supabase):** Armazenamento seguro de embeddings (via `pgvector`) e relacionamento estruturado de histórico de chats usando chaves estrangeiras lógicas (`SERIAL`).
+
+## 🧩 Modos de Operação RAG (Dual-Mode)
+
+O backend possui suporte a dois motores de recuperação de informação, que podem ser alternados:
+
+**1. Supabase RAG (Padrão - Busca Vetorial Clássica)**
+Fluxo prático: `PDFs -> Markdown (PyMuPDF) -> Chunking Geométrico -> Embeddings -> pgvector -> Cross-Encoder -> Streaming LLM`
+
+**2. LightRAG (Grafo de Conhecimento)**
+Utiliza um motor baseado em grafos focados em relacionamentos complexos, conectando-se a um servidor `LightRAG` operando paralelamente.
 
 1. Ler os PDFs extraindo sua formatação inteligente em **Markdown** (`pymupdf4llm`).
 2. Quebrar o texto respeitando fluxogramas e listas.
 3. Gerar embeddings pela CPU nativa sem gastar VRAM.
-4. Recuperar os 20 resultados mais relevantes no Postgres.
-5. Recalcular a relevância lógica (0 a 10) dos 20 por meio do **Re-ranking**.
-6. Enviar apenas os 5 textos perfeitos no *Contexto Limpo* para a IA formatar a resposta na tela letra a letra.
+4. Recuperar os resultados mais relevantes no Postgres.
+5. Recalcular a relevância lógica (0 a 10) por meio do **Re-ranking**.
+6. Enviar o *Contexto Limpo* via streaming para o Frontend renderizar.
 
-## 📦 Funcionalidade das Dependências Principais
+## 📦 Tecnologias e Dependências Principais
 
-- **`pymupdf4llm`**: Transforma os PDFs brutos em strings de Markdown perfeitamente delimitadas (preserva Tabelas, Listas e intersecções). Acabita com textos colados.
-- **`sentence-transformers`**: Motor duplo. Cria os Embeddings (transforma texto em matemática) e, na segunda fase, instancia o `CrossEncoder` que opera a nossa mágica chamada Re-ranking cruzado na recuperação final.
-- **`pgvector` (PostgreSQL)**: Recebe os vetores. Permite buscarmos instantaneamente por Semântica Lógica (Distância de Cosseno) diretamente por linguagem SQL.
-- **`openai` & `google-genai`**: Bibliotecas responsáveis que atuam como clientes de conversa. Suportam localmente o `Ollama` ou na nuvem o Gemini/GPT-4.
-- **`streamlit`**: Empacota o backend como um Chat Dinâmico bonito Web para uso do colaborador.
+### Backend (`/backend`)
+- **FastAPI:** Framework web principal.
+- **`pymupdf4llm`**: Transforma PDFs brutos em Markdown perfeitamente delimitado.
+- **`sentence-transformers`**: Cria Embeddings e instancia o `CrossEncoder` para Re-ranking.
+- **`pgvector` (PostgreSQL)**: Recebe vetores para busca instantânea por similaridade de cosseno.
+- **`LightRAG`**: Integração com servidor dedicado de Grafos de Conhecimento para suporte a Dual-Mode RAG.
+- **`google-genai` / `openai`**: Clientes de LLM (suportando Gemini, GPT-4 ou Ollama local).
 
-## O que cada parte faz
+### Frontend (`/frontend`)
+- **Next.js & React:** Componentização e renderização do Chat.
+- **TailwindCSS:** Estilização utilitária e temas escuros fluidos.
+- **Markdown Parsers:** Renderização profissional de respostas da IA, incluindo tabelas e blocos de código.
 
-- `app.py`: Interface Streamlit, lida com UI e Streaming (`st.write_stream`).
-- `config.py`: Gestão limpa das variáveis de ambiente (`CHUNK_SIZE`, Modelos Rerankers).
-- `pdfs.py`: Leitura rica de PDFs para Markdown e conversão pro banco.
-- `embeddings.py`: Gera os cálculos vetoriais e carrega o Juiz Local Reranker (`CrossEncoder`).
-- `vector_store.py`: Gravação e busca de SQL Rápido no Supabase.
-- `service.py`: Maestro! Orquestra o tempo da pesquisa e filtra (Rerank) os achados.
+## 🚀 Como Rodar o Projeto Localmente
 
-## Como rodar
+O projeto exige que tanto o Backend quanto o Frontend estejam em execução.
 
-### 1. Configurar ambiente (`.env`)
+### 1. Configuração do Backend (`/backend`)
 
-Preencha a chave dos bancos e os parâmetros da Engine:
+Crie o arquivo `backend/.env` (baseado no `.env.example`):
 
 ```env
 DATABASE_URL=postgresql://postgres:<SUA-SENHA>@db.<PROJECT-REF>.supabase.co:5432/postgres
@@ -48,35 +61,51 @@ CHUNK_OVERLAP=100
 EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
 EMBEDDING_DIMENSION=384
 RERANKER_MODEL=cross-encoder/ms-marco-MiniLM-L-6-v2
+
+# Conexão com o motor LightRAG (opcional se não usar a funcionalidade de Grafo)
+LIGHTRAG_API_URL=http://localhost:9621
+
+# API Key do LLM (se usar nuvem)
+GEMINI_API_KEY=sua_chave_aqui
 ```
 
-### 2. Instalar dependências
+Instale as dependências e inicie a API:
 
 ```bash
+cd backend
 uv sync
+uv run uvicorn app.main:app --reload --port 8000
+```
+> *Nota:* O serviço estará rodando em `http://localhost:8000`. A documentação da API fica disponível em `/docs`.
+
+### 2. Configuração do Frontend (`/frontend`)
+
+Crie o arquivo `frontend/.env.local`:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
-### 3. Rodar a interface
+Instale as dependências e inicie o servidor Next.js:
 
 ```bash
-uv run streamlit run app.py
+cd frontend
+npm install
+npm run dev
 ```
+> *Nota:* A interface web estará disponível em `http://localhost:3000`.
 
-Na primeira execução, o app processará os blocos demoradamente e baixará pequenos pedaços do HuggingFace. A partir da segunda inicialização o cache assume, a ferramenta voa em fração de segundos.
+## 🤖 Modelos Open Source (Ollama)
 
-## Modelos Open Source Recomendados (Ollama)
+O backend é projetado para operar 100% offline via Ollama. Exemplo de uso:
 
-O APP não requer internet para conversar, utilize uma destas engrenagens:
 ```env
-# Exemplo 1: Lama (Facebook)
 OPENAI_BASE_URL=http://localhost:11434/v1
 OPENAI_MODEL=llama3.2:3b
-
-# Exemplo 2: Gemma (Google Local)
-OPENAI_BASE_URL=http://localhost:11434/v1
-OPENAI_MODEL=gemma3:1b
 ```
 
-## Próximos passos e Integrações Futuras
+## 🛤️ Próximos Passos e Integrações Futuras
 
-1. **OCR Avançado (Fallback Híbrido)**: Adaptar a estrutura Google Cloud Vision para resgatar informações presas em *Scans* onde a extração da CPU resulta vaza ou corrompida.
+1. **OCR Avançado (Fallback Híbrido)**: Adaptar a estrutura Google Cloud Vision para resgatar informações em *Scans* onde a extração direta da CPU falha.
+2. **Autenticação de Usuários**: Expandir o schema SERIAL para atrelar conversas a usuários logados de forma segura.
+3. **Dockerização Completa**: Atualizar o `docker-compose.yml` para englobar frontend, backend e um possível banco de dados vetorial local de forma unificada.
