@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Bot, User, Mic, Plus, Image, FileText, X } from "lucide-react";
+import { Send, Bot, User, Mic, Plus, Image, FileText, X, Copy, Check } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -17,6 +17,44 @@ interface ChatWindowProps {
   config: any;
   selectedConversationId: number | null;
   onConversationCreated: () => void;
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Erro ao copiar texto: ", err);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-medium transition-all duration-200 border shrink-0 ${
+        copied
+          ? "bg-green-50 text-green-600 border-green-200"
+          : "bg-gray-50/50 text-gray-500 border-gray-200/60 hover:bg-gray-100 hover:text-gray-700"
+      }`}
+      title="Copiar mensagem"
+    >
+      {copied ? (
+        <>
+          <Check size={11} className="stroke-[2.5]" />
+          <span>Copiado!</span>
+        </>
+      ) : (
+        <>
+          <Copy size={11} />
+          <span>Copiar</span>
+        </>
+      )}
+    </button>
+  );
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
@@ -204,22 +242,35 @@ export default function ChatWindow({ config, selectedConversationId, onConversat
                 </div>
               </div>
 
-              {/* Sources and Metadata (Only for assistant and when content exists) */}
-              {m.role === 'assistant' && m.content && m.sources && m.sources.length > 0 && (
-                <div className="px-1 space-y-2 animate-in fade-in duration-500">
-                  <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">
-                    <FileText size={10} /> Fontes Pesquisadas
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {m.sources.map((s, i) => (
-                      <div key={i} className="text-[10px] bg-gray-100 border border-gray-200 text-gray-600 px-2 py-1 rounded transition-colors hover:bg-gray-200">
-                        {s.replace("- ", "").split(",")[0]}
+              {/* Botões de Cópia e Metadados/Fontes */}
+              {m.role === 'user' && m.content && (
+                <div className="px-1 flex justify-end">
+                  <CopyButton text={m.content} />
+                </div>
+              )}
+
+              {m.role === 'assistant' && m.content && (
+                <div className="px-1 space-y-2">
+                  <div className="flex items-center gap-3">
+                    <CopyButton text={m.content} />
+                    {m.genTime && (
+                      <div className="text-[9px] text-gray-400 italic">
+                        Resposta gerada em {m.genTime.toFixed(2)}s
                       </div>
-                    ))}
+                    )}
                   </div>
-                  {m.genTime && (
-                    <div className="text-[9px] text-gray-400 italic">
-                      Resposta gerada em {m.genTime.toFixed(2)}s
+                  {m.sources && m.sources.length > 0 && (
+                    <div className="space-y-2 animate-in fade-in duration-500 mt-1">
+                      <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                        <FileText size={10} /> Fontes Pesquisadas
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {m.sources.map((s, i) => (
+                          <div key={i} className="text-[10px] bg-gray-100 border border-gray-200 text-gray-600 px-2 py-1 rounded transition-colors hover:bg-gray-200">
+                            {s.replace("- ", "").split(",")[0]}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
