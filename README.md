@@ -30,6 +30,7 @@ Utiliza um motor baseado em grafos focados em relacionamentos complexos, conecta
 ## 📦 Tecnologias e Dependências Principais
 
 ### Backend (`/backend`)
+
 - **FastAPI:** Framework web principal.
 - **`pymupdf4llm`**: Transforma PDFs brutos em Markdown perfeitamente delimitado.
 - **`sentence-transformers`**: Cria Embeddings e instancia o `CrossEncoder` para Re-ranking.
@@ -38,6 +39,7 @@ Utiliza um motor baseado em grafos focados em relacionamentos complexos, conecta
 - **`google-genai` / `openai`**: Clientes de LLM (suportando Gemini, GPT-4 ou Ollama local).
 
 ### Frontend (`/frontend`)
+
 - **Next.js & React:** Componentização e renderização do Chat.
 - **TailwindCSS:** Estilização utilitária e temas escuros fluidos.
 - **Markdown Parsers:** Renderização profissional de respostas da IA, incluindo tabelas e blocos de código.
@@ -76,6 +78,7 @@ cd backend
 uv sync
 uv run uvicorn app.main:app --reload --port 8000
 ```
+
 > *Nota:* O serviço estará rodando em `http://localhost:8000`. A documentação da API fica disponível em `/docs`.
 
 ### 2. Configuração do Frontend (`/frontend`)
@@ -93,6 +96,7 @@ cd frontend
 npm install
 npm run dev
 ```
+
 > *Nota:* A interface web estará disponível em `http://localhost:3000`.
 
 ## 🤖 Modelos Open Source (Ollama)
