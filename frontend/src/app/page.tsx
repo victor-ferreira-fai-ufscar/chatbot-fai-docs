@@ -18,7 +18,7 @@ export default function Home() {
 
   // Configurações Globais de Chat
   const [config, setConfig] = useState({
-    ragEngine: "Supabase (Padrão)",
+    ragEngine: "LightRAG (Grafo)",
     lightragMode: "hybrid",
     provider: "OpenAI API",
     model: "gpt-4o-mini",

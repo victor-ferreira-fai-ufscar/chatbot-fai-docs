@@ -196,7 +196,6 @@ export default function Sidebar({
                   onChange={(e) => handleConfigChange("ragEngine", e.target.value)}
                   className="w-full bg-sidebar-hover border-none text-xs rounded p-2 focus:ring-1 focus:ring-accent-blue"
                  >
-                   <option>Supabase (Padrão)</option>
                    <option>LightRAG (Grafo)</option>
                  </select>
                </div>

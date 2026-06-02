@@ -45,42 +45,13 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
             lightrag_api_url=settings.LIGHTRAG_API_URL
         )
 
-        if request.rag_engine == "LightRAG (Grafo)":
-            try:
-                lightrag_service = LightRagService(config=config)
-                answer, _, source_lines = lightrag_service.answer_question_stream(request.question, request.mode)
-            except Exception as e:
-                yield f"data: {json.dumps({'error': str(e)})}\n\n"
-                return
-        else:
-            rag_service = RagService(config)
-            
-            # Buscar histórico para contexto
-            chat_history = []
-            if conversation_id:
-                db_messages = repo.get_messages(conversation_id)
-                chat_history = [{"role": m.role, "content": m.content} for m in db_messages]
-
-            try:
-                answer, search_results = rag_service.answer_question(
-                    question=request.question,
-                    chat_history=chat_history,
-                    settings=ChatSettings(
-                        provider=request.provider,
-                        api_key=settings.OPENAI_API_KEY if request.provider == "OpenAI API" else (settings.GEMINI_API_KEY if request.provider == "Google Gemini" else "ollama"),
-                        model=request.model,
-                        base_url=settings.OLLAMA_BASE_URL if request.provider == "Ollama local" else None
-                    ),
-                    top_k=request.top_k,
-                    reranker_threshold=request.reranker_threshold
-                )
-                source_lines = [
-                    f"- {item.chunk.source}, página {item.chunk.page}, similaridade {item.score:.3f}"
-                    for item in search_results
-                ]
-            except Exception as e:
-                yield f"data: {json.dumps({'error': str(e)})}\n\n"
-                return
+        # Force LightRAG (Grafo) as Supabase/Postgres is deactivated
+        try:
+            lightrag_service = LightRagService(config=config)
+            answer, _, source_lines = lightrag_service.answer_question_stream(request.question, request.mode)
+        except Exception as e:
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+            return
 
         # 2. Processar Resposta (Streaming ou String)
         full_answer = ""
