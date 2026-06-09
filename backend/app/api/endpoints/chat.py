@@ -13,11 +13,9 @@ from src.chatbot_fai_docs.lightrag_service import LightRagService
 router = APIRouter()
 
 def get_repo():
-    # If DEFAULT_RAG_ENGINE is LightRAG, prefer in-memory repo for history persistence
-    if getattr(settings, "DEFAULT_RAG_ENGINE", "") == "LightRAG":
-        repo = get_repo_from_url(None)
-    else:
-        repo = get_repo_from_url(settings.DATABASE_URL)
+    # Persistencia do historico independe do motor RAG: usa Postgres se DATABASE_URL
+    # estiver configurado, senao cai no repo em memoria (fallback de desenvolvimento).
+    repo = get_repo_from_url(settings.DATABASE_URL)
     # ensure_ready is a no-op for in-memory repo
     repo.ensure_ready()
     return repo
@@ -45,10 +43,27 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
             lightrag_api_url=settings.LIGHTRAG_API_URL
         )
 
+        # Carregar historico anterior da conversa (turnos previos) para dar contexto ao LightRAG.
+        # A pergunta atual NAO entra aqui; ela vai separada no parametro `query`.
+        try:
+            prior = repo.get_messages(conversation_id, request.user_id) if conversation_id else []
+            conversation_history = [
+                {"role": m.role, "content": m.content}
+                for m in prior if m.role in ("user", "assistant")
+            ][-(settings.HISTORY_TURNS * 2):]
+        except Exception as e:
+            print(f"Erro ao carregar historico: {e}")
+            conversation_history = []
+
         # Force LightRAG (Grafo) as Supabase/Postgres is deactivated
         try:
             lightrag_service = LightRagService(config=config)
-            answer, _, source_lines = lightrag_service.answer_question_stream(request.question, request.mode)
+            answer, _, source_lines = lightrag_service.answer_question_stream(
+                request.question,
+                request.mode,
+                conversation_history=conversation_history,
+                history_turns=settings.HISTORY_TURNS,
+            )
         except Exception as e:
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
             return
@@ -96,7 +111,14 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
                     print(f"Erro ao gerar título: {e}")
                     suggested_title = request.question[:30] + "..."
                 
-                conversation_id = repo.create_conversation(title=suggested_title, rag_engine=request.rag_engine)
+                conversation_id = repo.create_conversation(
+                    title=suggested_title,
+                    rag_engine=request.rag_engine,
+                    user_id=request.user_id,
+                )
+                repo.add_message(conversation_id, "user", request.question)
+            else:
+                # Conversa existente: persistir a pergunta deste turno (faltava antes)
                 repo.add_message(conversation_id, "user", request.question)
 
             # Salvar resposta da IA

@@ -32,6 +32,8 @@ class Settings(BaseSettings):
     LIGHTRAG_API_URL: str = "http://localhost:9621"
     # Default RAG engine to use when multiple are available: 'LightRAG' or 'Supabase'
     DEFAULT_RAG_ENGINE: str = "LightRAG"
+    # Numero de turnos (pares user/assistant) do historico enviados ao LightRAG como contexto
+    HISTORY_TURNS: int = 5
 
     model_config = SettingsConfigDict(
         env_file=str(PROJECT_ROOT / ".env"),

@@ -109,8 +109,10 @@ class ChatClient:
             full_title = ""
             for chunk in title:
                 if isinstance(chunk, tuple):
-                    _, content = chunk
-                    full_title += content
+                    ctype, content = chunk
+                    # Ignora chunks de metadados (ex.: ("usage", <int>)); só texto entra no título
+                    if ctype == "answer":
+                        full_title += content
                 else:
                     full_title += chunk
             return full_title.strip()

@@ -13,7 +13,9 @@ export default function Home() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [selectedConversationId, setSelectedConversationId] = useState<number | null>(null);
   const [isBackendConnected, setIsBackendConnected] = useState<boolean | null>(null);
-  
+  // ID de sessao do usuario (sem login ainda): gerado e guardado no localStorage
+  const [userId, setUserId] = useState<string | null>(null);
+
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
   // Configurações Globais de Chat
@@ -26,10 +28,11 @@ export default function Home() {
     threshold: 0.0
   });
 
-  // Carregar histórico do backend
-  const fetchHistory = async () => {
+  // Carregar histórico do backend (do usuário da sessão)
+  const fetchHistory = async (uid: string | null = userId) => {
+    if (!uid) return;
     try {
-      const response = await fetch(`${API_BASE_URL}/history/`);
+      const response = await fetch(`${API_BASE_URL}/history/?user_id=${encodeURIComponent(uid)}`);
       if (response.ok) {
         setIsBackendConnected(true);
         const data = await response.json();
@@ -43,7 +46,7 @@ export default function Home() {
     }
   };
 
-  // Carregar persistência e histórico no mount
+  // Inicializar config e ID de sessão no mount
   useEffect(() => {
     const savedConfig = localStorage.getItem("fai_chatbot_config");
     if (savedConfig) {
@@ -53,11 +56,21 @@ export default function Home() {
         console.error("Erro ao carregar config", e);
       }
     }
-    fetchHistory();
-    // Iniciar polling de saúde
-    const healthCheck = setInterval(fetchHistory, 15000);
-    return () => clearInterval(healthCheck);
+    let uid = localStorage.getItem("fai_user_id");
+    if (!uid) {
+      uid = (crypto?.randomUUID?.() ?? `sess-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+      localStorage.setItem("fai_user_id", uid);
+    }
+    setUserId(uid);
   }, []);
+
+  // Buscar histórico e iniciar polling de saúde quando o userId estiver disponível
+  useEffect(() => {
+    if (!userId) return;
+    fetchHistory(userId);
+    const healthCheck = setInterval(() => fetchHistory(userId), 15000);
+    return () => clearInterval(healthCheck);
+  }, [userId]);
 
   // Salvar persistência
   useEffect(() => {
@@ -78,7 +91,7 @@ export default function Home() {
     if (!confirm("Tem certeza que deseja excluir esta conversa?")) return;
 
     try {
-      await fetch(`${API_BASE_URL}/history/${id}`, { method: 'DELETE' });
+      await fetch(`${API_BASE_URL}/history/${id}?user_id=${encodeURIComponent(userId ?? "")}`, { method: 'DELETE' });
       setConversations(conversations.filter((c: any) => c.id !== id));
       if (selectedConversationId === id) setSelectedConversationId(null);
       fetchHistory();
@@ -87,9 +100,18 @@ export default function Home() {
     }
   };
 
-  const handleClearHistory = () => {
-    // Para simplificar, poderíamos deletar todos no backend ou apenas resetar local
-    setConversations([]);
+  const handleClearHistory = async () => {
+    if (!userId) return;
+    if (!confirm("Tem certeza que deseja limpar todo o histórico de conversas?")) return;
+
+    try {
+      await fetch(`${API_BASE_URL}/history/?user_id=${encodeURIComponent(userId)}`, { method: 'DELETE' });
+      setConversations([]);
+      setSelectedConversationId(null);
+      fetchHistory();
+    } catch (e) {
+      console.error("Erro ao limpar histórico", e);
+    }
   };
 
   const toggleSettings = () => {
@@ -126,8 +148,9 @@ export default function Home() {
         />
         
         <div className="flex-1 relative bg-gradient-to-br from-white to-gray-50 flex flex-col">
-          <ChatWindow 
-            config={config} 
+          <ChatWindow
+            config={config}
+            userId={userId}
             selectedConversationId={selectedConversationId}
             onConversationCreated={fetchHistory}
           />

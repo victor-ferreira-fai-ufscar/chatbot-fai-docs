@@ -11,6 +11,7 @@ class ChatMessage(BaseModel):
 class ChatRequest(BaseModel):
     question: str
     conversation_id: Optional[int] = None
+    user_id: str = "guest"
     rag_engine: str = Field("LightRAG (Grafo)", pattern=r"^(LightRAG \(Grafo\)|Supabase \(Padrão\))$")
     mode: str = "hybrid" # Specifical for LightRAG
     provider: str = "OpenAI API"

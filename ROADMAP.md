@@ -22,14 +22,15 @@ Transformar o chatbot atual em uma ferramenta institucional de alta performance,
 * **Leitura de Prints:** Indexar ilustrações e telas de sistemas que hoje são ignoradas.
 * **Referência Detalhada:** [Ver plano técnico](docs/future_vision_api_plan.md)
 
-### 🔹 Fase 3: Persistência e Histórico (SQLite)
+### 🔹 Fase 3: Persistência e Histórico (Supabase)
 
 **Objetivo:** Permitir que o usuário retome conversas e gerencie múltiplos contextos.
 
-* **Banco de Dados Local:** Implementação do `sqlite3` para persistir mensagens e threads.
+* **Banco de Dados Local:** Implementação do `Supabase` para persistir mensagens e threads.
 * **Gestão de Threads:** Identificadores únicos para cada conversa.
 * **Interface Lateral:** Barra lateral com histórico de chats (padrão ChatGPT).
 * **Títulos Automáticos:** Usar a LLM para gerar títulos curtos para cada nova conversa baseando-se na primeira pergunta.
+* **Integração de Contexto RAG:** Enviar o histórico persistido do `Supabase` para o parâmetro de histórico do LightRAG a fim de manter o contexto das conversas.
 
 ### 🔹 Fase 4: Transcrição de Áudio (Speech-to-Text) - [ADIADA]
 

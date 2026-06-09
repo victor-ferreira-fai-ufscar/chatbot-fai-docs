@@ -83,13 +83,25 @@ class PostgresChatRepository:
                     for row in rows
                 ]
 
-    def get_messages(self, conversation_id: int) -> list[MessageRecord]:
+    def get_messages(self, conversation_id: int, user_id: Optional[str] = None) -> list[MessageRecord]:
         with psycopg.connect(self.database_url) as conn:
             with conn.cursor() as cur:
-                cur.execute(
-                    "SELECT id, conversation_id, role, content, metadata, created_at FROM chat_messages WHERE conversation_id = %s ORDER BY id ASC",
-                    (conversation_id,)
-                )
+                if user_id is not None:
+                    cur.execute(
+                        """
+                        SELECT m.id, m.conversation_id, m.role, m.content, m.metadata, m.created_at
+                        FROM chat_messages m
+                        JOIN chat_conversations c ON c.id = m.conversation_id
+                        WHERE m.conversation_id = %s AND c.user_id = %s
+                        ORDER BY m.id ASC
+                        """,
+                        (conversation_id, user_id)
+                    )
+                else:
+                    cur.execute(
+                        "SELECT id, conversation_id, role, content, metadata, created_at FROM chat_messages WHERE conversation_id = %s ORDER BY id ASC",
+                        (conversation_id,)
+                    )
                 rows = cur.fetchall()
                 return [
                     MessageRecord(
@@ -121,10 +133,23 @@ class PostgresChatRepository:
                 )
             conn.commit()
 
-    def delete_conversation(self, conversation_id: int) -> None:
+    def delete_conversation(self, conversation_id: int, user_id: Optional[str] = None) -> None:
         with psycopg.connect(self.database_url) as conn:
             with conn.cursor() as cur:
-                cur.execute("DELETE FROM chat_conversations WHERE id = %s", (conversation_id,))
+                if user_id is not None:
+                    cur.execute(
+                        "DELETE FROM chat_conversations WHERE id = %s AND user_id = %s",
+                        (conversation_id, user_id)
+                    )
+                else:
+                    cur.execute("DELETE FROM chat_conversations WHERE id = %s", (conversation_id,))
+            conn.commit()
+
+    def clear_conversations(self, user_id: str = "guest") -> None:
+        """Remove todas as conversas (e mensagens, via ON DELETE CASCADE) de um usuario."""
+        with psycopg.connect(self.database_url) as conn:
+            with conn.cursor() as cur:
+                cur.execute("DELETE FROM chat_conversations WHERE user_id = %s", (user_id,))
             conn.commit()
 
 
@@ -151,7 +176,11 @@ class InMemoryChatRepository:
     def list_conversations(self, user_id: str = "guest") -> list[ConversationRecord]:
         return [c for c in self._conversations if c.user_id == user_id]
 
-    def get_messages(self, conversation_id: int) -> list[MessageRecord]:
+    def get_messages(self, conversation_id: int, user_id: Optional[str] = None) -> list[MessageRecord]:
+        if user_id is not None:
+            owner = next((c for c in self._conversations if c.id == conversation_id), None)
+            if owner is None or owner.user_id != user_id:
+                return []
         return self._messages.get(conversation_id, [])
 
     def add_message(self, conversation_id: int, role: str, content: str, metadata: Optional[dict] = None) -> None:
@@ -165,10 +194,22 @@ class InMemoryChatRepository:
                 c.title = new_title
                 return
 
-    def delete_conversation(self, conversation_id: int) -> None:
-        self._conversations = [c for c in self._conversations if c.id != conversation_id]
+    def delete_conversation(self, conversation_id: int, user_id: Optional[str] = None) -> None:
+        if user_id is not None:
+            self._conversations = [
+                c for c in self._conversations
+                if not (c.id == conversation_id and c.user_id == user_id)
+            ]
+        else:
+            self._conversations = [c for c in self._conversations if c.id != conversation_id]
         if conversation_id in self._messages:
             del self._messages[conversation_id]
+
+    def clear_conversations(self, user_id: str = "guest") -> None:
+        ids = [c.id for c in self._conversations if c.user_id == user_id]
+        self._conversations = [c for c in self._conversations if c.user_id != user_id]
+        for cid in ids:
+            self._messages.pop(cid, None)
 
 
 def get_repo_from_url(database_url: Optional[str]):

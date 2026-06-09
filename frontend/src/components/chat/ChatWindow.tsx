@@ -15,6 +15,7 @@ interface Message {
 
 interface ChatWindowProps {
   config: any;
+  userId: string | null;
   selectedConversationId: number | null;
   onConversationCreated: () => void;
 }
@@ -24,7 +25,24 @@ function CopyButton({ text }: { text: string }) {
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(text);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.style.position = "fixed";
+        textarea.style.top = "0";
+        textarea.style.left = "0";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        const successful = document.execCommand("copy");
+        document.body.removeChild(textarea);
+        if (!successful) {
+          throw new Error("execCommand copy failed");
+        }
+      }
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
@@ -59,7 +77,7 @@ function CopyButton({ text }: { text: string }) {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
-export default function ChatWindow({ config, selectedConversationId, onConversationCreated }: ChatWindowProps) {
+export default function ChatWindow({ config, userId, selectedConversationId, onConversationCreated }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>([
     { role: "assistant", content: "Olá! Como posso ajudar você hoje com os documentos da FAI-Ufscar?" }
   ]);
@@ -77,7 +95,7 @@ export default function ChatWindow({ config, selectedConversationId, onConversat
       const fetchMessages = async () => {
         setIsTyping(true);
         try {
-          const response = await fetch(`${API_BASE_URL}/history/${selectedConversationId}/messages`);
+          const response = await fetch(`${API_BASE_URL}/history/${selectedConversationId}/messages?user_id=${encodeURIComponent(userId ?? "")}`);
           if (response.ok) {
             const data = await response.json();
             // Map backend messages to frontend format
@@ -136,6 +154,7 @@ export default function ChatWindow({ config, selectedConversationId, onConversat
         body: JSON.stringify({
           question: userMessage,
           conversation_id: conversationId,
+          user_id: userId ?? "guest",
           rag_engine: config.ragEngine,
           mode: config.lightragMode,
           provider: config.provider,

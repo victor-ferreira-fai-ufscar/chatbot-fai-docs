@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 import requests
 import sys
+from urllib.parse import urlsplit
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api.router import api_router
+from src.chatbot_fai_docs.repository import get_repo_from_url
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -39,6 +41,31 @@ def check_lightrag_available():
         # Reraise to stop app startup
         raise
 
+
+@app.on_event("startup")
+def check_database_connection():
+    """Loga se a conexao com o banco de historico (Supabase/Postgres) teve sucesso.
+    Nao aborta o startup: sem banco, a aplicacao usa o repositorio em memoria como fallback.
+    """
+    if not settings.DATABASE_URL:
+        print("[DB] DATABASE_URL nao configurada -> usando historico EM MEMORIA (nao persistente).")
+        return
+
+    # Esconde a senha ao logar o destino da conexao
+    try:
+        parts = urlsplit(settings.DATABASE_URL)
+        target = f"{parts.hostname}:{parts.port or 5432}{parts.path or ''}"
+    except Exception:
+        target = "(endereco nao identificado)"
+
+    try:
+        repo = get_repo_from_url(settings.DATABASE_URL)
+        repo.ensure_ready()  # conecta e garante as tabelas chat_conversations/chat_messages
+        print(f"[DB] Conexao com Supabase/Postgres OK em {target} (tabelas de historico prontas).")
+    except Exception as e:
+        print(f"[DB] FALHA ao conectar com Supabase/Postgres em {target}: {e}")
+        print("[DB] O historico de conversas NAO sera persistido ate a conexao ser restabelecida.")
+
 # CORS Configuration
 # Em produção, substitua "*" pelos domínios específicos do frontend
 app.add_middleware(
@@ -48,8 +75,8 @@ app.add_middleware(
         "http://127.0.0.1:3000",
         "http://localhost:3001",
         "http://127.0.0.1:3001",
-        "http://200.136.209.173:3000",
-        "http://200.136.209.173:3001",
+        "http://200.136.209.163:3000",
+        "http://200.136.209.163:3001",
     ],
     allow_credentials=True,
     allow_methods=["*"],
