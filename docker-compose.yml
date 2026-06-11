@@ -1,19 +1,57 @@
-version: '3.8'
-
+# Stack completa: LightRAG (grafo) + Backend FastAPI + Frontend Next.js.
+# Todos em network_mode: host para alcancar o Ollama do host (127.0.0.1:11434)
+# sem precisar reconfigura-lo — mesmo padrao do open-webui nesta maquina.
+#  - frontend: 0.0.0.0:3000 (acessivel pela rede)
+#  - backend:  0.0.0.0:8000 (acessivel pela rede; CORS restrito ao frontend)
+#  - lightrag: 127.0.0.1:9621 (APENAS local — sem autenticacao, nao expor)
 services:
+  lightrag:
+    image: ghcr.io/hkuds/lightrag:latest
+    container_name: fai_lightrag
+    network_mode: host
+    environment:
+      # Exposto na rede COM autenticacao: toda chamada a API exige o header
+      # X-API-Key (mesma chave em LIGHTRAG_API_KEY do .env, usada pelo backend).
+      HOST: "0.0.0.0"
+      PORT: "9621"
+      LIGHTRAG_API_KEY: 55aa1447174614ba21604f88fc355e46b75327f2e45c949a
+      WORKING_DIR: /app/data/rag_storage
+      INPUT_DIR: /app/data/inputs
+      # LLM e embeddings 100% locais via Ollama do host
+      LLM_BINDING: ollama
+      LLM_MODEL: gemma4:31b
+      LLM_BINDING_HOST: http://127.0.0.1:11434
+      # 16k por requisicao x 2 slots paralelos do Ollama = 32k total na VRAM.
+      # MAX_TOTAL_TOKENS limita o contexto montado pelo LightRAG para caber nos 16k.
+      OLLAMA_LLM_NUM_CTX: "16384"
+      MAX_TOTAL_TOKENS: "13000"
+      EMBEDDING_BINDING: ollama
+      EMBEDDING_MODEL: bge-m3:latest
+      EMBEDDING_DIM: "1024"
+      EMBEDDING_BINDING_HOST: http://127.0.0.1:11434
+      OLLAMA_EMBEDDING_NUM_CTX: "8192"
+      SUMMARY_LANGUAGE: Portuguese
+      # Deve casar com OLLAMA_NUM_PARALLEL do host (drop-in systemd --user do
+      # Ollama): mais workers que slots faz a fila estourar timeout (ReadTimeout).
+      MAX_ASYNC: "2"
+      TIMEOUT: "600"
+    volumes:
+      - ./lightrag/data/rag_storage:/app/data/rag_storage
+      - ./lightrag/data/inputs:/app/data/inputs
+    restart: always
+
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: fai_chatbot_backend
-    ports:
-      - "8000:8000"
+    network_mode: host
     env_file:
       - .env
     volumes:
       - ./docs:/app/docs
-      # Mapear a pasta de estado de sincronização
-      - ./docs/sil/.sync_state.json:/app/docs/sil/.sync_state.json
+    depends_on:
+      - lightrag
     restart: always
 
   frontend:
@@ -21,12 +59,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: fai_chatbot_frontend
-    ports:
-      - "3000:3000"
+    network_mode: host
     depends_on:
       - backend
     restart: always
-
-networks:
-  default:
-    name: fai_network

@@ -70,7 +70,8 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
             chunk_overlap=settings.CHUNK_OVERLAP,
             reranker_model=settings.RERANKER_MODEL,
             reranker_threshold=settings.RERANKER_THRESHOLD,
-            lightrag_api_url=lightrag_api_url
+            lightrag_api_url=lightrag_api_url,
+            lightrag_api_key=settings.LIGHTRAG_API_KEY,
         )
 
         # Carregar historico anterior da conversa (turnos previos) para dar contexto ao LightRAG.
@@ -153,7 +154,7 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
                 resolver_settings = ChatSettings(
                     provider="Ollama local" if not settings.OPENAI_API_KEY else "OpenAI API",
                     api_key="ollama" if not settings.OPENAI_API_KEY else settings.OPENAI_API_KEY,
-                    model="llama3.2:3b" if not settings.OPENAI_API_KEY else "gpt-4o-mini",
+                    model=settings.OLLAMA_MODEL if not settings.OPENAI_API_KEY else "gpt-4o-mini",
                     base_url=settings.OLLAMA_BASE_URL if not settings.OPENAI_API_KEY else None,
                 )
                 decision = resolve_document_request(
@@ -196,7 +197,7 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
                 title_settings = ChatSettings(
                     provider="Ollama local" if not settings.OPENAI_API_KEY else "OpenAI API",
                     api_key="ollama" if not settings.OPENAI_API_KEY else settings.OPENAI_API_KEY,
-                    model="llama3.2:3b" if not settings.OPENAI_API_KEY else "gpt-4o-mini",
+                    model=settings.OLLAMA_MODEL if not settings.OPENAI_API_KEY else "gpt-4o-mini",
                     base_url=settings.OLLAMA_BASE_URL if not settings.OPENAI_API_KEY else None
                 )
                 try:

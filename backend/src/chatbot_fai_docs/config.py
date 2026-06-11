@@ -19,6 +19,8 @@ class AppConfig:
     reranker_model: str
     reranker_threshold: float
     lightrag_api_url: str
+    # Chave enviada no header X-API-Key quando o servidor LightRAG exige autenticacao
+    lightrag_api_key: str | None = None
 
     @classmethod
     def from_env(cls, *, docs_dir: Path | None = None) -> "AppConfig":
@@ -36,4 +38,5 @@ class AppConfig:
             reranker_model=os.getenv("RERANKER_MODEL", "cross-encoder/ms-marco-MiniLM-L-6-v2").strip(),
             reranker_threshold=float(os.getenv("RERANKER_THRESHOLD", "0.0")),
             lightrag_api_url=os.getenv("LIGHTRAG_API_URL", "http://localhost:9621").strip(),
+            lightrag_api_key=(os.getenv("LIGHTRAG_API_KEY") or "").strip() or None,
         )

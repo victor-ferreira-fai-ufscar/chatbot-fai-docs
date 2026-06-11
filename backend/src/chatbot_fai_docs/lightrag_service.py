@@ -76,7 +76,10 @@ class LightRagService:
 
         # O timeout evita congelamentos indefinidos. 60s em geral é suficiente para a resposta chegar.
         # Caso GraphRAG demore, aumentamos.
-        resp = requests.post(f"{self.config.lightrag_api_url}/query/stream", json=payload, stream=True, timeout=120)
+        headers = {}
+        if self.config.lightrag_api_key:
+            headers["X-API-Key"] = self.config.lightrag_api_key
+        resp = requests.post(f"{self.config.lightrag_api_url}/query/stream", json=payload, stream=True, timeout=120, headers=headers)
         resp.raise_for_status()
 
         # Conjunto de manuais reais conhecidos (para so exibir fontes quando a referencia

@@ -26,12 +26,17 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: Optional[str] = None
     GEMINI_API_KEY: Optional[str] = None
     OLLAMA_BASE_URL: str = "http://localhost:11434/v1"
+    # Modelo do Ollama usado em tarefas auxiliares (titulo de conversa,
+    # resolucao de documentos) quando nao ha OPENAI_API_KEY configurada.
+    OLLAMA_MODEL: str = "llama3.2:3b"
     
     # External Services
     DATABASE_URL: Optional[str] = None
     LIGHTRAG_API_URL: str = "http://localhost:9621"
     # Lista de candidatos (separados por virgula); o backend usa o primeiro acessivel.
     LIGHTRAG_API_URLS: Optional[str] = None
+    # API key do servidor LightRAG (header X-API-Key), usada quando ele exige autenticacao
+    LIGHTRAG_API_KEY: Optional[str] = None
     # Default RAG engine to use when multiple are available: 'LightRAG' or 'Supabase'
     DEFAULT_RAG_ENGINE: str = "LightRAG"
     # Numero de turnos (pares user/assistant) do historico enviados ao LightRAG como contexto

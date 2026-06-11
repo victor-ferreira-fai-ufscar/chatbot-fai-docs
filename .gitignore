@@ -11,6 +11,9 @@ debug_pdf.py
 .env
 .sync_state.json
 docs/sil/.sync_state.json
+
+# Dados locais do LightRAG (grafo, vetores e copias dos PDFs de entrada)
+lightrag/data/
 .streamlit/
 .vscode/
 
