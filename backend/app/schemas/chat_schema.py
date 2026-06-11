@@ -8,8 +8,14 @@ class ChatMessage(BaseModel):
     gen_time: Optional[float] = None
     usage: Optional[int] = None
 
+class QuotedMessage(BaseModel):
+    """Mensagem anterior citada/mencionada pelo usuario (estilo "responder" do WhatsApp)."""
+    role: str = Field("assistant", pattern="^(user|assistant)$")
+    content: str
+
 class ChatRequest(BaseModel):
     question: str
+    quoted: Optional[QuotedMessage] = None
     conversation_id: Optional[int] = None
     user_id: str = "guest"
     rag_engine: str = Field("LightRAG (Grafo)", pattern=r"^(LightRAG \(Grafo\)|Supabase \(Padrão\))$")

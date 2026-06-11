@@ -27,6 +27,13 @@ Utiliza um motor baseado em grafos focados em relacionamentos complexos, conecta
 5. Recalcular a relevância lógica (0 a 10) por meio do **Re-ranking**.
 6. Enviar o *Contexto Limpo* via streaming para o Frontend renderizar.
 
+## 💬 Funcionalidades de Conversa e Entrega de Documentos
+
+- **Entrega de Documentos com Resolução por IA:** os manuais ficam num bucket privado do Supabase Storage. Quando o usuário pede um arquivo em linguagem natural ("me envia esse documento"), um resolvedor por IA usa o **histórico da conversa** e os **documentos citados** para identificar **qual** arquivo enviar e anexa um link assinado temporário. Se o pedido for ambíguo, o assistente **pergunta qual documento** deseja.
+- **Fontes Clicáveis:** os chips de "Fontes Pesquisadas" abaixo de cada resposta abrem/baixam o documento original via URL assinada.
+- **Citação / Menção de Mensagem (estilo WhatsApp):** botão "Responder" em qualquer mensagem que cita o trecho anterior, o envia como contexto explícito para a IA e persiste a citação no histórico.
+- **Navegação:** setinha "ir para a última mensagem" acima do input, com auto-seguir inteligente durante o streaming.
+
 ## 📦 Tecnologias e Dependências Principais
 
 ### Backend (`/backend`)
@@ -69,9 +76,39 @@ LIGHTRAG_API_URL=http://localhost:9621
 
 # API Key do LLM (se usar nuvem)
 GEMINI_API_KEY=sua_chave_aqui
+OPENAI_API_KEY=sua_chave_aqui
+
+# Supabase Storage — repositório de documentos e entrega via URL assinada
+# (necessário para a entrega de documentos com resolução por IA)
+SUPABASE_URL=https://<seu-host-supabase>
+SERVICE_ROLE_KEY=sua_service_role_key
+SUPABASE_BUCKET=manuais
+SIGNED_URL_TTL=3600
 ```
 
-Instale as dependências e inicie a API:
+Instale as dependências e inicie a API usando uma das opções abaixo:
+
+#### Opção A: Utilizando `venv` padrão (Recomendado se não usar `uv`)
+
+**No Windows (PowerShell):**
+```powershell
+cd backend
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python -m uvicorn app.main:app --reload --port 8000
+```
+
+**No Linux/macOS:**
+```bash
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python -m uvicorn app.main:app --reload --port 8000
+```
+
+#### Opção B: Utilizando `uv` (Gerenciador rápido)
 
 ```bash
 cd backend

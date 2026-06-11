@@ -1,9 +1,14 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Bot, User, Mic, Plus, Image, FileText, X, Copy, Check } from "lucide-react";
+import { Send, Bot, User, Mic, Plus, Image, FileText, X, Copy, Check, Download, Reply, ArrowDown } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+
+interface QuotedRef {
+  role: "user" | "assistant";
+  content: string;
+}
 
 interface Message {
   role: "user" | "assistant";
@@ -11,6 +16,7 @@ interface Message {
   sources?: string[];
   genTime?: number;
   usage?: number;
+  quoted?: QuotedRef;
 }
 
 interface ChatWindowProps {
@@ -77,15 +83,73 @@ function CopyButton({ text }: { text: string }) {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
+// Extrai o nome do arquivo de uma linha de fonte ("- arquivo.pdf (Ref ID: 123)")
+function extractFilename(sourceLine: string): string {
+  return sourceLine
+    .replace(/^-\s*/, "")
+    .replace(/\s*\(Ref ID:.*\)\s*$/i, "")
+    .trim();
+}
+
+// Gera um trecho curto e limpo (sem marcações de markdown) de uma mensagem citada.
+function quotePreview(text: string, max = 140): string {
+  const clean = (text || "")
+    .replace(/```[\s\S]*?```/g, " ")          // blocos de código
+    .replace(/[#>*_`~\-]+/g, " ")              // símbolos de markdown
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")   // links -> só o texto
+    .replace(/\s+/g, " ")
+    .trim();
+  return clean.length > max ? clean.slice(0, max).trimEnd() + "…" : clean;
+}
+
+// Bloco visual da mensagem citada (estilo "responder" do WhatsApp).
+function QuotedBlock({ quoted, onUserBubble }: { quoted: QuotedRef; onUserBubble?: boolean }) {
+  const label = quoted.role === "assistant" ? "Assistente" : "Você";
+  return (
+    <div
+      className={`mb-1.5 rounded-md border-l-[3px] px-2.5 py-1.5 text-[11px] leading-snug ${
+        onUserBubble
+          ? "border-white/70 bg-white/15 text-white/90"
+          : "border-accent-blue/60 bg-accent-blue/5 text-gray-600"
+      }`}
+    >
+      <div className={`font-semibold text-[10px] mb-0.5 ${onUserBubble ? "text-white/90" : "text-accent-blue"}`}>
+        {label}
+      </div>
+      <div className="line-clamp-2 opacity-90">{quotePreview(quoted.content)}</div>
+    </div>
+  );
+}
+
+// Botão "Responder" (mencionar mensagem como contexto).
+function ReplyButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-medium transition-all duration-200 border shrink-0 bg-gray-50/50 text-gray-500 border-gray-200/60 hover:bg-gray-100 hover:text-gray-700"
+      title="Responder / mencionar esta mensagem"
+    >
+      <Reply size={11} />
+      <span>Responder</span>
+    </button>
+  );
+}
+
 export default function ChatWindow({ config, userId, selectedConversationId, onConversationCreated }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>([
     { role: "assistant", content: "Olá! Como posso ajudar você hoje com os documentos da FAI-Ufscar?" }
   ]);
   const [input, setInput] = useState("");
+  const [replyingTo, setReplyingTo] = useState<QuotedRef | null>(null);
   const [showAttachments, setShowAttachments] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [conversationId, setConversationId] = useState<number | null>(null);
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const attachmentRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  // Rastreia se o usuario esta perto do fim (para auto-seguir novas mensagens sem "puxar" quem rolou para cima).
+  const atBottomRef = useRef(true);
 
   // Sync internal conversationId with prop and fetch messages if needed
   useEffect(() => {
@@ -104,7 +168,8 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
               content: m.content,
               sources: m.metadata?.sources,
               genTime: m.metadata?.gen_time,
-              usage: m.metadata?.usage
+              usage: m.metadata?.usage,
+              quoted: m.metadata?.quoted
             })));
           }
         } catch (e) {
@@ -131,16 +196,40 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
+    messagesEndRef.current?.scrollIntoView({ behavior, block: "end" });
+  };
+
+  // Detecta a distancia ate o fim: controla a visibilidade da setinha e o auto-seguir.
+  const handleMessagesScroll = () => {
+    const el = messagesContainerRef.current;
+    if (!el) return;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    atBottomRef.current = distanceFromBottom < 80;
+    setShowScrollToBottom(distanceFromBottom > 160);
+  };
+
+  // Ao chegarem novas mensagens (ou chunks de streaming), segue o fim apenas se o
+  // usuario ja estava perto do fim — quem rolou para cima nao e "puxado".
+  useEffect(() => {
+    if (atBottomRef.current) {
+      scrollToBottom("auto");
+    }
+  }, [messages]);
+
   const handleSend = async () => {
     if (!input.trim() || isTyping) return;
     
     const userMessage = input.trim();
+    const quoted = replyingTo;
     setInput("");
+    setReplyingTo(null);
     setShowAttachments(false);
     setIsTyping(true);
+    atBottomRef.current = true; // ao enviar, acompanha a resposta ate o fim
 
-    // Add user message to UI
-    setMessages(prev => [...prev, { role: "user", content: userMessage }]);
+    // Add user message to UI (com a citação, se houver)
+    setMessages(prev => [...prev, { role: "user", content: userMessage, quoted: quoted ?? undefined }]);
 
     // Prepare assistant placeholder message
     setMessages(prev => [...prev, { role: "assistant", content: "" }]);
@@ -153,6 +242,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
         },
         body: JSON.stringify({
           question: userMessage,
+          quoted: quoted ?? null,
           conversation_id: conversationId,
           user_id: userId ?? "guest",
           rag_engine: config.ragEngine,
@@ -232,10 +322,34 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
     }
   };
 
+  // Busca a URL assinada da fonte e abre o documento para download
+  const handleDownloadSource = async (sourceLine: string) => {
+    const filename = extractFilename(sourceLine);
+    if (!filename) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/documents/download-url?name=${encodeURIComponent(filename)}`);
+      if (res.ok) {
+        const data = await res.json();
+        window.open(data.signed_url, "_blank", "noopener,noreferrer");
+      } else if (res.status === 404) {
+        alert("Este documento ainda não está disponível para download no repositório.");
+      } else {
+        alert("Não foi possível obter o documento no momento.");
+      }
+    } catch (e) {
+      console.error("Erro ao baixar documento", e);
+      alert("Erro de conexão ao tentar baixar o documento.");
+    }
+  };
+
   return (
     <div className="flex flex-col h-full bg-gray-50/30">
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+      <div
+        ref={messagesContainerRef}
+        onScroll={handleMessagesScroll}
+        className="flex-1 overflow-y-auto p-6 space-y-6"
+      >
         {messages.map((m, idx) => (
           <div key={idx} className={`flex gap-4 ${m.role === 'user' ? 'justify-end' : ''}`}>
             {m.role === 'assistant' && (
@@ -246,10 +360,13 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
             
             <div className={`max-w-[85%] flex flex-col gap-2 ${m.role === 'user' ? 'items-end' : ''}`}>
               <div className={`rounded-2xl px-4 py-2 shadow-sm ${
-                m.role === 'user' 
-                  ? 'bg-accent-blue text-white rounded-tr-none' 
+                m.role === 'user'
+                  ? 'bg-accent-blue text-white rounded-tr-none'
                   : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none'
               }`}>
+                {m.quoted && m.quoted.content && (
+                  <QuotedBlock quoted={m.quoted} onUserBubble={m.role === 'user'} />
+                )}
                 <div className={`prose prose-sm max-w-none prose-p:leading-relaxed ${
                   m.role === 'user'
                     ? 'prose-invert prose-p:text-white prose-headings:text-white prose-a:text-blue-200'
@@ -261,9 +378,10 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
                 </div>
               </div>
 
-              {/* Botões de Cópia e Metadados/Fontes */}
+              {/* Botões de Cópia, Responder e Metadados/Fontes */}
               {m.role === 'user' && m.content && (
-                <div className="px-1 flex justify-end">
+                <div className="px-1 flex justify-end gap-2">
+                  <ReplyButton onClick={() => setReplyingTo({ role: 'user', content: m.content })} />
                   <CopyButton text={m.content} />
                 </div>
               )}
@@ -272,6 +390,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
                 <div className="px-1 space-y-2">
                   <div className="flex items-center gap-3">
                     <CopyButton text={m.content} />
+                    <ReplyButton onClick={() => setReplyingTo({ role: 'assistant', content: m.content })} />
                     {m.genTime && (
                       <div className="text-[9px] text-gray-400 italic">
                         Resposta gerada em {m.genTime.toFixed(2)}s
@@ -285,9 +404,15 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {m.sources.map((s, i) => (
-                          <div key={i} className="text-[10px] bg-gray-100 border border-gray-200 text-gray-600 px-2 py-1 rounded transition-colors hover:bg-gray-200">
-                            {s.replace("- ", "").split(",")[0]}
-                          </div>
+                          <button
+                            key={i}
+                            onClick={() => handleDownloadSource(s)}
+                            className="group/src flex items-center gap-1 text-[10px] bg-gray-100 border border-gray-200 text-gray-600 px-2 py-1 rounded transition-colors hover:bg-accent-blue/10 hover:text-accent-blue hover:border-accent-blue/30"
+                            title={`Baixar ${extractFilename(s)}`}
+                          >
+                            <Download size={10} className="opacity-60 group-hover/src:opacity-100" />
+                            {extractFilename(s)}
+                          </button>
                         ))}
                       </div>
                     </div>
@@ -303,10 +428,44 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
             )}
           </div>
         ))}
+        {/* Sentinela: alvo do scroll para o fim da conversa */}
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Input Area */}
-      <div className="p-4 bg-white border-t border-gray-100 shadow-[0_-4px_10px_rgba(0,0,0,0.02)]">
+      <div className="relative p-4 bg-white border-t border-gray-100 shadow-[0_-4px_10px_rgba(0,0,0,0.02)]">
+        {/* Setinha "ir para a última mensagem" (aparece ao rolar para cima) */}
+        {showScrollToBottom && (
+          <button
+            onClick={() => scrollToBottom("smooth")}
+            className="absolute -top-12 left-1/2 -translate-x-1/2 w-9 h-9 rounded-full bg-white border border-gray-200 text-gray-500 shadow-lg flex items-center justify-center transition-all hover:text-accent-blue hover:border-accent-blue/40 hover:bg-accent-blue/5 active:scale-95 animate-in fade-in slide-in-from-bottom-2 duration-200 z-40"
+            title="Ir para a última mensagem"
+            aria-label="Ir para a última mensagem"
+          >
+            <ArrowDown size={18} />
+          </button>
+        )}
+        {/* Barra de "respondendo a" (mensagem citada) */}
+        {replyingTo && (
+          <div className="max-w-4xl mx-auto mb-2 flex items-stretch gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200">
+            <div className="flex-1 flex items-start gap-2 rounded-lg border-l-[3px] border-accent-blue bg-accent-blue/5 px-3 py-2">
+              <Reply size={14} className="text-accent-blue mt-0.5 shrink-0" />
+              <div className="min-w-0">
+                <div className="text-[10px] font-semibold text-accent-blue">
+                  Respondendo a {replyingTo.role === 'assistant' ? 'Assistente' : 'Você'}
+                </div>
+                <div className="text-[11px] text-gray-600 truncate">{quotePreview(replyingTo.content)}</div>
+              </div>
+            </div>
+            <button
+              onClick={() => setReplyingTo(null)}
+              className="px-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+              title="Cancelar"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        )}
         <div className="max-w-4xl mx-auto flex gap-3 items-end relative">
           
           {/* Attachments Dropdown */}

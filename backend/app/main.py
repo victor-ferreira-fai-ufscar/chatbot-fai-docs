@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api.router import api_router
 from src.chatbot_fai_docs.repository import get_repo_from_url
+from src.chatbot_fai_docs.lightrag_resolver import resolve_lightrag_url
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -19,27 +20,13 @@ app = FastAPI(
 
 @app.on_event("startup")
 def check_lightrag_available():
-    """Abort startup if LightRAG is configured as default but not reachable."""
-    try:
-        if getattr(settings, "DEFAULT_RAG_ENGINE", "") == "LightRAG":
-            url = settings.LIGHTRAG_API_URL.rstrip("/")
-            # Try health endpoints commonly exposed; fall back to root
-            candidates = [f"{url}/health", url]
-            ok = False
-            for u in candidates:
-                try:
-                    resp = requests.get(u, timeout=3)
-                    if resp.status_code < 400:
-                        ok = True
-                        break
-                except Exception:
-                    continue
-            if not ok:
-                print(f"LightRAG not available at {settings.LIGHTRAG_API_URL}; aborting startup")
-                raise RuntimeError("LightRAG engine unreachable; server will not start when LightRAG is default")
-    except Exception as e:
-        # Reraise to stop app startup
-        raise
+    """Registra o endpoint do LightRAG ativo no startup."""
+    if getattr(settings, "DEFAULT_RAG_ENGINE", "") != "LightRAG":
+        return
+
+    candidates = settings.lightrag_candidates()
+    active = resolve_lightrag_url(candidates)
+    print(f"[LightRAG] Endpoint ativo: {active} (candidatos: {candidates})")
 
 
 @app.on_event("startup")
@@ -77,6 +64,13 @@ app.add_middleware(
         "http://127.0.0.1:3001",
         "http://200.136.209.163:3000",
         "http://200.136.209.163:3001",
+        "http://200.136.209.180:3000",
+        "http://200.136.209.180:3001",
+        "http://200.136.209.173:3000",
+        "http://200.136.209.173:3001",
+        "http://192.168.223.150:3000",
+        "http://192.168.223.150:3001",
+
     ],
     allow_credentials=True,
     allow_methods=["*"],

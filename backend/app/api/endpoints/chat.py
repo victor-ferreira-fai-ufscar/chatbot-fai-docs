@@ -1,4 +1,5 @@
 import json
+import re
 import time
 import requests
 from fastapi import APIRouter, HTTPException, Depends
@@ -9,8 +10,36 @@ from src.chatbot_fai_docs import AppConfig, RagService
 from src.chatbot_fai_docs.llm import ChatSettings, ChatClient
 from src.chatbot_fai_docs.repository import get_repo_from_url
 from src.chatbot_fai_docs.lightrag_service import LightRagService
+from src.chatbot_fai_docs.lightrag_resolver import resolve_lightrag_url
+from src.chatbot_fai_docs.storage_service import StorageService
+from src.chatbot_fai_docs.document_resolver import resolve_document_request
 
 router = APIRouter()
+
+# Pre-filtro barato (regex) para decidir se vale a pena acionar o resolvedor de
+# documentos por IA — evita uma chamada extra de LLM em perguntas puramente
+# informativas. A decisao final (intencao real + qual documento) e do LLM.
+# Sem \b final para casar conjugacoes (enviar, baixar, compartilhar...).
+DOWNLOAD_INTENT_RE = re.compile(
+    r"(?i)\b(envi[ae]|mand[ae]|baix[ae]|download|compartilh[ae]|disponibiliz[ae]|"
+    r"me\s+passa|quero|gostaria|preciso|obter)"
+)
+DOC_NOUN_RE = re.compile(r"(?i)\b(arquivo|documento|manual|pdf|c[oó]pia|material)\b")
+# Pronomes/referencias que apontam para um documento ja mencionado no contexto
+# (ex.: "me envia esse documento", "manda ele", "quero o anterior").
+DOC_REF_RE = re.compile(
+    r"(?i)\b(esse|essa|este|esta|aquele|aquela|isso|ele|ela|anterior|"
+    r"citad[oa]|mencionad[oa]|acima|mesmo)\b"
+)
+
+
+def _maybe_download_request(question: str) -> bool:
+    """Pre-filtro: ha verbo de envio/obtencao + um alvo (substantivo de documento
+    OU um pronome/referencia)? Se sim, o resolvedor por IA decide o resto."""
+    has_verb = bool(DOWNLOAD_INTENT_RE.search(question))
+    has_target = bool(DOC_NOUN_RE.search(question) or DOC_REF_RE.search(question))
+    return has_verb and has_target
+
 
 def get_repo():
     # Persistencia do historico independe do motor RAG: usa Postgres se DATABASE_URL
@@ -30,7 +59,8 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
         start_time = time.perf_counter()
         conversation_id = request.conversation_id
         
-        # 1. Preparar Contexto
+        # 1. Preparar Contexto (resolve o LightRAG acessivel entre os candidatos)
+        lightrag_api_url = resolve_lightrag_url(settings.lightrag_candidates())
         config = AppConfig(
             docs_dir=settings.DOCS_DIR,
             database_url=settings.DATABASE_URL,
@@ -40,7 +70,7 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
             chunk_overlap=settings.CHUNK_OVERLAP,
             reranker_model=settings.RERANKER_MODEL,
             reranker_threshold=settings.RERANKER_THRESHOLD,
-            lightrag_api_url=settings.LIGHTRAG_API_URL
+            lightrag_api_url=lightrag_api_url
         )
 
         # Carregar historico anterior da conversa (turnos previos) para dar contexto ao LightRAG.
@@ -55,11 +85,27 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
             print(f"Erro ao carregar historico: {e}")
             conversation_history = []
 
+        # Citacao (estilo "responder" do WhatsApp): se o usuario mencionou uma mensagem
+        # anterior, ela e anexada como contexto explicito a pergunta enviada ao LightRAG.
+        # A pergunta original (sem o bloco de citacao) e o que fica salvo no historico;
+        # a citacao em si e guardada no metadata da mensagem do usuario.
+        effective_question = request.question
+        quoted_meta = None
+        if request.quoted and request.quoted.content.strip():
+            quoted_meta = {"role": request.quoted.role, "content": request.quoted.content}
+            quoted_label = "assistente" if request.quoted.role == "assistant" else "usuario"
+            quoted_snippet = request.quoted.content.strip()[:1200]
+            effective_question = (
+                f"[O usuario esta se referindo a esta mensagem anterior do {quoted_label}]:\n"
+                f"\"\"\"\n{quoted_snippet}\n\"\"\"\n\n"
+                f"Com base nessa mensagem citada, responda:\n{request.question}"
+            )
+
         # Force LightRAG (Grafo) as Supabase/Postgres is deactivated
         try:
             lightrag_service = LightRagService(config=config)
             answer, _, source_lines = lightrag_service.answer_question_stream(
-                request.question,
+                effective_question,
                 request.mode,
                 conversation_history=conversation_history,
                 history_turns=settings.HISTORY_TURNS,
@@ -91,6 +137,54 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
                 full_answer += chunk_content
                 yield f"data: {json.dumps({'content': chunk_content})}\n\n"
 
+        # 2.1. Entrega de documento: se o usuario pediu para receber/baixar um manual,
+        # um resolvedor por IA identifica QUAL documento ele quer (resolvendo referencias
+        # de contexto como "esse documento") e anexa um link assinado ao final da resposta.
+        # Se nao for possivel identificar com seguranca, perguntamos qual documento enviar.
+        if settings.SUPABASE_URL and settings.SERVICE_ROLE_KEY and _maybe_download_request(request.question):
+            try:
+                storage = StorageService(
+                    base_url=settings.SUPABASE_URL,
+                    service_key=settings.SERVICE_ROLE_KEY,
+                    bucket=settings.SUPABASE_BUCKET,
+                )
+                object_names = [o.get("name", "") for o in storage.list_objects(limit=100) if o.get("name")]
+
+                resolver_settings = ChatSettings(
+                    provider="Ollama local" if not settings.OPENAI_API_KEY else "OpenAI API",
+                    api_key="ollama" if not settings.OPENAI_API_KEY else settings.OPENAI_API_KEY,
+                    model="llama3.2:3b" if not settings.OPENAI_API_KEY else "gpt-4o-mini",
+                    base_url=settings.OLLAMA_BASE_URL if not settings.OPENAI_API_KEY else None,
+                )
+                decision = resolve_document_request(
+                    question=effective_question,
+                    conversation_history=conversation_history,
+                    cited_sources=source_lines,
+                    available_objects=object_names,
+                    settings=resolver_settings,
+                )
+
+                if decision.get("wants_download"):
+                    matched = decision.get("object_name")
+                    if matched:
+                        signed_url = storage.create_signed_url(matched, expires_in=settings.SIGNED_URL_TTL)
+                        link_md = f"\n\n📎 [Baixar **{matched}**]({signed_url})"
+                        full_answer += link_md
+                        yield f"data: {json.dumps({'content': link_md})}\n\n"
+                    else:
+                        # Pedido de download ambiguo: perguntar ao usuario qual documento enviar.
+                        candidates = decision.get("candidates") or object_names
+                        candidates = [c for c in candidates if c in object_names][:8]
+                        listed = "\n".join(f"- {c}" for c in candidates)
+                        ask_md = (
+                            "\n\nNão consegui identificar com certeza qual documento você deseja baixar. "
+                            "Poderia me dizer qual destes você quer?\n\n" + listed
+                        )
+                        full_answer += ask_md
+                        yield f"data: {json.dumps({'content': ask_md})}\n\n"
+            except Exception as e:
+                print(f"Erro ao resolver/anexar documento: {e}")
+
         # 3. Finalizar e Salvar no Backend
         final_time = time.perf_counter() - start_time
         
@@ -116,10 +210,12 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
                     rag_engine=request.rag_engine,
                     user_id=request.user_id,
                 )
-                repo.add_message(conversation_id, "user", request.question)
+                repo.add_message(conversation_id, "user", request.question,
+                                 metadata={"quoted": quoted_meta} if quoted_meta else None)
             else:
                 # Conversa existente: persistir a pergunta deste turno (faltava antes)
-                repo.add_message(conversation_id, "user", request.question)
+                repo.add_message(conversation_id, "user", request.question,
+                                 metadata={"quoted": quoted_meta} if quoted_meta else None)
 
             # Salvar resposta da IA
             repo.add_message(
