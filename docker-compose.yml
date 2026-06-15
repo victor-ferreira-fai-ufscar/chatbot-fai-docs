@@ -23,8 +23,23 @@ services:
       LLM_BINDING_HOST: http://127.0.0.1:11434
       # 16k por requisicao x 2 slots paralelos do Ollama = 32k total na VRAM.
       # MAX_TOTAL_TOKENS limita o contexto montado pelo LightRAG para caber nos 16k.
-      OLLAMA_LLM_NUM_CTX: "16384"
-      MAX_TOTAL_TOKENS: "13000"
+      OLLAMA_LLM_NUM_CTX: "32768"
+      # 28000 de contexto montado dentro dos 32768 de num_ctx -> sobram ~4768 tokens
+      # para a geracao da resposta (suficiente para respostas equilibradas). Orcamento
+      # maior garante que os chunks de texto cheguem ao LLM de forma consistente mesmo
+      # quando a busca no grafo retorna muitas entidades/relacoes.
+      MAX_TOTAL_TOKENS: "28000"
+      # Sem estes caps, os defaults do LightRAG (entity 6000 + relation 8000 = 14000)
+      # ja estouram sozinhos o MAX_TOTAL_TOKENS=13000, zerando o orcamento dos chunks
+      # de texto. Resultado: modos com grafo (local/mix/hybrid) retornavam "no-context"
+      # mesmo com 80+ entidades recuperadas. Com 3000+3000 sobra espaco para os chunks.
+      MAX_ENTITY_TOKENS: "6000"
+      MAX_RELATION_TOKENS: "5000"
+      # Quantos chunks de texto-fonte sao recuperados. O default do LightRAG e 20;
+      # quanto efetivamente chega ao LLM tambem depende do orcamento (MAX_TOTAL_TOKENS
+      # menos entidades+relacoes). Com 25 + os 22000 atuais, ~11 chunks chegam ao
+      # contexto (vs ~5 antes) — mais base factual para respostas equilibradas.
+      CHUNK_TOP_K: "25"
       EMBEDDING_BINDING: ollama
       EMBEDDING_MODEL: bge-m3:latest
       EMBEDDING_DIM: "1024"
@@ -50,6 +65,11 @@ services:
       - .env
     volumes:
       - ./docs:/app/docs
+      # Pasta src/IA montada do host: permite editar o Prompt.md (lido a cada
+      # requisicao) sem rebuild da imagem. Monta-se o DIRETORIO, nao o arquivo
+      # unico: bind-mount de arquivo prende o inode antigo e edicoes so refletem
+      # apos restart; com o diretorio, as edicoes refletem na hora.
+      - ./backend/src/IA:/app/src/IA
     depends_on:
       - lightrag
     restart: always
