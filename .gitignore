@@ -17,6 +17,10 @@ lightrag/data/
 .streamlit/
 .vscode/
 
+# Caddy: CA interna, certificados e estado (gerados em runtime)
+caddy/data/
+caddy/config/
+
 # Ignore de Sistema Operacional
 .DS_Store
 Thumbs.db

@@ -95,3 +95,21 @@ services:
     depends_on:
       - backend
     restart: always
+
+  # Reverse proxy HTTPS (TLS self-signed via CA interna do Caddy).
+  # Termina o TLS na 443 e serve frontend + API sob o mesmo origin, liberando
+  # o microfone (getUserMedia exige HTTPS). Entrada canonica: https://200.136.209.229
+  caddy:
+    image: caddy:2
+    container_name: fai_caddy
+    network_mode: host
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      # Persiste a CA/certificados internos para nao regerar (e nao forcar o
+      # usuario a re-aceitar o aviso) a cada recriacao do container.
+      - ./caddy/data:/data
+      - ./caddy/config:/config
+    depends_on:
+      - frontend
+      - backend
+    restart: always

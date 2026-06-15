@@ -1,0 +1,30 @@
+# Reverse proxy HTTPS para o FAI Chatbot.
+#
+# Como o acesso e por IP (sem dominio), o Let's Encrypt NAO pode emitir cert.
+# Usamos a CA interna do Caddy (`tls internal`), que gera um certificado
+# self-signed valido inclusive para o IP. O navegador mostra um aviso de
+# "conexao nao privada" na primeira vez; o usuario clica em "prosseguir" e a
+# partir dai a pagina e um contexto seguro (HTTPS) — o que libera o microfone
+# (getUserMedia) para a transcricao de voz.
+#
+# Frontend e API ficam sob o MESMO origin (https://200.136.209.229):
+#  - /api/*  -> backend FastAPI (localhost:8000)
+#  - resto   -> frontend Next.js (localhost:3000)
+# Isso elimina "mixed content" e dispensa CORS (tudo same-origin).
+
+https://200.136.209.229 {
+	tls internal
+
+	# API do backend. flush_interval -1 desliga o buffering da resposta para que
+	# o streaming SSE do chat (text/event-stream) chegue token a token ao navegador.
+	handle /api/* {
+		reverse_proxy localhost:8000 {
+			flush_interval -1
+		}
+	}
+
+	# Frontend Next.js (todo o restante).
+	handle {
+		reverse_proxy localhost:3000
+	}
+}
