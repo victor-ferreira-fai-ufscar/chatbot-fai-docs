@@ -2,15 +2,32 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Instalar dependências de sistema para psycopg e torch
+# Dependencias de sistema:
+#  - build-essential / libpq-dev: compilar psycopg
+#  - ffmpeg: requerido pelo OpenAI Whisper para decodificar o audio
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
+
+# PyTorch com CUDA 12.8 (cu128): necessario para a RTX 5090 (Blackwell / sm_120),
+# que so e suportada a partir do torch 2.7.0. Instalado ANTES dos requirements
+# para que transformers/sentence-transformers/whisper reaproveitem este build
+# (e nao puxem o wheel default da PyPI). O wheel cu128 ja embute o runtime CUDA;
+# o host so precisa do driver + nvidia-container-toolkit para o passthrough.
+RUN pip install --no-cache-dir \
+    torch>=2.7.0 \
+    --index-url https://download.pytorch.org/whl/cu128
 
 # Copiar apenas requirements primeiro para aproveitar o cache do Docker
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Baixar o modelo Whisper no build (cacheado em /root/.cache/whisper dentro da
+# imagem) para que a primeira transcricao ja seja rapida, sem download em runtime.
+ARG WHISPER_MODEL=medium
+RUN python -c "import whisper; whisper.load_model('${WHISPER_MODEL}', device='cpu')"
 
 # Copiar o código da aplicação e a lógica core
 COPY . .

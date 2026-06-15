@@ -26,6 +26,11 @@ pymupdf4llm>=0.0.10
 pymupdf>=1.24.0
 sentence-transformers>=3.0.0
 transformers>=4.41.0
-torch>=2.3.0
+# torch/torchaudio sao instalados no Dockerfile a partir do indice cu128
+# (necessario para a RTX 5090 / Blackwell sm_120 — torch>=2.7.0).
 numpy>=1.26.0
 requests>=2.32.3
+
+# --- Transcricao de Audio (Speech-to-Text) ---
+# OpenAI Whisper local (https://github.com/openai/whisper). Requer ffmpeg (sistema).
+openai-whisper>=20231117

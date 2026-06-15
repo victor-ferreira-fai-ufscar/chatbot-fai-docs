@@ -35,12 +35,15 @@ Transformar o chatbot atual em uma ferramenta institucional de alta performance,
 * ✅ **Limpar Histórico:** Ação que apaga todas as conversas do usuário no backend (rota `DELETE /history/`).
 * ✅ **Observabilidade:** Log no startup do backend indicando sucesso/falha da conexão com o Supabase (sem expor a senha).
 
-### 🔹 Fase 4: Transcrição de Áudio (Speech-to-Text) - [ADIADA]
+### 🔹 Fase 4: Transcrição de Áudio (Speech-to-Text) (Em implantação 🔧)
 
 **Objetivo:** Permitir que usuários enviem perguntas por voz, facilitando o uso em dispositivos móveis.
 
-* **Integração Local Whisper**: Implementado motor 100% local (`faster-whisper`), mas desativado temporariamente para priorizar a estabilidade do campo de texto original e UX minimalista.
-* **Interface de Gravador**: Possibilidade de reativar o botão de microfone no futuro conforme demanda dos usuários.
+* ✅ **Integração Local Whisper (OpenAI)**: Motor 100% local com o [`openai-whisper`](https://github.com/openai/whisper), modelo **`medium`** (configurável via `WHISPER_MODEL`). O modelo é baixado no build da imagem do backend e carregado sob demanda na primeira transcrição.
+* ✅ **Endpoint de Transcrição**: `POST /api/v1/audio/transcribe` recebe o áudio (`UploadFile`), transcreve em threadpool e retorna o texto. Idioma fixado em `pt` por padrão (`WHISPER_LANGUAGE`).
+* ✅ **Interface de Gravador**: Botão de microfone funcional em `ChatWindow.tsx` (MediaRecorder → endpoint de transcrição → texto injetado no campo de input), com estados de gravando/transcrevendo.
+* 🔧 **Aceleração por GPU (RTX 5090)**: `WHISPER_DEVICE=auto` usa CUDA quando disponível; `torch` instalado via índice `cu128` (suporte a Blackwell/sm_120, torch ≥ 2.7.0). Requer **passo único de admin** no host: instalar o `nvidia-container-toolkit`, configurar o runtime do Docker e descomentar `gpus: all` no `docker-compose.yml`. Sem isso, roda em CPU automaticamente (mais lento).
+* ⚠️ **Pré-requisito do navegador**: o acesso ao microfone (`getUserMedia`) exige **contexto seguro (HTTPS)** ou `localhost`. Em HTTP por IP da rede, o navegador bloqueia a gravação.
 
 ### 🔹 Fase 5: Arquitetura RAG Dual (Supabase vs LightRAG)
 
@@ -103,4 +106,4 @@ Transformar o chatbot atual em uma ferramenta institucional de alta performance,
 * [ ] **Feedback de Qualidade**: Botões de "Joinha" (Polegar para cima/baixo) para treinar ou ajustar o RAG futuramente.
 * [ ] **Exportação de Conversas**: Opção para baixar o histórico formatado em PDF ou Markdown.
 
-Última atualização: 11 de Junho de 2026
+Última atualização: 15 de Junho de 2026

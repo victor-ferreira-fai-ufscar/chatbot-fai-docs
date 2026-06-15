@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, User, Mic, Plus, Image, FileText, X, Copy, Check, Download, Reply, ArrowDown } from "lucide-react";
+import { Send, User, Mic, Square, Loader2, Plus, Image, FileText, X, Copy, Check, Download, Reply, ArrowDown } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -171,6 +171,11 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
   const [isTyping, setIsTyping] = useState(false);
   const [conversationId, setConversationId] = useState<number | null>(null);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
   const attachmentRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -356,6 +361,93 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
       setIsTyping(false);
     }
   };
+
+  // Envia o audio gravado ao backend (Whisper) e injeta a transcricao no input.
+  const transcribeAudio = async (blob: Blob) => {
+    setIsTranscribing(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", blob, "gravacao.webm");
+      const res = await fetch(`${API_BASE_URL}/audio/transcribe`, {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) {
+        const detail = await res.json().catch(() => null);
+        throw new Error(detail?.detail || `Falha na transcrição (${res.status}).`);
+      }
+      const data = await res.json();
+      const text = (data.text || "").trim();
+      if (text) {
+        // Acrescenta ao que ja estiver digitado (com espaco), sem sobrescrever.
+        setInput((prev) => (prev ? `${prev} ${text}` : text));
+      } else {
+        alert("Não foi possível entender o áudio. Tente falar mais perto do microfone.");
+      }
+    } catch (e: any) {
+      console.error("Erro ao transcrever áudio", e);
+      alert(`Erro ao transcrever o áudio: ${e.message}`);
+    } finally {
+      setIsTranscribing(false);
+    }
+  };
+
+  // Encerra a gravacao em andamento e libera o microfone.
+  const stopRecording = () => {
+    const recorder = mediaRecorderRef.current;
+    if (recorder && recorder.state !== "inactive") {
+      recorder.stop();
+    }
+    mediaStreamRef.current?.getTracks().forEach((t) => t.stop());
+    mediaStreamRef.current = null;
+    setIsRecording(false);
+  };
+
+  // Inicia a captura de audio do microfone. Requer contexto seguro (HTTPS ou
+  // localhost) — em HTTP por IP o navegador bloqueia o acesso ao microfone.
+  const startRecording = async () => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      alert(
+        "O microfone só funciona em conexão segura (HTTPS) ou via localhost. " +
+          "Acesse a aplicação por HTTPS para gravar áudio."
+      );
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaStreamRef.current = stream;
+      audioChunksRef.current = [];
+      const recorder = new MediaRecorder(stream);
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+      recorder.onstop = () => {
+        const blob = new Blob(audioChunksRef.current, {
+          type: recorder.mimeType || "audio/webm",
+        });
+        audioChunksRef.current = [];
+        if (blob.size > 0) transcribeAudio(blob);
+      };
+      mediaRecorderRef.current = recorder;
+      recorder.start();
+      setIsRecording(true);
+    } catch (e) {
+      console.error("Erro ao acessar o microfone", e);
+      alert("Não foi possível acessar o microfone. Verifique as permissões do navegador.");
+    }
+  };
+
+  const toggleRecording = () => {
+    if (isRecording) stopRecording();
+    else startRecording();
+  };
+
+  // Libera o microfone se o componente for desmontado durante a gravacao.
+  useEffect(() => {
+    return () => {
+      mediaStreamRef.current?.getTracks().forEach((t) => t.stop());
+    };
+  }, []);
 
   // Busca a URL assinada da fonte e abre o documento. Se a resposta citou uma
   // pagina para esse arquivo, abre direto nela via fragmento #page=N (suportado
@@ -549,21 +641,32 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
 
           {/* Main Input Field */}
           <div className="flex-1 flex gap-2 items-center bg-gray-50 rounded-[24px] px-4 py-1.5 border border-gray-200 focus-within:border-accent-blue focus-within:bg-white focus-within:shadow-md transition-all">
-            <input 
-              type="text" 
-              placeholder="Digite sua dúvida aqui..."
+            <input
+              type="text"
+              placeholder={isRecording ? "Gravando... fale sua dúvida" : isTranscribing ? "Transcrevendo áudio..." : "Digite sua dúvida aqui..."}
               className="flex-1 bg-transparent border-none focus:ring-0 text-sm py-2"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-              disabled={isTyping}
+              disabled={isTyping || isTranscribing}
             />
-            <button 
-              className="text-gray-400 hover:text-accent-blue p-2 transition-colors disabled:opacity-30"
-              title="Gravação de voz (em breve)"
-              disabled={isTyping}
+            <button
+              onClick={toggleRecording}
+              className={`p-2 transition-colors disabled:opacity-30 ${
+                isRecording
+                  ? "text-red-500 animate-pulse"
+                  : "text-gray-400 hover:text-accent-blue"
+              }`}
+              title={isRecording ? "Parar gravação" : isTranscribing ? "Transcrevendo..." : "Gravar pergunta por voz"}
+              disabled={isTyping || isTranscribing}
             >
-              <Mic size={20} />
+              {isTranscribing ? (
+                <Loader2 size={20} className="animate-spin" />
+              ) : isRecording ? (
+                <Square size={20} className="fill-current" />
+              ) : (
+                <Mic size={20} />
+              )}
             </button>
           </div>
 

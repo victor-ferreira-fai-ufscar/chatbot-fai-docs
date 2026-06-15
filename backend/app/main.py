@@ -30,6 +30,21 @@ def check_lightrag_available():
 
 
 @app.on_event("startup")
+def log_whisper_config():
+    """Loga a config de transcricao de audio. O modelo Whisper e carregado
+    sob demanda na primeira requisicao (carga preguicosa) para nao atrasar
+    o startup nem ocupar VRAM quando o recurso nao e usado."""
+    if not getattr(settings, "WHISPER_ENABLED", False):
+        print("[Whisper] Transcricao de audio DESATIVADA (WHISPER_ENABLED=false).")
+        return
+    print(
+        f"[Whisper] Transcricao ATIVA — modelo='{settings.WHISPER_MODEL}', "
+        f"device='{settings.WHISPER_DEVICE}', idioma='{settings.WHISPER_LANGUAGE}' "
+        f"(carregado sob demanda na 1a transcricao)."
+    )
+
+
+@app.on_event("startup")
 def check_database_connection():
     """Loga se a conexao com o banco de historico (Supabase/Postgres) teve sucesso.
     Nao aborta o startup: sem banco, a aplicacao usa o repositorio em memoria como fallback.

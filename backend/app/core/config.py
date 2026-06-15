@@ -42,6 +42,13 @@ class Settings(BaseSettings):
     # Numero de turnos (pares user/assistant) do historico enviados ao LightRAG como contexto
     HISTORY_TURNS: int = 5
 
+    # Transcricao de Audio (Fase 4: Speech-to-Text via Whisper local)
+    # WHISPER_DEVICE: 'auto' (cuda se disponivel, senao cpu) | 'cuda' | 'cpu'
+    WHISPER_ENABLED: bool = True
+    WHISPER_MODEL: str = "medium"
+    WHISPER_DEVICE: str = "auto"
+    WHISPER_LANGUAGE: str = "pt"
+
     # Supabase Storage (Fase 6: repositorio de documentos e entrega ao usuario)
     SUPABASE_URL: Optional[str] = None
     SERVICE_ROLE_KEY: Optional[str] = None
