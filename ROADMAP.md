@@ -35,15 +35,16 @@ Transformar o chatbot atual em uma ferramenta institucional de alta performance,
 * ✅ **Limpar Histórico:** Ação que apaga todas as conversas do usuário no backend (rota `DELETE /history/`).
 * ✅ **Observabilidade:** Log no startup do backend indicando sucesso/falha da conexão com o Supabase (sem expor a senha).
 
-### 🔹 Fase 4: Transcrição de Áudio (Speech-to-Text) (Em implantação 🔧)
+### 🔹 Fase 4: Transcrição de Áudio (Speech-to-Text) (Concluída ✅)
 
 **Objetivo:** Permitir que usuários enviem perguntas por voz, facilitando o uso em dispositivos móveis.
 
-* ✅ **Integração Local Whisper (OpenAI)**: Motor 100% local com o [`openai-whisper`](https://github.com/openai/whisper), modelo **`medium`** (configurável via `WHISPER_MODEL`). O modelo é baixado no build da imagem do backend e carregado sob demanda na primeira transcrição.
+* ✅ **Integração Local Whisper (OpenAI)**: Motor 100% local com o [`openai-whisper`](https://github.com/openai/whisper), modelo **`medium`** (configurável via `WHISPER_MODEL`). O modelo é baixado no build da imagem do backend e carregado sob demanda na primeira transcrição (singleton mantido quente em VRAM entre requisições).
 * ✅ **Endpoint de Transcrição**: `POST /api/v1/audio/transcribe` recebe o áudio (`UploadFile`), transcreve em threadpool e retorna o texto. Idioma fixado em `pt` por padrão (`WHISPER_LANGUAGE`).
 * ✅ **Interface de Gravador**: Botão de microfone funcional em `ChatWindow.tsx` (MediaRecorder → endpoint de transcrição → texto injetado no campo de input), com estados de gravando/transcrevendo.
-* 🔧 **Aceleração por GPU (RTX 5090)**: `WHISPER_DEVICE=auto` usa CUDA quando disponível; `torch` instalado via índice `cu128` (suporte a Blackwell/sm_120, torch ≥ 2.7.0). Requer **passo único de admin** no host: instalar o `nvidia-container-toolkit`, configurar o runtime do Docker e descomentar `gpus: all` no `docker-compose.yml`. Sem isso, roda em CPU automaticamente (mais lento).
-* ⚠️ **Pré-requisito do navegador**: o acesso ao microfone (`getUserMedia`) exige **contexto seguro (HTTPS)** ou `localhost`. Em HTTP por IP da rede, o navegador bloqueia a gravação.
+* ✅ **Aceleração por GPU (RTX 5090)**: rodando em CUDA (`torch 2.11.0+cu128`, suporte a Blackwell/sm_120). O host recebeu o `nvidia-container-toolkit` + runtime nvidia no Docker e o backend usa `gpus: all`. Validado em produção: `device='cuda'`, 1ª transcrição ~4s (inclui carregar o modelo na VRAM), chamadas seguintes <0,1s. Fallback automático para CPU via `WHISPER_DEVICE=auto` caso a GPU não esteja disponível.
+* ✅ **HTTPS (pré-requisito do microfone)**: o `getUserMedia` exige contexto seguro. Resolvido com o **Caddy central** (`/opt/stacks/caddy`) terminando TLS e servindo frontend + API sob o mesmo origin (`https://200.136.209.229` e `https://lina.fai.ufscar.br`). Hoje com cert self-signed (CA interna) — migra para Let's Encrypt quando houver DNS público.
+* 💡 *Transcrição "ao vivo" (streaming) foi avaliada e adiada:* o Whisper não é streaming nativo; o comportamento atual transcreve ao parar a gravação. Ver Backlog.
 
 ### 🔹 Fase 5: Arquitetura RAG Dual (Supabase vs LightRAG)
 
@@ -100,7 +101,8 @@ Transformar o chatbot atual em uma ferramenta institucional de alta performance,
 
 ## 💡 Banco de Ideias (Backlog)
 
-* [ ] **Interface Web Moderna**: Migrar do Streamlit para um frontend em Next.js + Tailwind para maior controle de UX/UI.
+* [x] **Interface Web Moderna**: ~~Migrar do Streamlit para um frontend em Next.js + Tailwind~~ — concluído (frontend atual em Next.js + Tailwind).
+* [ ] **Transcrição de Voz "ao vivo" (streaming)**: texto aparecendo enquanto o usuário fala. Como o Whisper não é streaming nativo, exigiria pseudo-streaming por chunks (re-transcrever o áudio acumulado a cada ~2-3s) ou um servidor de streaming dedicado (ex.: WhisperLive/whisper_streaming + VAD via websocket). Hoje a transcrição ocorre ao parar a gravação.
 * [ ] **Integração com Área do Coordenador**: API para buscar dados em tempo real de outros sistemas institucionais da FAI.
 * [ ] **Sugestões de Perguntas**: Chips clicáveis com perguntas frequentes baseadas nos documentos mais acessados.
 * [ ] **Feedback de Qualidade**: Botões de "Joinha" (Polegar para cima/baixo) para treinar ou ajustar o RAG futuramente.
