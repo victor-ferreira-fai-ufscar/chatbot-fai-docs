@@ -1,6 +1,6 @@
 # Chatbot FAI Docs
 
-Sistema de RAG Avançado (Retrieval-Augmented Generation) operando localmente e integrando base de conhecimento de PDFs com PostgreSQL (Supabase) via arquitetura *Two-Stage* (Busca Vetorial + Re-ranking). O projeto evoluiu para uma arquitetura Full-Stack moderna.
+Sistema de RAG (Retrieval-Augmented Generation) que integra uma base de conhecimento de PDFs a um **Grafo de Conhecimento (LightRAG)** para a recuperação de contexto. O PostgreSQL (Supabase) é usado para a **persistência do histórico de conversas** e o **Supabase Storage** para o armazenamento e entrega dos documentos. O projeto evoluiu para uma arquitetura Full-Stack moderna.
 
 ## 🏗️ Arquitetura do Sistema
 
@@ -8,24 +8,18 @@ O projeto adota uma arquitetura cliente-servidor robusta:
 
 - **Frontend (Next.js):** Interface de chat moderna, responsiva e com suporte completo a Markdown, gerenciamento de estado de sessões e histórico de conversas.
 - **Backend (FastAPI):** API REST em Python focada em alta performance, gerenciamento do RAG, streaming de respostas de LLMs (Google GenAI / OpenAI / Ollama) e persistência de dados.
-- **Banco de Dados (PostgreSQL + Supabase):** Armazenamento seguro de embeddings (via `pgvector`) e relacionamento estruturado de histórico de chats usando chaves estrangeiras lógicas (`SERIAL`).
+- **Banco de Dados (PostgreSQL + Supabase):** Persistência do **histórico de conversas** (tabelas relacionais com chaves `SERIAL`) e, via **Supabase Storage**, armazenamento dos PDFs originais para entrega por URL assinada.
 
-## 🧩 Modos de Operação RAG (Dual-Mode)
+## 🧩 Motor de Recuperação (RAG)
 
-O backend possui suporte a dois motores de recuperação de informação, que podem ser alternados:
+A recuperação de contexto é feita pelo **LightRAG (Grafo de Conhecimento)**, conectado a um servidor `LightRAG` dedicado que opera em paralelo ao backend. Fluxo:
 
-**1. Supabase RAG (Padrão - Busca Vetorial Clássica)**
-Fluxo prático: `PDFs -> Markdown (PyMuPDF) -> Chunking Geométrico -> Embeddings -> pgvector -> Cross-Encoder -> Streaming LLM`
+1. Ler os PDFs extraindo a formatação inteligente em **Markdown** (`pymupdf4llm`).
+2. Indexar entidades e relações em um grafo de conhecimento.
+3. Recuperar o contexto relevante combinando busca no grafo e similaridade vetorial (modos `hybrid`, `mix`, `local`, `global`, `naive`).
+4. Enviar o *Contexto Limpo* via streaming para o Frontend renderizar.
 
-**2. LightRAG (Grafo de Conhecimento)**
-Utiliza um motor baseado em grafos focados em relacionamentos complexos, conectando-se a um servidor `LightRAG` operando paralelamente.
-
-1. Ler os PDFs extraindo sua formatação inteligente em **Markdown** (`pymupdf4llm`).
-2. Quebrar o texto respeitando fluxogramas e listas.
-3. Gerar embeddings pela CPU nativa sem gastar VRAM.
-4. Recuperar os resultados mais relevantes no Postgres.
-5. Recalcular a relevância lógica (0 a 10) por meio do **Re-ranking**.
-6. Enviar o *Contexto Limpo* via streaming para o Frontend renderizar.
+> **Sobre o papel do Supabase:** o Supabase **não** atua como motor de RAG. Ele cumpre dois papéis distintos: (1) **histórico de conversas** no PostgreSQL e (2) **Supabase Storage** como repositório dos documentos, para entrega via URL assinada. Existe no código um modo vetorial clássico (`pgvector` + Cross-Encoder), mantido como **legado** e atualmente **não exposto na interface**.
 
 ## 💬 Funcionalidades de Conversa e Entrega de Documentos
 
@@ -41,8 +35,8 @@ Utiliza um motor baseado em grafos focados em relacionamentos complexos, conecta
 - **FastAPI:** Framework web principal.
 - **`pymupdf4llm`**: Transforma PDFs brutos em Markdown perfeitamente delimitado.
 - **`sentence-transformers`**: Cria Embeddings e instancia o `CrossEncoder` para Re-ranking.
-- **`pgvector` (PostgreSQL)**: Recebe vetores para busca instantânea por similaridade de cosseno.
-- **`LightRAG`**: Integração com servidor dedicado de Grafos de Conhecimento para suporte a Dual-Mode RAG.
+- **`LightRAG`**: Servidor dedicado de Grafos de Conhecimento — é o motor de recuperação de contexto (RAG) do projeto.
+- **`pgvector` (PostgreSQL)**: Busca vetorial por similaridade de cosseno (modo clássico **legado**, não utilizado na operação atual).
 - **`google-genai` / `openai`**: Clientes de LLM (suportando Gemini, GPT-4 ou Ollama local).
 
 ### Frontend (`/frontend`)

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Bot, User, Mic, Plus, Image, FileText, X, Copy, Check, Download, Reply, ArrowDown } from "lucide-react";
+import { Send, User, Mic, Plus, Image, FileText, X, Copy, Check, Download, Reply, ArrowDown } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -91,6 +91,31 @@ function extractFilename(sourceLine: string): string {
     .trim();
 }
 
+// Procura, no texto da resposta, a pagina citada para um arquivo no formato
+// "[arquivo.pdf, pag. N]" (best-effort: usa o numero de rodape que o modelo citou).
+// Retorna null quando nao ha citacao de pagina correspondente.
+function extractCitedPage(answerContent: string, filename: string): number | null {
+  if (!answerContent || !filename) return null;
+  const target = filename.trim().toLowerCase();
+  // Captura "[<arquivo> , pag. N]" tolerando virgula/traço e "pag"/"pág."
+  const re = /\[([^\]]+?)[,\s-]+p[aá]g\.?\s*(\d{1,4})\]/gi;
+  let firstPage: number | null = null;
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(answerContent)) !== null) {
+    const fileInCite = match[1].trim().toLowerCase();
+    const page = parseInt(match[2], 10);
+    if (Number.isNaN(page)) continue;
+    if (firstPage === null) firstPage = page;
+    // Match frouxo do nome (o modelo cita o arquivo como aparece nas fontes).
+    if (fileInCite === target || fileInCite.includes(target) || target.includes(fileInCite)) {
+      return page;
+    }
+  }
+  // Sem match de nome: se houve alguma pagina citada, usa a primeira (geralmente
+  // ha um unico documento em jogo). Caso contrario, sem pagina.
+  return firstPage;
+}
+
 // Gera um trecho curto e limpo (sem marcações de markdown) de uma mensagem citada.
 function quotePreview(text: string, max = 140): string {
   const clean = (text || "")
@@ -137,11 +162,12 @@ function ReplyButton({ onClick }: { onClick: () => void }) {
 
 export default function ChatWindow({ config, userId, selectedConversationId, onConversationCreated }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "Olá! Como posso ajudar você hoje com os documentos da FAI-Ufscar?" }
+    { role: "assistant", content: "Olá! Eu sou a **Lina**, assistente virtual da FAI-UFSCar. Como posso ajudar você hoje com os documentos da FAI?" }
   ]);
   const [input, setInput] = useState("");
   const [replyingTo, setReplyingTo] = useState<QuotedRef | null>(null);
   const [showAttachments, setShowAttachments] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [conversationId, setConversationId] = useState<number | null>(null);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
@@ -181,7 +207,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
       fetchMessages();
     } else {
       // Reset for new chat
-      setMessages([{ role: "assistant", content: "Olá! Como posso ajudar você hoje com os documentos da FAI-Ufscar?" }]);
+      setMessages([{ role: "assistant", content: "Olá! Eu sou a **Lina**, assistente virtual da FAI-UFSCar. Como posso ajudar você hoje com os documentos da FAI?" }]);
     }
   }, [selectedConversationId]);
 
@@ -194,6 +220,15 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Fecha o modal "Sobre a Lina" ao pressionar Esc
+  useEffect(() => {
+    function handleEsc(event: KeyboardEvent) {
+      if (event.key === "Escape") setShowAbout(false);
+    }
+    document.addEventListener("keydown", handleEsc);
+    return () => document.removeEventListener("keydown", handleEsc);
   }, []);
 
   const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
@@ -322,15 +357,19 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
     }
   };
 
-  // Busca a URL assinada da fonte e abre o documento para download
-  const handleDownloadSource = async (sourceLine: string) => {
+  // Busca a URL assinada da fonte e abre o documento. Se a resposta citou uma
+  // pagina para esse arquivo, abre direto nela via fragmento #page=N (suportado
+  // pelos visualizadores de PDF do navegador).
+  const handleDownloadSource = async (sourceLine: string, answerContent?: string) => {
     const filename = extractFilename(sourceLine);
     if (!filename) return;
     try {
       const res = await fetch(`${API_BASE_URL}/documents/download-url?name=${encodeURIComponent(filename)}`);
       if (res.ok) {
         const data = await res.json();
-        window.open(data.signed_url, "_blank", "noopener,noreferrer");
+        const page = answerContent ? extractCitedPage(answerContent, filename) : null;
+        const url = page ? `${data.signed_url}#page=${page}` : data.signed_url;
+        window.open(url, "_blank", "noopener,noreferrer");
       } else if (res.status === 404) {
         alert("Este documento ainda não está disponível para download no repositório.");
       } else {
@@ -353,9 +392,20 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
         {messages.map((m, idx) => (
           <div key={idx} className={`flex gap-4 ${m.role === 'user' ? 'justify-end' : ''}`}>
             {m.role === 'assistant' && (
-              <div className="w-8 h-8 rounded-full bg-header-blue flex items-center justify-center text-white shrink-0 shadow-sm">
-                <Bot size={18} />
-              </div>
+              <button
+                type="button"
+                onClick={() => setShowAbout(true)}
+                className="w-8 h-8 rounded-full overflow-hidden shrink-0 shadow-sm ring-2 ring-transparent hover:ring-accent-blue/40 transition-all focus:outline-none focus:ring-accent-blue/60"
+                title="Sobre a Lina"
+                aria-label="Sobre a Lina"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/Lina.jpg"
+                  alt="Lina, assistente virtual da FAI-UFSCar"
+                  className="w-full h-full object-cover"
+                />
+              </button>
             )}
             
             <div className={`max-w-[85%] flex flex-col gap-2 ${m.role === 'user' ? 'items-end' : ''}`}>
@@ -406,7 +456,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
                         {m.sources.map((s, i) => (
                           <button
                             key={i}
-                            onClick={() => handleDownloadSource(s)}
+                            onClick={() => handleDownloadSource(s, m.content)}
                             className="group/src flex items-center gap-1 text-[10px] bg-gray-100 border border-gray-200 text-gray-600 px-2 py-1 rounded transition-colors hover:bg-accent-blue/10 hover:text-accent-blue hover:border-accent-blue/30"
                             title={`Baixar ${extractFilename(s)}`}
                           >
@@ -530,6 +580,50 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
           O chatbot pode cometer erros. Considere verificar as fontes citadas.
         </p>
       </div>
+
+      {/* Modal "Sobre a Lina" */}
+      {showAbout && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+          onClick={() => setShowAbout(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Sobre a Lina"
+        >
+          <div
+            className="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 flex flex-col items-center text-center animate-in zoom-in-95 fade-in duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowAbout(false)}
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-1 transition-colors"
+              title="Fechar"
+              aria-label="Fechar"
+            >
+              <X size={18} />
+            </button>
+
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/Lina.jpg"
+              alt="Lina, assistente virtual da FAI-UFSCar"
+              className="w-28 h-28 rounded-full object-cover shadow-md ring-4 ring-accent-blue/10"
+            />
+
+            <h2 className="mt-4 text-lg font-bold text-gray-800">Lina</h2>
+            <p className="text-xs font-medium text-accent-blue uppercase tracking-wider">
+              Assistente Virtual · FAI-UFSCar
+            </p>
+
+            {/* TODO: o texto "Sobre a Lina" será atualizado futuramente. */}
+            <p className="mt-3 text-sm text-gray-600 leading-relaxed">
+              Olá! Eu sou a Lina, sua assistente virtual da FAI-UFSCar. Estou aqui
+              para ajudar você a consultar manuais, procedimentos e documentos
+              institucionais de forma rápida e confiável.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
