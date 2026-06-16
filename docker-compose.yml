@@ -19,16 +19,21 @@ services:
       INPUT_DIR: /app/data/inputs
       # LLM e embeddings 100% locais via Ollama do host
       LLM_BINDING: ollama
-      LLM_MODEL: gemma4:31b
+      LLM_MODEL: gpt-oss:latest
       LLM_BINDING_HOST: http://127.0.0.1:11434
-      # 16k por requisicao x 2 slots paralelos do Ollama = 32k total na VRAM.
-      # MAX_TOTAL_TOKENS limita o contexto montado pelo LightRAG para caber nos 16k.
-      OLLAMA_LLM_NUM_CTX: "32768"
-      # 28000 de contexto montado dentro dos 32768 de num_ctx -> sobram ~4768 tokens
-      # para a geracao da resposta (suficiente para respostas equilibradas). Orcamento
-      # maior garante que os chunks de texto cheguem ao LLM de forma consistente mesmo
-      # quando a busca no grafo retorna muitas entidades/relacoes.
-      MAX_TOTAL_TOKENS: "28000"
+      # Janela total (entrada+saida) por requisicao, alocada por slot paralelo do
+      # Ollama (OLLAMA_NUM_PARALLEL=2, ver MAX_ASYNC abaixo). Ampliada 49152 -> 65536
+      # para o gpt-oss (modelo de raciocinio): com mais contexto-fonte
+      # (MAX_TOTAL_TOKENS) ainda sobra orcamento amplo para raciocinio + resposta.
+      # O KV cache do gpt-oss e eficiente (sliding window + GQA), entao o custo extra
+      # de VRAM cabe na folga medida (gpt-oss 13,3GB + gemma4 aux 9,2GB + bge 0,7GB
+      # ~= 23GB de 32GB na RTX 5090, validado empiricamente apos este aumento).
+      OLLAMA_LLM_NUM_CTX: "65536"
+      # 48000 de contexto montado dentro dos 65536 de num_ctx -> sobram ~17500 tokens
+      # para raciocinio + geracao da resposta. Mais contexto-fonte = respostas mais
+      # aprofundadas, mantendo folga grande para o gpt-oss raciocinar e gerar respostas
+      # longas mesmo quando o grafo retorna muitas entidades/relacoes.
+      MAX_TOTAL_TOKENS: "48000"
       # Sem estes caps, os defaults do LightRAG (entity 6000 + relation 8000 = 14000)
       # ja estouram sozinhos o MAX_TOTAL_TOKENS=13000, zerando o orcamento dos chunks
       # de texto. Resultado: modos com grafo (local/mix/hybrid) retornavam "no-context"
@@ -37,9 +42,9 @@ services:
       MAX_RELATION_TOKENS: "5000"
       # Quantos chunks de texto-fonte sao recuperados. O default do LightRAG e 20;
       # quanto efetivamente chega ao LLM tambem depende do orcamento (MAX_TOTAL_TOKENS
-      # menos entidades+relacoes). Com 25 + os 22000 atuais, ~11 chunks chegam ao
-      # contexto (vs ~5 antes) — mais base factual para respostas equilibradas.
-      CHUNK_TOP_K: "25"
+      # menos entidades+relacoes). Com 32 + os 36000 atuais, mais chunks chegam ao
+      # contexto — mais base factual para respostas longas e detalhadas.
+      CHUNK_TOP_K: "32"
       EMBEDDING_BINDING: ollama
       EMBEDDING_MODEL: bge-m3:latest
       EMBEDDING_DIM: "1024"
