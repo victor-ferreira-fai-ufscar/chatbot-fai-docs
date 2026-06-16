@@ -301,13 +301,23 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
 
       const decoder = new TextDecoder();
       let lastMessageContent = "";
+      // Buffer de SSE: uma leitura do stream pode terminar no MEIO de uma linha
+      // "data: {...}". Sem acumular o resto, o JSON parcial falha no parse e o
+      // pedaco seguinte (sem o prefixo "data: ") e descartado — perdendo
+      // conteudo e ate o evento final "done". Modelos que emitem muitos chunks
+      // minusculos (ex.: qwen3, ~900+ eventos por resposta) expoem isso o tempo
+      // todo. Por isso so processamos linhas COMPLETAS e guardamos o resto.
+      let sseBuffer = "";
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n');
+        // { stream: true } evita corromper caracteres multibyte (ç, ã, ú)
+        // partidos entre duas leituras.
+        sseBuffer += decoder.decode(value, { stream: true });
+        const lines = sseBuffer.split('\n');
+        sseBuffer = lines.pop() ?? ""; // mantem a ultima linha (possivelmente incompleta)
 
         for (const line of lines) {
           if (line.startsWith('data: ')) {
