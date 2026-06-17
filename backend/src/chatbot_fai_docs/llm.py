@@ -89,6 +89,61 @@ class ChatClient:
 
         return model.generate(system_prompt=system_prompt, user_prompt=user_prompt, history=history_messages)
 
+    def answer_conversational(
+        self,
+        *,
+        question: str,
+        chat_history: list[dict[str, str]],
+        settings: ChatSettings,
+        available_docs: list[str] | None = None,
+    ) -> Any:
+        """Resposta para turnos puramente sociais (saudacao, agradecimento,
+        despedida, pergunta sobre quem e a Lina) que NAO exigem busca documental.
+
+        Usa a mesma persona do RAG, porem SEM bloco de contexto recuperado e com
+        uma nota de sistema deixando claro que este turno e conversacional: assim
+        a Lina nao dispara o protocolo de negativa ("nao encontrei nos manuais")
+        nem tenta inventar conteudo. Retorna o mesmo gerador de tuplas
+        (("answer"|"thought"|"usage", ...)) que o endpoint ja consome."""
+        history_messages = [
+            {"role": item["role"], "content": item["content"]}
+            for item in chat_history[-6:]
+            if item["role"] in {"user", "assistant"}
+        ]
+
+        date_str, time_str = get_current_date_time_pt_br()
+        docs_str = ", ".join(available_docs) if available_docs else "Nenhum documento detectado."
+
+        prompt_with_vars = (
+            self.system_prompt_base
+            .replace("{{DATA_ATUAL}}", date_str)
+            .replace("{{HORA_ATUAL}}", time_str)
+            .replace("{{LISTA_MANUAIS}}", docs_str)
+        )
+
+        system_prompt = (
+            f"{prompt_with_vars}\n\n"
+            "NOTA DE SISTEMA (turno conversacional): esta mensagem do usuario e uma "
+            "interacao social (saudacao, agradecimento, despedida ou pergunta sobre "
+            "quem voce e e o que faz). NAO ha consulta a documentos neste turno, e "
+            "isso e esperado e correto. Responda de forma breve e cordial como a "
+            "Lina. NAO aplique o protocolo de negativa (nao diga que 'nao encontrou "
+            "nos manuais'), NAO invente conteudo de manuais e NAO cite fontes. Se "
+            "for saudacao ou pergunta sobre voce, apresente-se brevemente e ofereca "
+            "ajuda; se for agradecimento ou despedida, responda com cordialidade."
+        )
+
+        user_prompt = f"Mensagem do usuario:\n{question}"
+
+        if settings.provider == "Ollama local":
+            model = OllamaModel(base_url=settings.base_url or "http://localhost:11434/v1", model_name=settings.model)
+        elif settings.provider == "Google Gemini":
+            model = GeminiModel(api_key=settings.api_key, model_name=settings.model)
+        else:
+            model = OpenAIModel(api_key=settings.api_key, base_url=settings.base_url, model_name=settings.model)
+
+        return model.generate(system_prompt=system_prompt, user_prompt=user_prompt, history=history_messages)
+
     def generate_title(self, question: str, settings: ChatSettings) -> str:
         """Gera um título curto para a conversa baseado na primeira pergunta."""
         system_prompt = "Voce e um assistente que gera titulos curtos e descritivos. Responda apenas com o titulo, sem aspas, com no maximo 5 palavras."

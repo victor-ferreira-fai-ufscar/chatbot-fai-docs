@@ -41,6 +41,11 @@ class Settings(BaseSettings):
     DEFAULT_RAG_ENGINE: str = "LightRAG"
     # Numero de turnos (pares user/assistant) do historico enviados ao LightRAG como contexto
     HISTORY_TURNS: int = 5
+    # Gate conversacional: quando True, mensagens puramente sociais (saudacao,
+    # agradecimento, despedida, pergunta sobre quem e a Lina) respondem direto pelo
+    # modelo auxiliar, SEM acionar a busca no LightRAG (economiza ~13s nesses turnos).
+    # Conservador por design: na duvida, cai no LightRAG. Desligue com env=false.
+    SMALLTALK_GATE_ENABLED: bool = True
 
     # Transcricao de Audio (Fase 4: Speech-to-Text via Whisper local)
     # WHISPER_DEVICE: 'auto' (cuda se disponivel, senao cpu) | 'cuda' | 'cpu'

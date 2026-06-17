@@ -11,6 +11,8 @@ from src.chatbot_fai_docs.llm import ChatSettings, ChatClient
 from src.chatbot_fai_docs.repository import get_repo_from_url
 from src.chatbot_fai_docs.lightrag_service import LightRagService
 from src.chatbot_fai_docs.lightrag_resolver import resolve_lightrag_url
+from src.chatbot_fai_docs.smalltalk_gate import is_smalltalk
+from src.chatbot_fai_docs.pdfs import list_pdf_files
 from src.chatbot_fai_docs.storage_service import StorageService
 from src.chatbot_fai_docs.document_resolver import resolve_document_request
 
@@ -102,15 +104,46 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
                 f"Com base nessa mensagem citada, responda:\n{request.question}"
             )
 
-        # Force LightRAG (Grafo) as Supabase/Postgres is deactivated
+        # Gate conversacional: turnos puramente sociais (oi, obrigado, "quem e voce?")
+        # respondem direto pelo modelo auxiliar, SEM acionar o LightRAG (economiza o
+        # custo de retrieval nesses turnos). Conservador: nunca pula quando ha citacao
+        # de mensagem (quoted) ou intencao de download, e o gate so casa mensagens
+        # 100% sociais — na duvida, cai no LightRAG.
+        use_smalltalk_gate = (
+            settings.SMALLTALK_GATE_ENABLED
+            and not request.quoted
+            and not _maybe_download_request(request.question)
+            and is_smalltalk(request.question)
+        )
+
         try:
-            lightrag_service = LightRagService(config=config)
-            answer, _, source_lines = lightrag_service.answer_question_stream(
-                effective_question,
-                request.mode,
-                conversation_history=conversation_history,
-                history_turns=settings.HISTORY_TURNS,
-            )
+            if use_smalltalk_gate:
+                manual_names = (
+                    [f.name for f in list_pdf_files(config.docs_dir)]
+                    if config.docs_dir.exists() else []
+                )
+                gate_settings = ChatSettings(
+                    provider="Ollama local" if not settings.OPENAI_API_KEY else "OpenAI API",
+                    api_key="ollama" if not settings.OPENAI_API_KEY else settings.OPENAI_API_KEY,
+                    model=settings.OLLAMA_MODEL if not settings.OPENAI_API_KEY else "gpt-4o-mini",
+                    base_url=settings.OLLAMA_BASE_URL if not settings.OPENAI_API_KEY else None,
+                )
+                answer = ChatClient().answer_conversational(
+                    question=request.question,
+                    chat_history=conversation_history,
+                    settings=gate_settings,
+                    available_docs=manual_names,
+                )
+                source_lines = []
+            else:
+                # Fluxo padrao: LightRAG (Grafo). Supabase/Postgres desativado.
+                lightrag_service = LightRagService(config=config)
+                answer, _, source_lines = lightrag_service.answer_question_stream(
+                    effective_question,
+                    request.mode,
+                    conversation_history=conversation_history,
+                    history_turns=settings.HISTORY_TURNS,
+                )
         except Exception as e:
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
             return
