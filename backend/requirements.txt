@@ -38,3 +38,5 @@ openai-whisper>=20231117
 # --- Agente (Fase 8: tool calling + Skills) ---
 # PyYAML: parsing do frontmatter dos SKILL.md (convencao das Anthropic Agent Skills).
 pyyaml>=6.0
+# openpyxl: geracao de planilhas .xlsx (skill gerar_planilha).
+openpyxl>=3.1

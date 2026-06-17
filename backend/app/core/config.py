@@ -47,6 +47,15 @@ class Settings(BaseSettings):
     # Conservador por design: na duvida, cai no LightRAG. Desligue com env=false.
     SMALLTALK_GATE_ENABLED: bool = True
 
+    # Agente (Fase 8: tool calling + Skills). Desligado por padrao -> rollback
+    # instantaneo para o fluxo RAG fixo atual. Skills ficam em backend/skills/*/SKILL.md
+    # (uma pasta por skill com SKILL.md + handler). Ver docs/plano-agente-tool-calling.md.
+    AGENT_ENABLED: bool = False
+    MAX_TOOL_STEPS: int = 5            # teto de iteracoes do laco (guarda anti-loop)
+    TOOL_TIMEOUT_S: int = 60           # timeout por execucao de skill
+    SKILLS_DIR: Path = BASE_DIR / "skills"
+    SKILL_INSTRUCTIONS_MODE: str = "preamble"   # preamble | on_demand (disclosure)
+
     # Transcricao de Audio (Fase 4: Speech-to-Text via Whisper local)
     # WHISPER_DEVICE: 'auto' (cuda se disponivel, senao cpu) | 'cuda' | 'cpu'
     WHISPER_ENABLED: bool = True

@@ -38,6 +38,7 @@ class AgentContext:
     storage: Any = None
     conversation_history: list = field(default_factory=list)
     history_turns: int = 5
+    signed_url_ttl: int = 3600
     available_docs: list = field(default_factory=list)
     # acumuladores de efeitos colaterais (preenchidos via collect())
     sources: list = field(default_factory=list)
