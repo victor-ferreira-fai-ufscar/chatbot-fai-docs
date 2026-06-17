@@ -5,10 +5,20 @@ WORKDIR /app
 # Dependencias de sistema:
 #  - build-essential / libpq-dev: compilar psycopg
 #  - ffmpeg: requerido pelo OpenAI Whisper para decodificar o audio
+#  - libpango/libharfbuzz/libgdk-pixbuf/libffi/libcairo + fonts-dejavu:
+#    requeridos pelo WeasyPrint (skill gerar_documento_pdf) para renderizar
+#    HTML+CSS -> PDF; as fontes DejaVu garantem acentuacao correta offline.
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
     ffmpeg \
+    libpango-1.0-0 \
+    libpangoft2-1.0-0 \
+    libharfbuzz0b \
+    libgdk-pixbuf-2.0-0 \
+    libffi-dev \
+    libcairo2 \
+    fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/*
 
 # PyTorch com CUDA 12.8 (cu128): necessario para a RTX 5090 (Blackwell / sm_120),

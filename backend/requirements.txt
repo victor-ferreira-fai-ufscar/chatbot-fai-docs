@@ -40,3 +40,7 @@ openai-whisper>=20231117
 pyyaml>=6.0
 # openpyxl: geracao de planilhas .xlsx (skill gerar_planilha).
 openpyxl>=3.1
+# weasyprint + markdown: geracao de PDF (skill gerar_documento_pdf). O WeasyPrint
+# exige libs de sistema (libpango/libcairo/libgdk-pixbuf) instaladas no Dockerfile.
+weasyprint>=60
+markdown>=3.5
