@@ -36,6 +36,10 @@ class AgentContext:
 
     config: Any = None
     storage: Any = None
+    # ChatSettings (LLM) para skills que precisam chamar o modelo auxiliar — ex.:
+    # entregar_documento usa o resolvedor por IA (document_resolver). Preenchido
+    # pelo endpoint no cutover (8.7); None desabilita essas skills graciosamente.
+    llm_settings: Any = None
     conversation_history: list = field(default_factory=list)
     history_turns: int = 5
     signed_url_ttl: int = 3600
