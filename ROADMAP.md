@@ -181,5 +181,6 @@ Levantamento (jun/2026) de modelos **open‑weight, locais (Ollama/vLLM)** para 
 * [ ] **Hot-reload de skills:** recarregar `backend/skills/` sem reiniciar o backend (dropar a pasta → skill disponível na hora).
 * [ ] **Catálogo administrável:** listar skills disponíveis e habilitar/desabilitar por ambiente (dev/produção) ou por perfil de usuário (liga com Controle de Acesso, Fase 10).
 * [ ] **Suíte de avaliação de skills:** transformar a matriz model-agnostic (passo 8.9) numa bateria de regressão por modelo (qualidade de tool calling + artefatos idênticos).
+* [ ] **Fast-path social (opcional):** atalho enxuto para turnos 100% sociais pularem o round-trip de decisão de skills. O antigo *smalltalk gate* é **aposentado** no cutover da Fase 8 (deixa de ser "gate": o agente já não consulta o RAG sem necessidade); só reintroduzir um fast-path se a latência de turnos sociais virar problema real na medição.
 
 Última atualização: 17 de Junho de 2026

@@ -290,7 +290,7 @@ parameters:
 
 ### 6.1 `chat_stream` (chat.py)
 - Substituir o bloco `if use_smalltalk_gate / else LightRAG` por **uma** chamada a `AgentService.run_stream(...)`, que devolve o **mesmo gerador de tuplas** já consumido pela seção "2. Processar Resposta". Mínima mudança no resto do endpoint.
-- **Smalltalk gate continua como fast‑path** (antes do agente): turnos 100% sociais não pagam o round‑trip de decisão de skills. `is_smalltalk()` e seus testes permanecem válidos.
+- **Smalltalk gate é aposentado no cutover** (não vira fast‑path): no mundo do agente, um turno social é uma única chamada ao modelo que simplesmente **não chama skill** — o *retrieval* já é evitado e a antiga economia de ~13s do RAG passa a ser **automática**, então o gate perde a função de roteamento. Removem‑se `smalltalk_gate.py`/`is_smalltalk()` e o `answer_conversational()` do `llm.py`; o comportamento social (responder cordial, sem disparar o protocolo de negativa) passa para o `Prompt.md` (§6.2). Um *fast‑path* enxuto só se reintroduz **se** a latência de turnos sociais virar problema real na medição — backlog, não pré‑otimização.
 - O bloco de download pós‑resposta (hoje em `chat.py`) é **removido** — vira a skill `entregar_documento`.
 - Emitir `tool_status` como evento SSE opcional (ex.: "🔧 Consultando os manuais…") melhora a percepção de latência durante o laço.
 
