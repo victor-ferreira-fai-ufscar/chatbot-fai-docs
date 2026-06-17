@@ -34,7 +34,8 @@ def build_context(search_results: list[SearchResult]) -> str:
 
 class ChatClient:
     def __init__(self):
-        prompt_path = Path(__file__).resolve().parent.parent / "IA" / "Prompt.md"
+        ia_dir = Path(__file__).resolve().parent.parent / "IA"
+        prompt_path = ia_dir / "Prompt.md"
         if prompt_path.exists():
             self.system_prompt_base = prompt_path.read_text(encoding="utf-8").strip()
         else:
@@ -43,6 +44,14 @@ class ChatClient:
                 "Responda em portugues do Brasil. Use apenas o contexto fornecido quando ele for suficiente.\n"
                 "Se a resposta nao estiver clara nos trechos recuperados, diga isso explicitamente e indique a limitacao."
             )
+        # Protocolo de Skills (modo agente, Fase 8): carregado de um arquivo SEPARADO
+        # para NAO poluir o Prompt.md compartilhado com o fluxo RAG legado. Anexado
+        # apenas por build_agent_system_prompt(). Bind-mounted -> editavel sem rebuild.
+        skills_prompt_path = ia_dir / "Prompt_Skills.md"
+        self.skills_protocol_base = (
+            skills_prompt_path.read_text(encoding="utf-8").strip()
+            if skills_prompt_path.exists() else ""
+        )
 
     def answer(
         self,
@@ -143,6 +152,26 @@ class ChatClient:
             model = OpenAIModel(api_key=settings.api_key, base_url=settings.base_url, model_name=settings.model)
 
         return model.generate(system_prompt=system_prompt, user_prompt=user_prompt, history=history_messages)
+
+    def build_agent_system_prompt(self, available_docs: list[str] | None = None) -> str:
+        """System prompt do AGENTE (Fase 8): a mesma persona (Lina) do RAG, com os
+        placeholders preenchidos, porem SEM bloco de contexto recuperado — no modo
+        agente o contexto factual vem da skill consultar_base_conhecimento. Anexa o
+        Protocolo de Skills (arquivo separado) que reorienta a ancoragem para o
+        RESULTADO das skills. As instrucoes detalhadas de cada skill chegam via
+        disclosure progressivo no proprio laco (nao aqui)."""
+        date_str, time_str = get_current_date_time_pt_br()
+        docs_str = ", ".join(available_docs) if available_docs else "Nenhum documento detectado."
+
+        prompt_with_vars = (
+            self.system_prompt_base
+            .replace("{{DATA_ATUAL}}", date_str)
+            .replace("{{HORA_ATUAL}}", time_str)
+            .replace("{{LISTA_MANUAIS}}", docs_str)
+        )
+        if self.skills_protocol_base:
+            return f"{prompt_with_vars}\n\n{self.skills_protocol_base}"
+        return prompt_with_vars
 
     def generate_title(self, question: str, settings: ChatSettings) -> str:
         """Gera um título curto para a conversa baseado na primeira pergunta."""

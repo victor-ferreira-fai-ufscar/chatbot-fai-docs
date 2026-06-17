@@ -43,6 +43,61 @@ def _maybe_download_request(question: str) -> bool:
     return has_verb and has_target
 
 
+def _run_agent(config, question: str, conversation_history: list):
+    """Monta o AgentService (laco de tool calling + Skills) e devolve
+    (gerador_de_tuplas, AgentContext). O ctx e populado DURANTE a iteracao do
+    gerador (sources/downloads coletados a cada skill), entao leia ctx.sources /
+    ctx.downloads APOS consumir o gerador. Imports do agente sao preguicosos para
+    que o fluxo legado (AGENT_ENABLED=False) nunca os carregue."""
+    from src.chatbot_fai_docs.agent import AgentService, ToolRegistry, AgentContext
+    from src.IA.Models import OllamaModel, OpenAIModel, GeminiModel
+
+    manual_names = (
+        [f.name for f in list_pdf_files(config.docs_dir)] if config.docs_dir.exists() else []
+    )
+
+    storage = None
+    if settings.SUPABASE_URL and settings.SERVICE_ROLE_KEY:
+        storage = StorageService(
+            base_url=settings.SUPABASE_URL,
+            service_key=settings.SERVICE_ROLE_KEY,
+            bucket=settings.SUPABASE_BUCKET,
+        )
+
+    llm_settings = ChatSettings(
+        provider="Ollama local" if not settings.OPENAI_API_KEY else "OpenAI API",
+        api_key="ollama" if not settings.OPENAI_API_KEY else settings.OPENAI_API_KEY,
+        model=settings.OLLAMA_MODEL if not settings.OPENAI_API_KEY else "gpt-4o-mini",
+        base_url=settings.OLLAMA_BASE_URL if not settings.OPENAI_API_KEY else None,
+    )
+    if llm_settings.provider == "Ollama local":
+        model = OllamaModel(base_url=llm_settings.base_url or "http://localhost:11434/v1", model_name=llm_settings.model)
+    elif llm_settings.provider == "Google Gemini":
+        model = GeminiModel(api_key=llm_settings.api_key, model_name=llm_settings.model)
+    else:
+        model = OpenAIModel(api_key=llm_settings.api_key, base_url=llm_settings.base_url, model_name=llm_settings.model)
+
+    registry = ToolRegistry.from_dir(settings.SKILLS_DIR, tool_timeout_s=settings.TOOL_TIMEOUT_S)
+    ctx = AgentContext(
+        config=config,
+        storage=storage,
+        llm_settings=llm_settings,
+        conversation_history=conversation_history,
+        history_turns=settings.HISTORY_TURNS,
+        signed_url_ttl=settings.SIGNED_URL_TTL,
+        available_docs=manual_names,
+    )
+    chat_client = ChatClient()
+    agent = AgentService(
+        model,
+        registry,
+        max_steps=settings.MAX_TOOL_STEPS,
+        instructions_mode=settings.SKILL_INSTRUCTIONS_MODE,
+        system_prompt_builder=lambda c: chat_client.build_agent_system_prompt(c.available_docs),
+    )
+    return agent.run_stream(question, conversation_history, ctx), ctx
+
+
 def get_repo():
     # Persistencia do historico independe do motor RAG: usa Postgres se DATABASE_URL
     # estiver configurado, senao cai no repo em memoria (fallback de desenvolvimento).
@@ -104,46 +159,53 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
                 f"Com base nessa mensagem citada, responda:\n{request.question}"
             )
 
-        # Gate conversacional: turnos puramente sociais (oi, obrigado, "quem e voce?")
-        # respondem direto pelo modelo auxiliar, SEM acionar o LightRAG (economiza o
-        # custo de retrieval nesses turnos). Conservador: nunca pula quando ha citacao
-        # de mensagem (quoted) ou intencao de download, e o gate so casa mensagens
-        # 100% sociais — na duvida, cai no LightRAG.
-        use_smalltalk_gate = (
-            settings.SMALLTALK_GATE_ENABLED
-            and not request.quoted
-            and not _maybe_download_request(request.question)
-            and is_smalltalk(request.question)
-        )
-
+        # Roteamento. Com AGENT_ENABLED, o AGENTE (laco de tool calling + Skills)
+        # decide a cada turno se/qual skill usar — incl. consultar o LightRAG SO quando
+        # ha necessidade documental. Desligado (default), segue o fluxo fixo atual
+        # (gate social + LightRAG), permitindo rollback instantaneo via flag.
+        agent_ctx = None
         try:
-            if use_smalltalk_gate:
-                manual_names = (
-                    [f.name for f in list_pdf_files(config.docs_dir)]
-                    if config.docs_dir.exists() else []
-                )
-                gate_settings = ChatSettings(
-                    provider="Ollama local" if not settings.OPENAI_API_KEY else "OpenAI API",
-                    api_key="ollama" if not settings.OPENAI_API_KEY else settings.OPENAI_API_KEY,
-                    model=settings.OLLAMA_MODEL if not settings.OPENAI_API_KEY else "gpt-4o-mini",
-                    base_url=settings.OLLAMA_BASE_URL if not settings.OPENAI_API_KEY else None,
-                )
-                answer = ChatClient().answer_conversational(
-                    question=request.question,
-                    chat_history=conversation_history,
-                    settings=gate_settings,
-                    available_docs=manual_names,
-                )
-                source_lines = []
+            if settings.AGENT_ENABLED:
+                answer, agent_ctx = _run_agent(config, effective_question, conversation_history)
             else:
-                # Fluxo padrao: LightRAG (Grafo). Supabase/Postgres desativado.
-                lightrag_service = LightRagService(config=config)
-                answer, _, source_lines = lightrag_service.answer_question_stream(
-                    effective_question,
-                    request.mode,
-                    conversation_history=conversation_history,
-                    history_turns=settings.HISTORY_TURNS,
+                # Gate conversacional: turnos puramente sociais (oi, obrigado, "quem e voce?")
+                # respondem direto pelo modelo auxiliar, SEM acionar o LightRAG (economiza o
+                # custo de retrieval nesses turnos). Conservador: nunca pula quando ha citacao
+                # de mensagem (quoted) ou intencao de download, e o gate so casa mensagens
+                # 100% sociais — na duvida, cai no LightRAG.
+                use_smalltalk_gate = (
+                    settings.SMALLTALK_GATE_ENABLED
+                    and not request.quoted
+                    and not _maybe_download_request(request.question)
+                    and is_smalltalk(request.question)
                 )
+                if use_smalltalk_gate:
+                    manual_names = (
+                        [f.name for f in list_pdf_files(config.docs_dir)]
+                        if config.docs_dir.exists() else []
+                    )
+                    gate_settings = ChatSettings(
+                        provider="Ollama local" if not settings.OPENAI_API_KEY else "OpenAI API",
+                        api_key="ollama" if not settings.OPENAI_API_KEY else settings.OPENAI_API_KEY,
+                        model=settings.OLLAMA_MODEL if not settings.OPENAI_API_KEY else "gpt-4o-mini",
+                        base_url=settings.OLLAMA_BASE_URL if not settings.OPENAI_API_KEY else None,
+                    )
+                    answer = ChatClient().answer_conversational(
+                        question=request.question,
+                        chat_history=conversation_history,
+                        settings=gate_settings,
+                        available_docs=manual_names,
+                    )
+                    source_lines = []
+                else:
+                    # Fluxo padrao: LightRAG (Grafo). Supabase/Postgres desativado.
+                    lightrag_service = LightRagService(config=config)
+                    answer, _, source_lines = lightrag_service.answer_question_stream(
+                        effective_question,
+                        request.mode,
+                        conversation_history=conversation_history,
+                        history_turns=settings.HISTORY_TURNS,
+                    )
         except Exception as e:
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
             return
@@ -151,8 +213,28 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
         # 2. Processar Resposta (Streaming ou String)
         full_answer = ""
         last_usage = 0
-        
-        if isinstance(answer, str):
+
+        if settings.AGENT_ENABLED:
+            # Consumer dedicado do agente: mapeia as tuplas do laco para eventos SSE.
+            # 'thought' (raciocinio do modelo) e suprimido; 'tool_status' vai como
+            # evento proprio (o frontend ignora por ora; vira chip "Consultando..." depois).
+            for kind, payload in answer:
+                if kind == "usage":
+                    last_usage = payload
+                elif kind == "answer":
+                    full_answer += payload
+                    yield f"data: {json.dumps({'content': payload})}\n\n"
+                elif kind == "tool_status":
+                    yield f"data: {json.dumps({'tool_status': payload})}\n\n"
+                # 'thought' suprimido de proposito (nao vai ao usuario)
+            source_lines = agent_ctx.sources if agent_ctx else []
+            # Downloads produzidos por skills (entregar_documento/gerar_*) -> links inline
+            # em Markdown, no MESMO formato do fluxo legado (sem mudar o frontend).
+            for nome, url in (agent_ctx.downloads if agent_ctx else []):
+                link_md = f"\n\n📎 [Baixar **{nome}**]({url})"
+                full_answer += link_md
+                yield f"data: {json.dumps({'content': link_md})}\n\n"
+        elif isinstance(answer, str):
             full_answer = answer
             yield f"data: {json.dumps({'content': answer, 'sources': source_lines})}\n\n"
         else:
@@ -171,11 +253,12 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
                 full_answer += chunk_content
                 yield f"data: {json.dumps({'content': chunk_content})}\n\n"
 
-        # 2.1. Entrega de documento: se o usuario pediu para receber/baixar um manual,
-        # um resolvedor por IA identifica QUAL documento ele quer (resolvendo referencias
-        # de contexto como "esse documento") e anexa um link assinado ao final da resposta.
-        # Se nao for possivel identificar com seguranca, perguntamos qual documento enviar.
-        if settings.SUPABASE_URL and settings.SERVICE_ROLE_KEY and _maybe_download_request(request.question):
+        # 2.1. Entrega de documento (FLUXO LEGADO): se o usuario pediu para receber/baixar
+        # um manual, um resolvedor por IA identifica QUAL documento ele quer e anexa um link
+        # assinado ao final da resposta. No modo agente, isso e feito pela skill
+        # entregar_documento (decisao do agente), entao este bloco e pulado.
+        if (not settings.AGENT_ENABLED and settings.SUPABASE_URL and settings.SERVICE_ROLE_KEY
+                and _maybe_download_request(request.question)):
             try:
                 storage = StorageService(
                     base_url=settings.SUPABASE_URL,
