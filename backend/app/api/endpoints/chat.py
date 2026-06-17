@@ -12,7 +12,6 @@ from src.chatbot_fai_docs.repository import get_repo_from_url
 from src.chatbot_fai_docs.lightrag_service import LightRagService
 from src.chatbot_fai_docs.lightrag_resolver import resolve_lightrag_url
 from src.chatbot_fai_docs.smalltalk_gate import is_smalltalk
-from src.chatbot_fai_docs.pdfs import list_pdf_files
 from src.chatbot_fai_docs.storage_service import StorageService
 from src.chatbot_fai_docs.document_resolver import resolve_document_request
 
@@ -43,6 +42,24 @@ def _maybe_download_request(question: str) -> bool:
     return has_verb and has_target
 
 
+def _bucket_manual_names(storage=None) -> list:
+    """Lista os documentos disponiveis a partir do bucket 'manuais' do Supabase
+    Storage (fonte da verdade), em vez de uma pasta local. Alimenta {{LISTA_MANUAIS}}
+    no system prompt. Retorna [] se o Storage estiver indisponivel ou em erro."""
+    try:
+        if storage is None:
+            if not (settings.SUPABASE_URL and settings.SERVICE_ROLE_KEY):
+                return []
+            storage = StorageService(
+                base_url=settings.SUPABASE_URL,
+                service_key=settings.SERVICE_ROLE_KEY,
+                bucket=settings.SUPABASE_BUCKET,
+            )
+        return [o.get("name", "") for o in storage.list_objects(limit=100) if o.get("name")]
+    except Exception:
+        return []
+
+
 def _run_agent(config, question: str, conversation_history: list):
     """Monta o AgentService (laco de tool calling + Skills) e devolve
     (gerador_de_tuplas, AgentContext). O ctx e populado DURANTE a iteracao do
@@ -52,17 +69,17 @@ def _run_agent(config, question: str, conversation_history: list):
     from src.chatbot_fai_docs.agent import AgentService, ToolRegistry, AgentContext
     from src.IA.Models import OllamaModel, OpenAIModel, GeminiModel
 
-    manual_names = (
-        [f.name for f in list_pdf_files(config.docs_dir)] if config.docs_dir.exists() else []
-    )
-
+    # Documentos disponiveis = objetos do bucket 'manuais' do Supabase (fonte da
+    # verdade), nao uma pasta local. Mesmo conjunto que a skill entregar_documento usa.
     storage = None
+    manual_names: list = []
     if settings.SUPABASE_URL and settings.SERVICE_ROLE_KEY:
         storage = StorageService(
             base_url=settings.SUPABASE_URL,
             service_key=settings.SERVICE_ROLE_KEY,
             bucket=settings.SUPABASE_BUCKET,
         )
+        manual_names = _bucket_manual_names(storage)
 
     llm_settings = ChatSettings(
         provider="Ollama local" if not settings.OPENAI_API_KEY else "OpenAI API",
@@ -180,10 +197,7 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
                     and is_smalltalk(request.question)
                 )
                 if use_smalltalk_gate:
-                    manual_names = (
-                        [f.name for f in list_pdf_files(config.docs_dir)]
-                        if config.docs_dir.exists() else []
-                    )
+                    manual_names = _bucket_manual_names()
                     gate_settings = ChatSettings(
                         provider="Ollama local" if not settings.OPENAI_API_KEY else "OpenAI API",
                         api_key="ollama" if not settings.OPENAI_API_KEY else settings.OPENAI_API_KEY,
