@@ -35,3 +35,10 @@ class GeminiModel:
             # Capture usage if available (usually in the last chunk)
             if chunk.usage_metadata:
                 yield ("usage", chunk.usage_metadata.candidates_token_count)
+
+    def chat(self, messages: list[dict], tools: list[dict] | None = None):
+        """O agente (Fase 8) usa o laco de tool calling OpenAI-compatible
+        (Ollama/OpenAI). O GeminiModel usa outro SDK e nao participa desse laco."""
+        raise NotImplementedError(
+            "GeminiModel nao suporta o laco de tool calling do agente; use Ollama/OpenAI."
+        )

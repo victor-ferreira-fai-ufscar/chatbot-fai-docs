@@ -191,3 +191,27 @@ class LightRagService:
 
         # O retorno é o gerador em si e uma list de source_lines (sendo popularizada pelo gerador por reflexão)
         return stream_generator(), [], source_lines
+
+    def answer_question(
+        self,
+        question: str,
+        mode: str,
+        conversation_history: list | None = None,
+        history_turns: int = 5,
+    ) -> Tuple[str, list]:
+        """Variante NAO-stream para uso como ferramenta de agente (skill
+        consultar_base_conhecimento): consome o gerador de answer_question_stream
+        e devolve (texto_completo, source_lines).
+
+        Reutiliza todo o parsing (<think>, secao References, fallback de negativa);
+        os 'thought' sao descartados (so o texto de resposta importa p/ o agente).
+        `source_lines` so fica populada apos consumir o gerador (e preenchida por
+        reflexao durante a iteracao)."""
+        gen, _, source_lines = self.answer_question_stream(
+            question,
+            mode,
+            conversation_history=conversation_history,
+            history_turns=history_turns,
+        )
+        parts = [content for kind, content in gen if kind == "answer"]
+        return "".join(parts).strip(), source_lines

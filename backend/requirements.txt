@@ -34,3 +34,7 @@ requests>=2.32.3
 # --- Transcricao de Audio (Speech-to-Text) ---
 # OpenAI Whisper local (https://github.com/openai/whisper). Requer ffmpeg (sistema).
 openai-whisper>=20231117
+
+# --- Agente (Fase 8: tool calling + Skills) ---
+# PyYAML: parsing do frontmatter dos SKILL.md (convencao das Anthropic Agent Skills).
+pyyaml>=6.0
