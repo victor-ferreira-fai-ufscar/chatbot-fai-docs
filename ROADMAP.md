@@ -126,10 +126,21 @@ Transformar o chatbot atual em uma ferramenta institucional de alta performance,
 **Objetivo:** Como o agente passa a **gerar arquivos e tomar ações**, blindar o sistema para uso institucional.
 
 * **Limites de execução:** `MAX_TOOL_STEPS`, timeout por skill, teto de tamanho de arquivos gerados.
-* **Auditoria:** persistir no `metadata` da mensagem quais skills foram chamadas, com quais argumentos e resultados (rastreabilidade para dados sensíveis da FAI).
+* **Auditoria:** persistir no `metadata` da mensagem quais skills foram chamadas, com quais argumentos e resultados (rastreabilidade para dados sensíveis da FAI). *A persistência (ex‑passo 8.8 da Fase 8) e sua visualização passam a ser entregues no **Dashboard Administrativo (Fase 11)**.*
 * **Sandbox (habilita Skills `kind: script`):** quando o agente puder **escrever/rodar código** — incl. rodar/adaptar as skills oficiais `pdf`/`xlsx`/`docx` da Anthropic, ou uma tool de cálculos — isolá‑la (container efêmero / sem rede).
-* **Controle de acesso:** quando houver login (hoje há isolamento por `user_id`), restringir skills sensíveis por perfil.
+* **Controle de acesso:** quando houver login (hoje há isolamento por `user_id`), restringir skills sensíveis por perfil. *O login chega via **Supabase OAuth** no Dashboard (Fase 11), que é o pré‑requisito deste RBAC.*
 * **MCP (Model Context Protocol):** expor as skills via MCP para reuso por outros clientes internos da FAI — e, no inverso, consumir tools MCP externas como skills (backlog).
+
+### 🔹 Fase 11: Dashboard Administrativo (Auditoria, Métricas, Configuração e Login)
+
+**Objetivo:** Uma área administrativa para **operar e observar** a Lina, reunindo numa interface única o que hoje está espalhado (`.env`/compose/logs) ou ainda não existe, com **autenticação real**. Absorve a auditoria planejada na Fase 8 (passo 8.8) — que por isso foi **adiada** para cá.
+
+* **Auditoria do agente:** visualizar quais Skills foram chamadas, com quais argumentos e resultados, por conversa/turno. Inclui a **persistência no `metadata`** (ex‑passo 8.8): em vez de um passo avulso do agente, entra como base de dados deste dashboard. Liga‑se à Auditoria da **Fase 10**.
+* **Métricas de uso:** volume de conversas/mensagens, latência e tokens por turno, skills mais usadas, taxa de negativas ("não consta no manual"), documentos mais consultados/baixados.
+* **Configuração profunda (sem rebuild):** ajustar por UI os parâmetros do **chat** (modelo, temperatura, `HISTORY_TURNS`, flags como `AGENT_ENABLED`/`MAX_TOOL_STEPS`) e do **LightRAG** (modos, `CHUNK_TOP_K`, orçamentos de tokens), em vez de editar `.env`/`docker-compose.yml`.
+* **Login via Supabase OAuth:** autenticação real de usuários/administradores, substituindo o atual isolamento anônimo por `user_id`. Separa **admin** (vê o dashboard) de **usuário comum** e é o **pré‑requisito do Controle de Acesso por perfil da Fase 10** (RBAC de skills sensíveis).
+
+> **Dependências e ordem:** auditoria e controle de acesso dialogam com a **Fase 10** (Governança); o login OAuth daqui é o que viabiliza o RBAC de lá. Pode ser tocado em paralelo às Fases 9/10 ou logo após a Fase 8.
 
 ## 🧠 Sugestões de Modelos Multimodais Agênticos Locais
 

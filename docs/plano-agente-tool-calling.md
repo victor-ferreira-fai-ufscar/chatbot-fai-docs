@@ -313,7 +313,7 @@ Adicionar uma seção ao `Prompt.md` (lido a cada requisição, sem rebuild):
 | 8.5 | Skill `gerar_documento_pdf` (+ deps no Dockerfile) | `backend/skills/gerar_documento_pdf/`, `backend/Dockerfile` | "gere um PDF de Y" → PDF baixável |
 | 8.6 | Skill `entregar_documento` (reuso do resolver) | `backend/skills/entregar_documento/` | "me envia o manual do coordenador" → signed URL |
 | 8.7 | Integração no endpoint + Prompt.md (Protocolo de Skills) | `chat.py`, `src/IA/Prompt.md` | regressão: factual, social, download, geração |
-| 8.8 | Observabilidade: persistir skills chamadas no `metadata` | `chat.py`/repo | histórico mostra quais skills rodaram (auditoria) |
+| 8.8 | ⏸️ **ADIADO → Dashboard Administrativo (Fase 11):** observabilidade/auditoria das skills (persistência no `metadata` + visualização) deixa de ser passo avulso e entra no dashboard | (Fase 11) | — |
 | 8.9 | **Matriz model‑agnostic:** rodar a bateria com 2–3 modelos locais | (harness de teste) | gpt‑oss vs qwen3 vs mistral: qualidade de tool calling + artefatos idênticos |
 
 **Config nova** (`app/core/config.py`): `AGENT_ENABLED: bool = False`, `MAX_TOOL_STEPS: int = 5`, `TOOL_TIMEOUT_S: int = 60`, `SKILLS_DIR: Path` (default `backend/skills`), `SKILL_INSTRUCTIONS_MODE: str = "preamble"` (`preamble` | `on_demand`). Manter `AGENT_ENABLED=false` permite rollback instantâneo para o fluxo atual durante a transição.
