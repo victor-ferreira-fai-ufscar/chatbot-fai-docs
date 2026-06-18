@@ -57,6 +57,25 @@ class StorageService:
         return ascii_name
 
     # --------------------------------------------------------------- operacoes
+    def ensure_bucket(self, public: bool = False) -> None:
+        """Garante que o bucket exista (idempotente). Cria como PRIVADO por padrao
+        (entrega so via URL assinada). No-op se ja existir."""
+        get = requests.get(f"{self._storage_root}/bucket/{self.bucket}",
+                           headers=self._headers(), timeout=self.timeout)
+        if get.status_code == 200:
+            return
+        resp = requests.post(
+            f"{self._storage_root}/bucket",
+            json={"name": self.bucket, "id": self.bucket, "public": public},
+            headers=self._headers({"Content-Type": "application/json"}),
+            timeout=self.timeout,
+        )
+        # 409 (ou "already exists") cobre corrida entre processos: tratamos como sucesso.
+        if resp.status_code == 409 or (resp.status_code >= 400 and "already exist" in resp.text.lower()):
+            return
+        if resp.status_code >= 400:
+            raise StorageError(f"Falha ao criar bucket '{self.bucket}' ({resp.status_code}): {resp.text}")
+
     def upload(self, object_name: str, content: bytes, content_type: str = "application/octet-stream",
                upsert: bool = True) -> str:
         """Sobe os bytes para o bucket. Retorna o nome do objeto armazenado."""

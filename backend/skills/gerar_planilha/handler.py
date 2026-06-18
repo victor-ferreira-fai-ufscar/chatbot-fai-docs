@@ -56,7 +56,9 @@ def executar(args: dict, ctx) -> "object":
             for_model="Erro: gerar_planilha requer 'titulo' e ao menos uma coluna em 'colunas'.",
             error=True,
         )
-    if ctx.storage is None:
+    # Documentos GERADOS vao para o bucket temporario (separado dos manuais).
+    storage = ctx.temp_storage or ctx.storage
+    if storage is None:
         return SkillResult(
             for_model="Erro: armazenamento (Storage) indisponivel para entregar a planilha.",
             error=True,
@@ -75,10 +77,10 @@ def executar(args: dict, ctx) -> "object":
     except Exception as e:  # noqa: BLE001 - erro de geracao vira mensagem p/ o modelo
         return SkillResult(for_model=f"Erro ao montar a planilha: {e}", error=True)
 
-    nome = ctx.storage.sanitize_object_name(titulo) + ext
+    nome = storage.sanitize_object_name(titulo) + ext
     try:
-        ctx.storage.upload(nome, conteudo, content_type=content_type)
-        url = ctx.storage.create_signed_url(nome, expires_in=ctx.signed_url_ttl)
+        storage.upload(nome, conteudo, content_type=content_type)
+        url = storage.create_signed_url(nome, expires_in=ctx.signed_url_ttl)
     except Exception as e:  # noqa: BLE001
         return SkillResult(for_model=f"Erro ao salvar/entregar a planilha: {e}", error=True)
 

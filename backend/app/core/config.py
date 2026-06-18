@@ -69,6 +69,13 @@ class Settings(BaseSettings):
     ANON_KEY: Optional[str] = None
     SUPABASE_BUCKET: str = "manuais"
     SIGNED_URL_TTL: int = 3600
+    # Bucket SEPARADO para documentos GERADOS pelo agente (planilhas/PDF/DOCX).
+    # Mantem o bucket de manuais limpo; estes arquivos sao TEMPORARIOS e removidos
+    # automaticamente apos TEMP_DOC_TTL_DAYS (varredura a cada TEMP_DOC_SWEEP_HOURS).
+    SUPABASE_TEMP_BUCKET: str = "gerados"
+    TEMP_DOC_CLEANUP_ENABLED: bool = True
+    TEMP_DOC_TTL_DAYS: int = 3
+    TEMP_DOC_SWEEP_HOURS: int = 6
 
     model_config = SettingsConfigDict(
         env_file=str(PROJECT_ROOT / ".env"),

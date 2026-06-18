@@ -35,7 +35,11 @@ class AgentContext:
     """
 
     config: Any = None
+    # storage: bucket de MANUAIS (leitura/entrega de documentos ja existentes).
     storage: Any = None
+    # temp_storage: bucket SEPARADO p/ documentos GERADOS pelo agente (planilha/PDF),
+    # temporarios e limpos automaticamente. As skills de geracao usam este.
+    temp_storage: Any = None
     # ChatSettings (LLM) para skills que precisam chamar o modelo auxiliar — ex.:
     # entregar_documento usa o resolvedor por IA (document_resolver). Preenchido
     # pelo endpoint no cutover (8.7); None desabilita essas skills graciosamente.

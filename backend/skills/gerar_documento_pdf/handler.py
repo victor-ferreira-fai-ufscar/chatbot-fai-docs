@@ -81,7 +81,9 @@ def executar(args: dict, ctx) -> "object":
             for_model="Erro: gerar_documento_pdf requer 'titulo' e 'conteudo_markdown'.",
             error=True,
         )
-    if ctx.storage is None:
+    # Documentos GERADOS vao para o bucket temporario (separado dos manuais).
+    storage = ctx.temp_storage or ctx.storage
+    if storage is None:
         return SkillResult(
             for_model="Erro: armazenamento (Storage) indisponivel para entregar o PDF.",
             error=True,
@@ -92,10 +94,10 @@ def executar(args: dict, ctx) -> "object":
     except Exception as e:  # noqa: BLE001 - erro de geracao vira mensagem p/ o modelo
         return SkillResult(for_model=f"Erro ao montar o PDF: {e}", error=True)
 
-    nome = ctx.storage.sanitize_object_name(titulo) + ".pdf"
+    nome = storage.sanitize_object_name(titulo) + ".pdf"
     try:
-        ctx.storage.upload(nome, conteudo_pdf, content_type="application/pdf")
-        url = ctx.storage.create_signed_url(nome, expires_in=ctx.signed_url_ttl)
+        storage.upload(nome, conteudo_pdf, content_type="application/pdf")
+        url = storage.create_signed_url(nome, expires_in=ctx.signed_url_ttl)
     except Exception as e:  # noqa: BLE001
         return SkillResult(for_model=f"Erro ao salvar/entregar o PDF: {e}", error=True)
 

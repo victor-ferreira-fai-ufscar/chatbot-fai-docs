@@ -72,6 +72,7 @@ def _run_agent(config, question: str, conversation_history: list):
     # Documentos disponiveis = objetos do bucket 'manuais' do Supabase (fonte da
     # verdade), nao uma pasta local. Mesmo conjunto que a skill entregar_documento usa.
     storage = None
+    temp_storage = None
     manual_names: list = []
     if settings.SUPABASE_URL and settings.SERVICE_ROLE_KEY:
         storage = StorageService(
@@ -80,6 +81,13 @@ def _run_agent(config, question: str, conversation_history: list):
             bucket=settings.SUPABASE_BUCKET,
         )
         manual_names = _bucket_manual_names(storage)
+        # Bucket separado para os documentos GERADOS (temporarios). As skills de
+        # geracao sobem aqui; entregar_documento continua lendo de `storage` (manuais).
+        temp_storage = StorageService(
+            base_url=settings.SUPABASE_URL,
+            service_key=settings.SERVICE_ROLE_KEY,
+            bucket=settings.SUPABASE_TEMP_BUCKET,
+        )
 
     llm_settings = ChatSettings(
         provider="Ollama local" if not settings.OPENAI_API_KEY else "OpenAI API",
@@ -98,6 +106,7 @@ def _run_agent(config, question: str, conversation_history: list):
     ctx = AgentContext(
         config=config,
         storage=storage,
+        temp_storage=temp_storage,
         llm_settings=llm_settings,
         conversation_history=conversation_history,
         history_turns=settings.HISTORY_TURNS,

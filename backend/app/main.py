@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+import asyncio
 import requests
 import sys
 from urllib.parse import urlsplit
@@ -7,6 +8,12 @@ from app.core.config import settings
 from app.api.router import api_router
 from src.chatbot_fai_docs.repository import get_repo_from_url
 from src.chatbot_fai_docs.lightrag_resolver import resolve_lightrag_url
+from src.chatbot_fai_docs.storage_service import StorageService
+from src.chatbot_fai_docs.temp_cleanup import cleanup_once
+
+# Mantem referencia forte das tasks de background: asyncio.create_task nao a
+# guarda, e sem isso o GC pode coletar a task e matar o loop silenciosamente.
+_BACKGROUND_TASKS: set = set()
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -67,6 +74,54 @@ def check_database_connection():
     except Exception as e:
         print(f"[DB] FALHA ao conectar com Supabase/Postgres em {target}: {e}")
         print("[DB] O historico de conversas NAO sera persistido ate a conexao ser restabelecida.")
+
+@app.on_event("startup")
+async def start_temp_bucket_cleanup():
+    """Garante o bucket de documentos GERADOS (temporarios) e agenda a varredura
+    que remove arquivos com mais de TEMP_DOC_TTL_DAYS dias. Documentos gerados
+    pelo agente (planilha/PDF) vivem nesse bucket separado e sao limpos sozinhos.
+
+    Roda como task de background no proprio backend (sem dependencia/infra extra);
+    as chamadas de rede (bloqueantes) vao para um thread para nao travar o loop."""
+    if not (settings.SUPABASE_URL and settings.SERVICE_ROLE_KEY):
+        print("[Limpeza] Storage nao configurado -> bucket temporario/limpeza DESATIVADOS.")
+        return
+    if not settings.TEMP_DOC_CLEANUP_ENABLED:
+        print("[Limpeza] TEMP_DOC_CLEANUP_ENABLED=false -> limpeza DESATIVADA.")
+        return
+
+    storage = StorageService(
+        base_url=settings.SUPABASE_URL,
+        service_key=settings.SERVICE_ROLE_KEY,
+        bucket=settings.SUPABASE_TEMP_BUCKET,
+    )
+    try:
+        await asyncio.to_thread(storage.ensure_bucket, False)  # privado
+        print(f"[Limpeza] Bucket temporario '{settings.SUPABASE_TEMP_BUCKET}' pronto (privado).")
+    except Exception as e:
+        print(f"[Limpeza] Falha ao garantir bucket '{settings.SUPABASE_TEMP_BUCKET}': {e}")
+
+    async def _loop():
+        interval = max(1, settings.TEMP_DOC_SWEEP_HOURS) * 3600
+        while True:
+            try:
+                summary = await asyncio.to_thread(cleanup_once, storage, settings.TEMP_DOC_TTL_DAYS)
+                if summary["deleted"]:
+                    print(f"[Limpeza] Removidos {len(summary['deleted'])} arquivo(s) "
+                          f">{settings.TEMP_DOC_TTL_DAYS}d de '{settings.SUPABASE_TEMP_BUCKET}': "
+                          f"{summary['deleted']}")
+                for nome, msg in summary["errors"]:
+                    print(f"[Limpeza] Falha ao remover '{nome}': {msg}")
+            except Exception as e:
+                print(f"[Limpeza] Erro na varredura: {e}")
+            await asyncio.sleep(interval)
+
+    task = asyncio.create_task(_loop())
+    _BACKGROUND_TASKS.add(task)
+    task.add_done_callback(_BACKGROUND_TASKS.discard)
+    print(f"[Limpeza] Varredura agendada a cada {settings.TEMP_DOC_SWEEP_HOURS}h "
+          f"(TTL {settings.TEMP_DOC_TTL_DAYS} dias).")
+
 
 # CORS Configuration
 # Em produção, substitua "*" pelos domínios específicos do frontend
