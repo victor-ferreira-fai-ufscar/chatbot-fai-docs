@@ -161,9 +161,7 @@ function ReplyButton({ onClick }: { onClick: () => void }) {
 }
 
 export default function ChatWindow({ config, userId, selectedConversationId, onConversationCreated }: ChatWindowProps) {
-  const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "Olá! Eu sou a **Lina**, assistente virtual da FAI-UFSCar. Como posso ajudar você hoje com os documentos da FAI?" }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [replyingTo, setReplyingTo] = useState<QuotedRef | null>(null);
   const [showAttachments, setShowAttachments] = useState(false);
@@ -212,7 +210,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
       fetchMessages();
     } else {
       // Reset for new chat
-      setMessages([{ role: "assistant", content: "Olá! Eu sou a **Lina**, assistente virtual da FAI-UFSCar. Como posso ajudar você hoje com os documentos da FAI?" }]);
+      setMessages([]);
     }
   }, [selectedConversationId]);
 
