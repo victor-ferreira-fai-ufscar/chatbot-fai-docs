@@ -21,20 +21,18 @@ services:
       INPUT_DIR: /app/data/inputs
       # LLM e embeddings 100% locais via Ollama do host
       LLM_BINDING: ollama
-      LLM_MODEL: gpt-oss:latest
+      LLM_MODEL: gemma4:26b
       LLM_BINDING_HOST: http://127.0.0.1:11434
       # Janela total (entrada+saida) por requisicao, alocada por slot paralelo do
-      # Ollama (OLLAMA_NUM_PARALLEL=2, ver MAX_ASYNC abaixo). Ampliada 49152 -> 65536
-      # para o gpt-oss (modelo de raciocinio): com mais contexto-fonte
-      # (MAX_TOTAL_TOKENS) ainda sobra orcamento amplo para raciocinio + resposta.
-      # O KV cache do gpt-oss e eficiente (sliding window + GQA), entao o custo extra
-      # de VRAM cabe na folga medida (gpt-oss 13,3GB + gemma4 aux 9,2GB + bge 0,7GB
-      # ~= 23GB de 32GB na RTX 5090, validado empiricamente apos este aumento).
-      OLLAMA_LLM_NUM_CTX: "65536"
-      # 48000 de contexto montado dentro dos 65536 de num_ctx -> sobram ~17500 tokens
-      # para raciocinio + geracao da resposta. Mais contexto-fonte = respostas mais
-      # aprofundadas, mantendo folga grande para o gpt-oss raciocinar e gerar respostas
-      # longas mesmo quando o grafo retorna muitas entidades/relacoes.
+      # Ollama (KV cache na VRAM). Dimensionada para caber o contexto-fonte
+      # (MAX_TOTAL_TOKENS=48000) + a geracao da resposta. Reduzida 65536 -> 52224
+      # ao adotar um modelo de sintese SEM cadeia de raciocinio explicita: dispensa o
+      # headroom extra que um modelo de raciocinio exigiria, liberando VRAM para a
+      # co-residencia (modelo de sintese + modelo do agente + embeddings na RTX 5090).
+      OLLAMA_LLM_NUM_CTX: "52224"
+      # 48000 de contexto montado dentro dos 52224 de num_ctx -> sobram ~4000 tokens
+      # para a geracao da resposta. Mais contexto-fonte = respostas mais aprofundadas,
+      # mesmo quando o grafo retorna muitas entidades/relacoes.
       MAX_TOTAL_TOKENS: "48000"
       # Sem estes caps, os defaults do LightRAG (entity 6000 + relation 8000 = 14000)
       # ja estouram sozinhos o MAX_TOTAL_TOKENS=13000, zerando o orcamento dos chunks
@@ -53,9 +51,11 @@ services:
       EMBEDDING_BINDING_HOST: http://127.0.0.1:11434
       OLLAMA_EMBEDDING_NUM_CTX: "8192"
       SUMMARY_LANGUAGE: Portuguese
-      # Deve casar com OLLAMA_NUM_PARALLEL do host (drop-in systemd --user do
-      # Ollama): mais workers que slots faz a fila estourar timeout (ReadTimeout).
-      MAX_ASYNC: "2"
+      # Concorrencia de requisicoes ao LLM. Mantido em 1 para reduzir a pressao de
+      # VRAM (menos KV cache simultaneo); uso interno de baixo trafego dispensa
+      # paralelismo. Nao deve exceder o OLLAMA_NUM_PARALLEL do host, senao a fila
+      # estoura timeout (ReadTimeout).
+      MAX_ASYNC: "1"
       TIMEOUT: "600"
     volumes:
       - ./lightrag/data/rag_storage:/app/data/rag_storage
