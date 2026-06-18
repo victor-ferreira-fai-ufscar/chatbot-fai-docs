@@ -14,7 +14,12 @@ from pathlib import Path
 # .../src/chatbot_fai_docs  -> permite `import agent...` como top-level
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from agent.agent_service import AgentService, to_openai_tool_calls  # noqa: E402
+from agent.agent_service import (  # noqa: E402
+    AgentService,
+    sanitize_harmony,
+    to_openai_tool_calls,
+    _HARMONY_FALLBACK,
+)
 from agent.skill_loader import _parse_skill_md, load_skills  # noqa: E402
 from agent.tool_registry import ToolRegistry  # noqa: E402
 from agent.types import AgentContext, SkillResult  # noqa: E402
@@ -61,6 +66,28 @@ class FakeModel:
             yield ("answer", "Resultado final: ")
             yield ("answer", "feito.")
             yield ("usage", 7)
+
+
+class LeakyHarmonyModel:
+    """Simula um modelo que VAZA o raciocinio (formato 'harmony') no `content` do
+    turno final — reproduzindo o fluxo que disparava o bug: 1a chamada pede uma
+    skill ('me envia o documento'), 2a chamada redige a resposta final, mas o
+    raciocinio escapa fragmentado via content (como o Ollama as vezes faz)."""
+
+    def __init__(self):
+        self.calls = 0
+
+    def chat(self, messages, tools=None):
+        self.calls += 1
+        has_tool_result = any(m.get("role") == "tool" for m in messages)
+        if not has_tool_result:
+            yield ("tool_calls", [{"id": "c1", "name": "echo", "arguments": {"texto": "manual"}}])
+        else:
+            # vazamento degradado (a): thought\n{raciocinio}<channel|>{final}
+            yield ("answer", "thought\n")
+            yield ("answer", "The user wants the document. Plan: send the link.")
+            yield ("answer", "<channel|>")
+            yield ("answer", "Aqui esta o seu documento: http://x/manual.pdf")
 
 
 def _make_skill_dir(base: Path) -> Path:
@@ -123,6 +150,59 @@ def main():
             "laco: resposta final bufferizada corretamente",
         )
         check("Fonte: teste.pdf" in ctx2.sources, "laco: sources coletadas no ctx")
+
+        # --- integracao: vazamento harmony NO turno final e sanitizado no run_stream ---
+        leaky = LeakyHarmonyModel()
+        svc2 = AgentService(leaky, reg, max_steps=5)
+        ctx3 = AgentContext()
+        ev = list(svc2.run_stream("me envia esse documento", [], ctx3))
+        final = next((p for k, p in reversed(ev) if k == "answer"), None)
+        check(leaky.calls == 2, "run_stream: tool -> resposta final (fluxo do bug)")
+        check(
+            final == "Aqui esta o seu documento: http://x/manual.pdf",
+            "run_stream: resposta final sanitizada (integracao)",
+        )
+        check(
+            final is not None
+            and "thought" not in final
+            and "channel" not in final
+            and "The user wants" not in final,
+            "run_stream: nenhum artefato harmony chega ao usuario",
+        )
+
+    # --- sanitizacao do formato "harmony" (anti-vazamento de raciocinio) ---
+    s = sanitize_harmony
+    normal = "Ola! O prazo de matricula vai ate 10/07. Posso ajudar em algo mais?"
+    check(s(normal) == normal, "harmony: resposta normal passa intacta")
+    check(s("") == "", "harmony: string vazia inalterada")
+    check(
+        s("Final: o resultado e X.") == "Final: o resultado e X.",
+        "harmony: 'Final:' sem marcadores nao e tocado",
+    )
+    proper = (
+        "<|channel|>analysis<|message|>The user wants the deadline. Plan: reply.<|end|>"
+        "<|start|>assistant<|channel|>final<|message|>O prazo e 10/07. 📎"
+    )
+    check(s(proper) == "O prazo e 10/07. 📎", "harmony: proper analysis+final -> so o final")
+    check(
+        s("<|channel|>analysis<|message|>The user wants...<|end|>") == _HARMONY_FALLBACK,
+        "harmony: so analysis -> fallback (nao vaza raciocinio)",
+    )
+    check(
+        s("<|channel|>commentary<|message|>vou checar<|end|><|channel|>final<|message|>Pronto.")
+        == "Pronto.",
+        "harmony: commentary+final -> so o final",
+    )
+    check(
+        s("<|channel|>final<|message|>Pronto.<|return|>") == "Pronto.",
+        "harmony: token de fim (<|return|>) removido",
+    )
+    deg_a = "thought\nThe user wants the manual. Plan: send link.<channel|>Aqui esta o manual: 📎 http://x"
+    check(s(deg_a) == "Aqui esta o manual: 📎 http://x", "harmony: degradado (a) -> so o final")
+    deg_b = "thought\n<channel|>The user wants the doc. Actually, looking at the instructions: I should..."
+    check(s(deg_b) == _HARMONY_FALLBACK, "harmony: degradado (b) so raciocinio -> fallback")
+    deg_multi = "thought\nr1 reasoning<channel|>r2 reasoning<channel|>Resposta final em PT"
+    check(s(deg_multi) == "Resposta final em PT", "harmony: degradado multi-canal -> apos ultimo canal")
 
     # --- conversao p/ formato OpenAI ---
     oc = to_openai_tool_calls([{"id": "x", "name": "echo", "arguments": {"a": 1}}])
