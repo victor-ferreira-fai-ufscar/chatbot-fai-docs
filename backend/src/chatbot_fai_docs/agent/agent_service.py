@@ -108,6 +108,89 @@ def sanitize_harmony(text: str) -> str:
     return cleaned or _HARMONY_FALLBACK
 
 
+# --- Consolidacao das citacoes de fonte ------------------------------------
+# O modelo costuma emitir uma linha "> Fonte: [Arquivo.pdf, pág. N]" por bloco,
+# resultando em varias linhas seguidas do mesmo arquivo. Fundimos as do MESMO
+# arquivo numa unica linha com as paginas agrupadas:
+#   > Fonte: [Arquivo.pdf, pág. 26]      > Fonte: [Arquivo.pdf, págs. 26, 30, 31]
+#   > Fonte: [Arquivo.pdf, pág. 30]  ->
+#   > Fonte: [Arquivo.pdf, pág. 31]
+# Deterministico (nao depende de o modelo formatar certo); so age quando ha 2+
+# linhas de fonte. Citacoes no meio de um paragrafo (sem ser linha isolada) ficam
+# intactas.
+_SOURCE_LINE_RE = re.compile(r"(?im)^[ \t>]*Fontes?:[ \t]*\[([^\]\n]+)\][ \t.;]*$")
+_INSIDE_RE = re.compile(r"^(.*?)[,;]\s*p[áa]gs?\.?\s*([0-9,\s–\-]+)$", re.I)
+_SRC_DASHES = "‐‑‒–—―−"
+
+
+def _src_pages(s: str) -> list:
+    out = []
+    for d in "–—−":
+        s = (s or "").replace(d, "-")
+    for tok in re.split(r"[,\s]+", s or ""):
+        m = re.match(r"^(\d{1,4})(?:-(\d{1,4}))?$", tok.strip())
+        if not m:
+            continue
+        a = int(m.group(1))
+        b = int(m.group(2)) if m.group(2) else a
+        if a <= b and b - a < 500:
+            out.extend(range(a, b + 1))
+    return out
+
+
+def _src_key(name: str) -> str:
+    k = (name or "").lower()
+    for d in _SRC_DASHES:
+        k = k.replace(d, "-")
+    return k.replace(" ", " ").replace(" ", " ").strip()
+
+
+def consolidate_sources(text: str) -> str:
+    """Funde linhas '> Fonte: [Arquivo.pdf, pág. N]' do mesmo arquivo numa unica
+    linha com as paginas agrupadas. Mantem o restante do texto e a posicao da 1a
+    citacao; remove as demais."""
+    if not text or "fonte" not in text.lower():
+        return text
+    lines = text.split("\n")
+    hits = []  # (idx, display_name, key, [pages])
+    for i, ln in enumerate(lines):
+        m = _SOURCE_LINE_RE.match(ln)
+        if not m:
+            continue
+        inside = m.group(1).strip()
+        mm = _INSIDE_RE.match(inside)
+        name = (mm.group(1) if mm else inside).strip().rstrip(",;").strip()
+        pages = _src_pages(mm.group(2)) if mm else []
+        if name:
+            hits.append((i, name, _src_key(name), pages))
+    if len(hits) < 2:
+        return text  # nada a fundir
+    groups, order = {}, []
+    for _, name, key, pages in hits:
+        if key not in groups:
+            groups[key] = {"name": name, "pages": []}
+            order.append(key)
+        groups[key]["pages"].extend(pages)
+    consolidated = []
+    for key in order:
+        g = groups[key]
+        uniq = sorted(set(g["pages"]))
+        if uniq:
+            label = "pág." if len(uniq) == 1 else "págs."
+            consolidated.append(f"> Fonte: [{g['name']}, {label} {', '.join(map(str, uniq))}]")
+        else:
+            consolidated.append(f"> Fonte: [{g['name']}]")
+    hit_idxs = {h[0] for h in hits}
+    first = min(hit_idxs)
+    out = []
+    for i, ln in enumerate(lines):
+        if i not in hit_idxs:
+            out.append(ln)
+        elif i == first:
+            out.extend(consolidated)
+    return "\n".join(out)
+
+
 def to_openai_tool_calls(tool_calls: list[dict]) -> list[dict]:
     """Converte [{id, name, arguments(dict)}] -> formato OpenAI da msg `assistant`."""
     out = []
@@ -182,8 +265,9 @@ class AgentService:
             if not tool_calls:
                 # turno sem ferramentas = resposta final. Sanitiza aqui (texto ja
                 # bufferizado) para garantir que o raciocinio interno (formato
-                # "harmony") nunca vaze ao usuario.
-                yield ("answer", sanitize_harmony(answer_buf))
+                # "harmony") nunca vaze ao usuario; depois funde as citacoes de
+                # fonte do mesmo arquivo numa unica linha (paginas agrupadas).
+                yield ("answer", consolidate_sources(sanitize_harmony(answer_buf)))
                 return
 
             # registra a intencao do assistente e executa cada skill
