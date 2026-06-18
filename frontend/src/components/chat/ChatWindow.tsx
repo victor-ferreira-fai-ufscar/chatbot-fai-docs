@@ -83,12 +83,25 @@ function CopyButton({ text }: { text: string }) {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
-// Extrai o nome do arquivo de uma linha de fonte ("- arquivo.pdf (Ref ID: 123)")
+// Extrai o nome do arquivo de uma linha de fonte. Tolera o formato atual
+// ("- arquivo.pdf (pág. 12)" / "(págs. 4-6, 9)") e o legado ("(Ref ID: 123)").
 function extractFilename(sourceLine: string): string {
   return sourceLine
     .replace(/^-\s*/, "")
-    .replace(/\s*\(Ref ID:.*\)\s*$/i, "")
+    .replace(/\s*\((?:ref id:|p[áa]gs?\.).*\)\s*$/i, "")
     .trim();
+}
+
+// Rótulo de página de uma linha de fonte ("pág. 12" / "págs. 4-6, 9"), ou null.
+function extractPagesLabel(sourceLine: string): string | null {
+  const m = sourceLine.match(/\((p[áa]gs?\.[^)]*)\)/i);
+  return m ? m[1].trim() : null;
+}
+
+// Primeira página citada na linha de fonte (para abrir o PDF direto nela), ou null.
+function extractSourcePage(sourceLine: string): number | null {
+  const m = sourceLine.match(/p[áa]gs?\.\s*(\d{1,4})/i);
+  return m ? parseInt(m[1], 10) : null;
 }
 
 // Procura, no texto da resposta, a pagina citada para um arquivo no formato
@@ -467,7 +480,10 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
       const res = await fetch(`${API_BASE_URL}/documents/download-url?name=${encodeURIComponent(filename)}`);
       if (res.ok) {
         const data = await res.json();
-        const page = answerContent ? extractCitedPage(answerContent, filename) : null;
+        // Pagina deterministica da propria linha de fonte (backend) tem prioridade;
+        // como fallback, tenta a citacao "[arquivo.pdf, pag. N]" no texto da resposta.
+        const page = extractSourcePage(sourceLine)
+          ?? (answerContent ? extractCitedPage(answerContent, filename) : null);
         const url = page ? `${data.signed_url}#page=${page}` : data.signed_url;
         window.open(url, "_blank", "noopener,noreferrer");
       } else if (res.status === 404) {
@@ -562,6 +578,11 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
                           >
                             <Download size={10} className="opacity-60 group-hover/src:opacity-100" />
                             {extractFilename(s)}
+                            {extractPagesLabel(s) && (
+                              <span className="text-gray-400 group-hover/src:text-accent-blue/80">
+                                · {extractPagesLabel(s)}
+                              </span>
+                            )}
                           </button>
                         ))}
                       </div>

@@ -24,6 +24,140 @@ from src.chatbot_fai_docs.config import AppConfig
 from src.chatbot_fai_docs.utils import get_current_date_time_pt_br
 from src.chatbot_fai_docs.pdfs import list_pdf_files
 
+# Um numero isolado (1 a 3 digitos) em uma linha inteira = rodape de pagina que o
+# parser de PDF deixou embutido no texto do chunk. E daqui que extraimos a pagina
+# REAL consultada, de forma deterministica (sem depender de o modelo cita-la).
+_FOOTER_PAGE_RE = re.compile(r"(?m)^[ \t]*(\d{1,3})[ \t]*$")
+# Bloco "Document Chunks" da resposta de contexto do LightRAG (only_need_context):
+# um objeto JSON por linha dentro de uma cerca ```json ... ```.
+_CHUNKS_BLOCK_RE = re.compile(r"Document Chunks.*?```json(.*?)```", re.S | re.I)
+
+
+def _footer_pages(content: str) -> list:
+    """Numeros de pagina (rodape) embutidos no texto de um chunk, em ordem."""
+    return [int(m.group(1)) for m in _FOOTER_PAGE_RE.finditer(content or "")]
+
+
+def _compact_pages(pages) -> str:
+    """Formata paginas como faixas compactas: [4,5,6,9] -> '4-6, 9'. Vazio se nao houver."""
+    uniq = sorted({p for p in pages if p > 0})
+    if not uniq:
+        return ""
+    ranges = []
+    start = prev = uniq[0]
+    for n in uniq[1:]:
+        if n == prev + 1:
+            prev = n
+            continue
+        ranges.append((start, prev))
+        start = prev = n
+    ranges.append((start, prev))
+    return ", ".join(str(a) if a == b else f"{a}-{b}" for a, b in ranges)
+
+
+def _parse_pages_by_reference(context_text: str) -> dict:
+    """A partir do texto de contexto do LightRAG (only_need_context), devolve
+    {reference_id: [paginas...]} agregando os rodapes de todos os chunks daquela
+    referencia. O reference_id e por DOCUMENTO (todos os chunks de um arquivo
+    compartilham o mesmo id), entao o resultado e o conjunto de paginas daquele
+    documento que de fato alimentaram a resposta."""
+    m = _CHUNKS_BLOCK_RE.search(context_text or "")
+    if not m:
+        return {}
+    by_ref: dict = {}
+    for line in m.group(1).splitlines():
+        line = line.strip().rstrip(",")
+        if not line.startswith("{"):
+            continue
+        try:
+            obj = json.loads(line)
+        except Exception:
+            continue
+        ref = str(obj.get("reference_id", "")).strip()
+        if not ref:
+            continue
+        by_ref.setdefault(ref, []).extend(_footer_pages(obj.get("content", "")))
+    return by_ref
+
+
+# Modelos costumam escrever o nome do arquivo/citacao com tracos e espacos
+# Unicode (hifen nao-quebravel U+2011, espaco estreito U+202F etc.), o que
+# quebraria o match com o nome real (ASCII). Normalizamos para ASCII antes.
+_UNICODE_FIX = {
+    **dict.fromkeys(map(ord, "‐‑‒–—―−"), "-"),
+    **dict.fromkeys(map(ord, "    "), " "),
+}
+
+
+def _norm(s: str) -> str:
+    return (s or "").translate(_UNICODE_FIX)
+
+
+# Citacao de pagina que o modelo escreve no corpo da resposta:
+# "[arquivo.pdf, pág. 12]" / "[arquivo.pdf, págs. 4-6]" / "[arquivo.pdf - pag 12]".
+_CITED_PAGE_RE = re.compile(r"\[([^\[\]]+?)[,;\s\-]+p[aá]gs?\.?\s*([\d\s,\-]+?)\]", re.I)
+_PAGE_TOKEN_RE = re.compile(r"(\d{1,3})(?:\s*-\s*(\d{1,3}))?$")
+
+
+def _parse_cited_pages(answer_text: str) -> dict:
+    """{nome_do_arquivo_lower: [paginas]} a partir das citacoes que o MODELO
+    escreveu na resposta ('[arquivo.pdf, pág. N]'). Essa pagina e por-trecho
+    (o modelo escolhe a do conteudo que usou), logo mais precisa que o conjunto
+    recuperado; por isso ela e validada (anti-alucinacao) contra esse conjunto
+    antes de ser usada."""
+    out: dict = {}
+    for m in _CITED_PAGE_RE.finditer(_norm(answer_text)):
+        fname = m.group(1).strip().lower().rsplit("/", 1)[-1].rsplit("\\", 1)[-1].strip()
+        if not fname:
+            continue
+        pages = []
+        for tok in re.split(r"[,\s]+", m.group(2)):
+            mm = _PAGE_TOKEN_RE.match(tok.strip())
+            if not mm:
+                continue
+            a = int(mm.group(1))
+            b = int(mm.group(2)) if mm.group(2) else a
+            if 0 < a <= b and b - a < 200:
+                pages.extend(range(a, b + 1))
+        if pages:
+            out.setdefault(fname, []).extend(pages)
+    return out
+
+
+def _cited_pages_for(file_path: str, cited_map: dict) -> list:
+    """Paginas que o modelo citou para `file_path` (match frouxo do nome, ja que
+    o modelo costuma reproduzir o nome do arquivo como aparece nas fontes)."""
+    fn = _norm(Path(file_path).name.lower())
+    for cited_fn, pages in cited_map.items():
+        if cited_fn == fn or cited_fn in fn or fn in cited_fn:
+            return pages
+    return []
+
+
+def _resolve_pages(retrieved: set, cited: list) -> list:
+    """Hibrido validado: prioriza a pagina PRECISA citada pelo modelo, desde que
+    confirmada no conjunto RECUPERADO (deterministico); senao, cai no conjunto
+    recuperado. Se o conjunto recuperado nao veio (falha de rede), confia no
+    citado. Garante que sempre haja pagina quando ha qualquer sinal."""
+    if cited and retrieved:
+        validated = [p for p in cited if p in retrieved]
+        if validated:
+            return validated
+    elif cited and not retrieved:
+        return list(cited)
+    return sorted(retrieved)
+
+
+def _format_source_line(file_path: str, pages) -> str:
+    """Linha de fonte para o frontend. Com paginas: '- arquivo.pdf (pág. N)' ou
+    '- arquivo.pdf (págs. 4-6, 9)'. Sem paginas: '- arquivo.pdf'."""
+    compact = _compact_pages(pages)
+    if not compact:
+        return f"- {file_path}"
+    label = "pág." if compact.isdigit() else "págs."
+    return f"- {file_path} ({label} {compact})"
+
+
 class LightRagService:
     def __init__(self, config: AppConfig):
         self.config = config
@@ -47,6 +181,29 @@ class LightRagService:
                 .replace("{{LISTA_MANUAIS}}", docs_str)
             )
         return "Você é um assistente de IA configurado localmente."
+
+    def _fetch_pages_by_reference(self, base_payload: dict, headers: dict) -> dict:
+        """Chamada de RECUPERACAO (only_need_context) ao LightRAG, com o MESMO
+        query/mode/historico da resposta, para obter os chunks usados e extrair
+        deles as paginas REAIS (rodape). Deterministico: a pagina nao depende de
+        o modelo escreve-la. Falha de forma suave (retorna {}), preservando o
+        comportamento antigo (fonte sem pagina) caso o LightRAG nao coopere."""
+        try:
+            ctx_payload = dict(base_payload)
+            ctx_payload["stream"] = False
+            ctx_payload["only_need_context"] = True
+            resp = requests.post(
+                f"{self.config.lightrag_api_url}/query",
+                json=ctx_payload, timeout=60, headers=headers,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            text = data.get("response", "") if isinstance(data, dict) else data
+            if not isinstance(text, str):
+                text = json.dumps(text, ensure_ascii=False)
+            return _parse_pages_by_reference(text)
+        except Exception:
+            return {}
 
     def answer_question_stream(
         self,
@@ -106,6 +263,10 @@ class LightRagService:
         def stream_generator():
             in_thought = False
             seen_refs = set()
+            # (file_path, reference_id) na ordem de chegada; a pagina e resolvida
+            # ao final, quando ja temos todas as referencias e podemos consultar
+            # o contexto recuperado de uma so vez.
+            collected_refs = []
 
             # Estado do filtro da secao "References" no texto da resposta.
             # `answer_buf` segura um pequeno trecho final (HOLDBACK) para nao emitir um
@@ -159,7 +320,7 @@ class LightRagService:
                         file_path = ref.get('file_path')
                         if _is_real_manual(file_path) and file_path not in seen_refs:
                             seen_refs.add(file_path)
-                            source_lines.append(f"- {file_path} (Ref ID: {ref.get('reference_id')})")
+                            collected_refs.append((file_path, str(ref.get('reference_id', '')).strip()))
 
                 if "response" in data:
                     chunk = data["response"]
@@ -188,6 +349,18 @@ class LightRagService:
             # Flush do que sobrou no buffer (resposta sem secao de References)
             if not cut and answer_buf:
                 yield ("answer", answer_buf)
+
+            # Enriquecimento DETERMINISTICO das fontes com a pagina consultada.
+            # Roda DEPOIS do streaming (nao atrasa a resposta ao usuario): uma
+            # chamada only_need_context devolve os chunks usados, de onde extraimos
+            # os rodapes de pagina. Assim a pagina sempre acompanha a fonte, sem
+            # depender de o modelo te-la citado no texto.
+            page_map = self._fetch_pages_by_reference(payload, headers) if collected_refs else {}
+            cited_map = _parse_cited_pages(seen_text)
+            for file_path, ref_id in collected_refs:
+                retrieved = {p for p in page_map.get(ref_id, []) if p > 0}
+                cited = _cited_pages_for(file_path, cited_map)
+                source_lines.append(_format_source_line(file_path, _resolve_pages(retrieved, cited)))
 
         # O retorno é o gerador em si e uma list de source_lines (sendo popularizada pelo gerador por reflexão)
         return stream_generator(), [], source_lines
