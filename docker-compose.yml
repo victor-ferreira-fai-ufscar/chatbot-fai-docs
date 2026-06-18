@@ -11,10 +11,12 @@ services:
     network_mode: host
     environment:
       # Exposto na rede COM autenticacao: toda chamada a API exige o header
-      # X-API-Key (mesma chave em LIGHTRAG_API_KEY do .env, usada pelo backend).
+      # X-API-Key. A chave vem do .env (mesma var usada pelo backend) via
+      # interpolacao do compose; NAO colocar o valor literal aqui (vaza no git).
+      # A guarda :? faz o `docker compose up` falhar claro se a var faltar.
       HOST: "0.0.0.0"
       PORT: "9621"
-      LIGHTRAG_API_KEY: 55aa1447174614ba21604f88fc355e46b75327f2e45c949a
+      LIGHTRAG_API_KEY: ${LIGHTRAG_API_KEY:?defina LIGHTRAG_API_KEY no .env}
       WORKING_DIR: /app/data/rag_storage
       INPUT_DIR: /app/data/inputs
       # LLM e embeddings 100% locais via Ollama do host
