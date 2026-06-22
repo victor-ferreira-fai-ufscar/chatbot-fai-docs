@@ -14,7 +14,20 @@ const ALL = questions as Q[];
 const LIMIT = process.env.E2E_LIMIT ? parseInt(process.env.E2E_LIMIT, 10) : ALL.length;
 const SUBSET = ALL.slice(0, LIMIT);
 
+// O frontend chama /api/v1 no MESMO origin (NEXT_PUBLIC_API_URL=/api/v1), contando que o
+// Caddy roteie /api -> backend. Indo direto no :3000 (sem Caddy) isso 404a; então
+// redirecionamos as chamadas de API para o backend (BACKEND_URL, default :8000). O Playwright
+// reescreve no nível de rede (sem CORS) e preserva o streaming SSE do /chat/stream.
+const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
+
 test.describe("Precisão do chatbot vs Manual do Coordenador", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.route("**/api/v1/**", (route) => {
+      const u = new URL(route.request().url());
+      route.continue({ url: BACKEND_URL + u.pathname + u.search });
+    });
+  });
+
   for (const q of SUBSET) {
     test(`${q.id} — ${q.question.slice(0, 70)}`, async ({ page }, testInfo) => {
       await page.goto("/");
