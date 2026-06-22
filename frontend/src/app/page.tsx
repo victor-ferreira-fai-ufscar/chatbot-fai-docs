@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Header from "@/components/layout/Header";
 import Sidebar from "@/components/layout/Sidebar";
+import SourcesPanel from "@/components/layout/SourcesPanel";
 import ChatWindow from "@/components/chat/ChatWindow";
 
 export type SidebarMode = "history" | "settings";
@@ -15,6 +16,9 @@ export default function Home() {
   const [isBackendConnected, setIsBackendConnected] = useState<boolean | null>(null);
   // ID de sessao do usuario (sem login ainda): gerado e guardado no localStorage
   const [userId, setUserId] = useState<string | null>(null);
+  // Fontes da resposta atual (alimenta a SourcesPanel estilo NotebookLM, 3a coluna).
+  const [activeSources, setActiveSources] = useState<string[]>([]);
+  const [activeAnswer, setActiveAnswer] = useState<string>("");
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
@@ -153,8 +157,11 @@ export default function Home() {
             userId={userId}
             selectedConversationId={selectedConversationId}
             onConversationCreated={fetchHistory}
+            onActiveSources={(s, a) => { setActiveSources(s); setActiveAnswer(a); }}
           />
         </div>
+
+        <SourcesPanel sources={activeSources} answerContent={activeAnswer} />
       </main>
     </div>
   );

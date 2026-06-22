@@ -4,6 +4,20 @@ import { useState, useRef, useEffect } from "react";
 import { Send, User, Mic, Square, Loader2, Plus, Image, FileText, X, Copy, Check, Download, Reply, ArrowDown } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { toast } from "sonner";
+
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 interface QuotedRef {
   role: "user" | "assistant";
@@ -24,6 +38,8 @@ interface ChatWindowProps {
   userId: string | null;
   selectedConversationId: number | null;
   onConversationCreated: () => void;
+  // Notifica o pai (page.tsx) das fontes da resposta atual, para alimentar a SourcesPanel.
+  onActiveSources?: (sources: string[], answer: string) => void;
 }
 
 function CopyButton({ text }: { text: string }) {
@@ -57,27 +73,31 @@ function CopyButton({ text }: { text: string }) {
   };
 
   return (
-    <button
+    <Button
+      type="button"
+      variant="outline"
+      size="xs"
       onClick={handleCopy}
-      className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-medium transition-all duration-200 border shrink-0 ${
-        copied
-          ? "bg-green-50 text-green-600 border-green-200"
-          : "bg-gray-50/50 text-gray-500 border-gray-200/60 hover:bg-gray-100 hover:text-gray-700"
-      }`}
       title="Copiar mensagem"
+      className={cn(
+        "text-[10px] shrink-0",
+        copied
+          ? "border-fai-green/30 bg-fai-green/10 text-fai-green hover:bg-fai-green/10 hover:text-fai-green"
+          : "text-muted-foreground"
+      )}
     >
       {copied ? (
         <>
-          <Check size={11} className="stroke-[2.5]" />
+          <Check className="stroke-[2.5]" />
           <span>Copiado!</span>
         </>
       ) : (
         <>
-          <Copy size={11} />
+          <Copy />
           <span>Copiar</span>
         </>
       )}
-    </button>
+    </Button>
   );
 }
 
@@ -145,13 +165,14 @@ function QuotedBlock({ quoted, onUserBubble }: { quoted: QuotedRef; onUserBubble
   const label = quoted.role === "assistant" ? "Assistente" : "Você";
   return (
     <div
-      className={`mb-1.5 rounded-md border-l-[3px] px-2.5 py-1.5 text-[11px] leading-snug ${
+      className={cn(
+        "mb-1.5 rounded-md border-l-[3px] px-2.5 py-1.5 text-[11px] leading-snug",
         onUserBubble
           ? "border-white/70 bg-white/15 text-white/90"
-          : "border-accent-blue/60 bg-accent-blue/5 text-gray-600"
-      }`}
+          : "border-accent-blue/60 bg-accent-blue/5 text-muted-foreground"
+      )}
     >
-      <div className={`font-semibold text-[10px] mb-0.5 ${onUserBubble ? "text-white/90" : "text-accent-blue"}`}>
+      <div className={cn("font-semibold text-[10px] mb-0.5", onUserBubble ? "text-white/90" : "text-accent-blue")}>
         {label}
       </div>
       <div className="line-clamp-2 opacity-90">{quotePreview(quoted.content)}</div>
@@ -162,18 +183,21 @@ function QuotedBlock({ quoted, onUserBubble }: { quoted: QuotedRef; onUserBubble
 // Botão "Responder" (mencionar mensagem como contexto).
 function ReplyButton({ onClick }: { onClick: () => void }) {
   return (
-    <button
+    <Button
+      type="button"
+      variant="outline"
+      size="xs"
       onClick={onClick}
-      className="flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-medium transition-all duration-200 border shrink-0 bg-gray-50/50 text-gray-500 border-gray-200/60 hover:bg-gray-100 hover:text-gray-700"
       title="Responder / mencionar esta mensagem"
+      className="text-[10px] text-muted-foreground shrink-0"
     >
-      <Reply size={11} />
+      <Reply />
       <span>Responder</span>
-    </button>
+    </Button>
   );
 }
 
-export default function ChatWindow({ config, userId, selectedConversationId, onConversationCreated }: ChatWindowProps) {
+export default function ChatWindow({ config, userId, selectedConversationId, onConversationCreated, onActiveSources }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [replyingTo, setReplyingTo] = useState<QuotedRef | null>(null);
@@ -196,7 +220,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
   // Sync internal conversationId with prop and fetch messages if needed
   useEffect(() => {
     setConversationId(selectedConversationId);
-    
+
     if (selectedConversationId) {
       const fetchMessages = async () => {
         setIsTyping(true);
@@ -213,6 +237,9 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
               usage: m.metadata?.usage,
               quoted: m.metadata?.quoted
             })));
+            // Alimenta a SourcesPanel com as fontes da ultima resposta da conversa carregada.
+            const lastAsst = [...data].reverse().find((m: any) => m.role === "assistant" && m.metadata?.sources?.length);
+            if (onActiveSources) onActiveSources(lastAsst?.metadata?.sources || [], lastAsst?.content || "");
           }
         } catch (e) {
           console.error("Erro ao carregar mensagens", e);
@@ -224,6 +251,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
     } else {
       // Reset for new chat
       setMessages([]);
+      if (onActiveSources) onActiveSources([], "");
     }
   }, [selectedConversationId]);
 
@@ -236,15 +264,6 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  // Fecha o modal "Sobre a Lina" ao pressionar Esc
-  useEffect(() => {
-    function handleEsc(event: KeyboardEvent) {
-      if (event.key === "Escape") setShowAbout(false);
-    }
-    document.addEventListener("keydown", handleEsc);
-    return () => document.removeEventListener("keydown", handleEsc);
   }, []);
 
   const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
@@ -270,7 +289,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
 
   const handleSend = async () => {
     if (!input.trim() || isTyping) return;
-    
+
     const userMessage = input.trim();
     const quoted = replyingTo;
     setInput("");
@@ -334,7 +353,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
           if (line.startsWith('data: ')) {
             try {
               const data = JSON.parse(line.slice(6));
-              
+
               if (data.error) {
                 lastMessageContent = `Erro: ${data.error}`;
               } else if (data.content) {
@@ -345,14 +364,14 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
               setMessages(prev => {
                 const newMessages = [...prev];
                 const lastMsgIndex = newMessages.length - 1;
-                newMessages[lastMsgIndex] = { 
-                  ...newMessages[lastMsgIndex], 
+                newMessages[lastMsgIndex] = {
+                  ...newMessages[lastMsgIndex],
                   content: lastMessageContent,
                   sources: data.sources || newMessages[lastMsgIndex].sources,
                   genTime: data.gen_time || newMessages[lastMsgIndex].genTime,
                   usage: data.usage || newMessages[lastMsgIndex].usage
                 };
-                
+
                 // If the stream is finished, set the final conversation ID
                 if (data.done) {
                   if (!conversationId && data.conversation_id) {
@@ -360,9 +379,14 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
                   }
                   setConversationId(data.conversation_id);
                 }
-                
+
                 return newMessages;
               });
+
+              // Ao finalizar a resposta, publica as fontes para a SourcesPanel (3a coluna).
+              if (data.done && onActiveSources) {
+                onActiveSources(data.sources || [], lastMessageContent);
+              }
 
             } catch (e) {
               console.error("Erro ao parsear chunk JSON", e);
@@ -403,11 +427,11 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
         // Acrescenta ao que ja estiver digitado (com espaco), sem sobrescrever.
         setInput((prev) => (prev ? `${prev} ${text}` : text));
       } else {
-        alert("Não foi possível entender o áudio. Tente falar mais perto do microfone.");
+        toast.error("Não foi possível entender o áudio. Tente falar mais perto do microfone.");
       }
     } catch (e: any) {
       console.error("Erro ao transcrever áudio", e);
-      alert(`Erro ao transcrever o áudio: ${e.message}`);
+      toast.error(`Erro ao transcrever o áudio: ${e.message}`);
     } finally {
       setIsTranscribing(false);
     }
@@ -428,7 +452,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
   // localhost) — em HTTP por IP o navegador bloqueia o acesso ao microfone.
   const startRecording = async () => {
     if (!navigator.mediaDevices?.getUserMedia) {
-      alert(
+      toast.error(
         "O microfone só funciona em conexão segura (HTTPS) ou via localhost. " +
           "Acesse a aplicação por HTTPS para gravar áudio."
       );
@@ -454,7 +478,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
       setIsRecording(true);
     } catch (e) {
       console.error("Erro ao acessar o microfone", e);
-      alert("Não foi possível acessar o microfone. Verifique as permissões do navegador.");
+      toast.error("Não foi possível acessar o microfone. Verifique as permissões do navegador.");
     }
   };
 
@@ -487,18 +511,18 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
         const url = page ? `${data.signed_url}#page=${page}` : data.signed_url;
         window.open(url, "_blank", "noopener,noreferrer");
       } else if (res.status === 404) {
-        alert("Este documento ainda não está disponível para download no repositório.");
+        toast.error("Este documento ainda não está disponível para download no repositório.");
       } else {
-        alert("Não foi possível obter o documento no momento.");
+        toast.error("Não foi possível obter o documento no momento.");
       }
     } catch (e) {
       console.error("Erro ao baixar documento", e);
-      alert("Erro de conexão ao tentar baixar o documento.");
+      toast.error("Erro de conexão ao tentar baixar o documento.");
     }
   };
 
   return (
-    <div className="flex flex-col h-full bg-gray-50/30">
+    <div className="flex flex-col h-full bg-muted/30">
       {/* Messages Area */}
       <div
         ref={messagesContainerRef}
@@ -508,28 +532,37 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
         {messages.map((m, idx) => (
           <div key={idx} className={`flex gap-4 ${m.role === 'user' ? 'justify-end' : ''}`}>
             {m.role === 'assistant' && (
-              <button
-                type="button"
-                onClick={() => setShowAbout(true)}
-                className="w-8 h-8 rounded-full overflow-hidden shrink-0 shadow-sm ring-2 ring-transparent hover:ring-accent-blue/40 transition-all focus:outline-none focus:ring-accent-blue/60"
-                title="Sobre a Lina"
-                aria-label="Sobre a Lina"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/Lina.jpg"
-                  alt="Lina, assistente virtual da FAI-UFSCar"
-                  className="w-full h-full object-cover"
-                />
-              </button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={() => setShowAbout(true)}
+                    className="rounded-full shrink-0 shadow-sm ring-2 ring-transparent hover:ring-accent-blue/40 transition-all focus:outline-none focus-visible:ring-accent-blue/60"
+                    aria-label="Sobre a Lina"
+                  >
+                    <Avatar>
+                      <AvatarImage
+                        src="/Lina.jpg"
+                        alt="Lina, assistente virtual da FAI-UFSCar"
+                        className="object-cover"
+                      />
+                      <AvatarFallback className="bg-primary text-primary-foreground">L</AvatarFallback>
+                    </Avatar>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>Sobre a Lina</TooltipContent>
+              </Tooltip>
             )}
-            
+
             <div className={`max-w-[85%] flex flex-col gap-2 ${m.role === 'user' ? 'items-end' : ''}`}>
-              <div className={`rounded-2xl px-4 py-2 shadow-sm ${
+              <div
+                onClick={() => { if (m.role === 'assistant' && m.sources?.length && onActiveSources) onActiveSources(m.sources, m.content); }}
+                title={m.role === 'assistant' && m.sources?.length ? 'Ver as fontes desta resposta no painel' : undefined}
+                className={`rounded-2xl px-4 py-2 shadow-sm ${
                 m.role === 'user'
                   ? 'bg-accent-blue text-white rounded-tr-none'
-                  : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none'
-              }`}>
+                  : 'bg-card text-card-foreground border border-border rounded-tl-none'
+              } ${m.role === 'assistant' && m.sources?.length ? 'cursor-pointer hover:border-accent-blue/40 transition-colors' : ''}`}>
                 {m.quoted && m.quoted.content && (
                   <QuotedBlock quoted={m.quoted} onUserBubble={m.role === 'user'} />
                 )}
@@ -558,32 +591,35 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
                     <CopyButton text={m.content} />
                     <ReplyButton onClick={() => setReplyingTo({ role: 'assistant', content: m.content })} />
                     {m.genTime && (
-                      <div className="text-[9px] text-gray-400 italic">
+                      <div className="text-[9px] text-muted-foreground italic">
                         Resposta gerada em {m.genTime.toFixed(2)}s
                       </div>
                     )}
                   </div>
                   {m.sources && m.sources.length > 0 && (
                     <div className="space-y-2 animate-in fade-in duration-500 mt-1">
-                      <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                      <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                         <FileText size={10} /> Fontes Pesquisadas
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {m.sources.map((s, i) => (
-                          <button
+                          <Button
                             key={i}
+                            type="button"
+                            variant="outline"
+                            size="xs"
                             onClick={() => handleDownloadSource(s, m.content)}
-                            className="group/src flex items-center gap-1 text-[10px] bg-gray-100 border border-gray-200 text-gray-600 px-2 py-1 rounded transition-colors hover:bg-accent-blue/10 hover:text-accent-blue hover:border-accent-blue/30"
                             title={`Baixar ${extractFilename(s)}`}
+                            className="group/src text-[10px] bg-muted text-muted-foreground hover:bg-accent-blue/10 hover:text-accent-blue hover:border-accent-blue/30"
                           >
-                            <Download size={10} className="opacity-60 group-hover/src:opacity-100" />
+                            <Download className="opacity-60 group-hover/src:opacity-100" />
                             {extractFilename(s)}
                             {extractPagesLabel(s) && (
-                              <span className="text-gray-400 group-hover/src:text-accent-blue/80">
+                              <span className="text-muted-foreground/70 group-hover/src:text-accent-blue/80">
                                 · {extractPagesLabel(s)}
                               </span>
                             )}
-                          </button>
+                          </Button>
                         ))}
                       </div>
                     </div>
@@ -593,9 +629,11 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
             </div>
 
             {m.role === 'user' && (
-              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 shrink-0 shadow-sm">
-                <User size={18} />
-              </div>
+              <Avatar>
+                <AvatarFallback className="bg-muted text-muted-foreground">
+                  <User size={18} />
+                </AvatarFallback>
+              </Avatar>
             )}
           </div>
         ))}
@@ -604,17 +642,24 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
       </div>
 
       {/* Input Area */}
-      <div className="relative p-4 bg-white border-t border-gray-100 shadow-[0_-4px_10px_rgba(0,0,0,0.02)]">
+      <div className="relative p-4 bg-card border-t border-border shadow-[0_-4px_10px_rgba(0,0,0,0.02)]">
         {/* Setinha "ir para a última mensagem" (aparece ao rolar para cima) */}
         {showScrollToBottom && (
-          <button
-            onClick={() => scrollToBottom("smooth")}
-            className="absolute -top-12 left-1/2 -translate-x-1/2 w-9 h-9 rounded-full bg-white border border-gray-200 text-gray-500 shadow-lg flex items-center justify-center transition-all hover:text-accent-blue hover:border-accent-blue/40 hover:bg-accent-blue/5 active:scale-95 animate-in fade-in slide-in-from-bottom-2 duration-200 z-40"
-            title="Ir para a última mensagem"
-            aria-label="Ir para a última mensagem"
-          >
-            <ArrowDown size={18} />
-          </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={() => scrollToBottom("smooth")}
+                aria-label="Ir para a última mensagem"
+                className="absolute -top-12 left-1/2 -translate-x-1/2 rounded-full bg-card text-muted-foreground shadow-lg hover:text-accent-blue hover:border-accent-blue/40 hover:bg-accent-blue/5 active:scale-95 animate-in fade-in slide-in-from-bottom-2 duration-200 z-40"
+              >
+                <ArrowDown size={18} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Ir para a última mensagem</TooltipContent>
+          </Tooltip>
         )}
         {/* Barra de "respondendo a" (mensagem citada) */}
         {replyingTo && (
@@ -625,137 +670,160 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
                 <div className="text-[10px] font-semibold text-accent-blue">
                   Respondendo a {replyingTo.role === 'assistant' ? 'Assistente' : 'Você'}
                 </div>
-                <div className="text-[11px] text-gray-600 truncate">{quotePreview(replyingTo.content)}</div>
+                <div className="text-[11px] text-muted-foreground truncate">{quotePreview(replyingTo.content)}</div>
               </div>
             </div>
-            <button
-              onClick={() => setReplyingTo(null)}
-              className="px-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-              title="Cancelar"
-            >
-              <X size={16} />
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setReplyingTo(null)}
+                  aria-label="Cancelar"
+                  className="self-stretch h-auto text-muted-foreground hover:text-foreground"
+                >
+                  <X size={16} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Cancelar</TooltipContent>
+            </Tooltip>
           </div>
         )}
         <div className="max-w-4xl mx-auto flex gap-3 items-end relative">
-          
+
           {/* Attachments Dropdown */}
           <div ref={attachmentRef} className="relative">
             {showAttachments && (
-              <div className="absolute bottom-full left-0 mb-4 bg-white border border-gray-100 rounded-2xl shadow-2xl p-2 min-w-[200px] animate-in fade-in slide-in-from-bottom-4 duration-300 z-50">
-                <div className="text-[10px] font-bold text-gray-400 px-3 py-2 uppercase tracking-wider">Enviar para o Chat</div>
-                <button className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 rounded-xl text-sm text-gray-700 transition-colors group">
-                  <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center group-hover:bg-blue-100 transition-colors">
-                    <FileText size={18} className="text-blue-500" />
+              <div className="absolute bottom-full left-0 mb-4 bg-card border border-border rounded-2xl shadow-2xl p-2 min-w-[200px] animate-in fade-in slide-in-from-bottom-4 duration-300 z-50">
+                <div className="text-[10px] font-bold text-muted-foreground px-3 py-2 uppercase tracking-wider">Enviar para o Chat</div>
+                <button className="w-full flex items-center gap-3 p-3 hover:bg-muted rounded-xl text-sm text-foreground transition-colors group">
+                  <div className="w-8 h-8 bg-accent-blue/10 rounded-lg flex items-center justify-center group-hover:bg-accent-blue/20 transition-colors">
+                    <FileText size={18} className="text-accent-blue" />
                   </div>
                   <span>Anexar Arquivo</span>
                 </button>
-                <button className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 rounded-xl text-sm text-gray-700 transition-colors group">
-                  <div className="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center group-hover:bg-purple-100 transition-colors">
-                    <Image size={18} className="text-purple-500" />
+                <button className="w-full flex items-center gap-3 p-3 hover:bg-muted rounded-xl text-sm text-foreground transition-colors group">
+                  <div className="w-8 h-8 bg-fai-cyan/10 rounded-lg flex items-center justify-center group-hover:bg-fai-cyan/20 transition-colors">
+                    {/* eslint-disable-next-line jsx-a11y/alt-text */}
+                    <Image size={18} className="text-fai-cyan" />
                   </div>
                   <span>Anexar Imagem</span>
                 </button>
               </div>
             )}
-            <button 
-              onClick={() => setShowAttachments(!showAttachments)}
-              className={`p-2.5 rounded-full transition-all duration-300 ${
-                showAttachments ? 'bg-gray-100 text-gray-600 rotate-45' : 'bg-gray-50 text-gray-400 hover:bg-gray-100 hover:text-accent-blue'
-              }`}
-            >
-              <Plus size={22} />
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowAttachments(!showAttachments)}
+                  aria-label="Anexar"
+                  className={cn(
+                    "rounded-full text-muted-foreground transition-all duration-300 hover:text-accent-blue",
+                    showAttachments && "bg-muted text-foreground rotate-45"
+                  )}
+                >
+                  <Plus size={22} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Anexar</TooltipContent>
+            </Tooltip>
           </div>
 
           {/* Main Input Field */}
-          <div className="flex-1 flex gap-2 items-center bg-gray-50 rounded-[24px] px-4 py-1.5 border border-gray-200 focus-within:border-accent-blue focus-within:bg-white focus-within:shadow-md transition-all">
-            <input
-              type="text"
+          <div className="flex-1 flex gap-2 items-center bg-muted rounded-[24px] px-4 py-1.5 border border-border focus-within:border-accent-blue focus-within:bg-card focus-within:shadow-md transition-all">
+            <Textarea
+              rows={1}
               placeholder={isRecording ? "Gravando... fale sua dúvida" : isTranscribing ? "Transcrevendo áudio..." : "Digite sua dúvida aqui..."}
-              className="flex-1 bg-transparent border-none focus:ring-0 text-sm py-2"
+              className="flex-1 min-h-0 resize-none border-none bg-transparent shadow-none px-0 py-2 text-sm focus-visible:ring-0 focus-visible:border-none"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
               disabled={isTyping || isTranscribing}
             />
-            <button
-              onClick={toggleRecording}
-              className={`p-2 transition-colors disabled:opacity-30 ${
-                isRecording
-                  ? "text-red-500 animate-pulse"
-                  : "text-gray-400 hover:text-accent-blue"
-              }`}
-              title={isRecording ? "Parar gravação" : isTranscribing ? "Transcrevendo..." : "Gravar pergunta por voz"}
-              disabled={isTyping || isTranscribing}
-            >
-              {isTranscribing ? (
-                <Loader2 size={20} className="animate-spin" />
-              ) : isRecording ? (
-                <Square size={20} className="fill-current" />
-              ) : (
-                <Mic size={20} />
-              )}
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={toggleRecording}
+                  aria-label={isRecording ? "Parar gravação" : isTranscribing ? "Transcrevendo..." : "Gravar pergunta por voz"}
+                  className={cn(
+                    "rounded-full transition-colors disabled:opacity-30",
+                    isRecording
+                      ? "text-destructive animate-pulse hover:text-destructive"
+                      : "text-muted-foreground hover:text-accent-blue"
+                  )}
+                  disabled={isTyping || isTranscribing}
+                >
+                  {isTranscribing ? (
+                    <Loader2 size={20} className="animate-spin" />
+                  ) : isRecording ? (
+                    <Square size={20} className="fill-current" />
+                  ) : (
+                    <Mic size={20} />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {isRecording ? "Parar gravação" : isTranscribing ? "Transcrevendo..." : "Gravar pergunta por voz"}
+              </TooltipContent>
+            </Tooltip>
           </div>
 
           {/* Send Button */}
-          <button 
-            onClick={handleSend}
-            className="bg-accent-blue hover:bg-accent-blue-hover text-white p-3 rounded-full shadow-lg shadow-accent-blue/20 transition-all active:scale-95 disabled:opacity-50 disabled:grayscale disabled:shadow-none"
-            disabled={!input.trim() || isTyping}
-          >
-            <Send size={20} />
-          </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                size="icon"
+                onClick={handleSend}
+                aria-label="Enviar"
+                className="bg-accent-blue hover:bg-accent-blue-hover text-white p-3 rounded-full shadow-lg shadow-accent-blue/20 transition-all active:scale-95 disabled:opacity-50 disabled:grayscale disabled:shadow-none"
+                disabled={!input.trim() || isTyping}
+              >
+                <Send size={20} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Enviar</TooltipContent>
+          </Tooltip>
         </div>
-        <p className="text-[10px] text-gray-400 text-center mt-3">
+        <p className="text-[10px] text-muted-foreground text-center mt-3">
           O chatbot pode cometer erros. Considere verificar as fontes citadas.
         </p>
       </div>
 
       {/* Modal "Sobre a Lina" */}
-      {showAbout && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200"
-          onClick={() => setShowAbout(false)}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Sobre a Lina"
-        >
-          <div
-            className="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 flex flex-col items-center text-center animate-in zoom-in-95 fade-in duration-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={() => setShowAbout(false)}
-              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-1 transition-colors"
-              title="Fechar"
-              aria-label="Fechar"
-            >
-              <X size={18} />
-            </button>
-
+      <Dialog open={showAbout} onOpenChange={setShowAbout}>
+        <DialogContent className="max-w-sm" aria-label="Sobre a Lina">
+          <DialogHeader className="items-center text-center sm:text-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/Lina.jpg"
               alt="Lina, assistente virtual da FAI-UFSCar"
               className="w-28 h-28 rounded-full object-cover shadow-md ring-4 ring-accent-blue/10"
             />
-
-            <h2 className="mt-4 text-lg font-bold text-gray-800">Lina</h2>
+            <DialogTitle className="mt-4 text-lg font-bold text-foreground">Lina</DialogTitle>
             <p className="text-xs font-medium text-accent-blue uppercase tracking-wider">
               Assistente Virtual · FAI-UFSCar
             </p>
-
             {/* TODO: o texto "Sobre a Lina" será atualizado futuramente. */}
-            <p className="mt-3 text-sm text-gray-600 leading-relaxed">
+            <DialogDescription className="mt-3 text-sm text-muted-foreground leading-relaxed">
               Olá! Eu sou a Lina, sua assistente virtual da FAI-UFSCar. Estou aqui
               para ajudar você a consultar manuais, procedimentos e documentos
               institucionais de forma rápida e confiável.
-            </p>
-          </div>
-        </div>
-      )}
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
