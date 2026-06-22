@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
@@ -122,8 +122,14 @@ function SourceCard({ item, terms }: { item: SourceItem; terms: Set<string> }) {
   const shown = text && !expanded && long ? text.slice(0, LIMIT) + "…" : text;
 
   return (
-    <Card className="gap-0 overflow-hidden rounded-lg py-0 shadow-none transition-colors hover:border-accent-blue/40">
-      <CardHeader className="grid-cols-[1fr_auto] items-center gap-2 border-b bg-muted/50 px-3 py-2 [.border-b]:pb-2">
+    <Card className="gap-0 overflow-hidden rounded-xl py-0 shadow-sm transition-all hover:-translate-y-px hover:border-accent-blue/30 hover:shadow-md">
+      {/* Cabeçalho clicável: abre o PDF na página citada */}
+      <button
+        type="button"
+        onClick={openPdf}
+        aria-label={`Abrir o PDF${item.page != null ? ` na página ${item.page}` : ""}`}
+        className="group/hdr grid w-full grid-cols-[1fr_auto] items-center gap-2 border-b bg-muted/40 px-3 py-2 text-left transition-colors hover:bg-accent-blue/5"
+      >
         <div className="flex min-w-0 items-center gap-2">
           {item.page != null && (
             <Badge
@@ -133,26 +139,12 @@ function SourceCard({ item, terms }: { item: SourceItem; terms: Set<string> }) {
               Pág. {item.page}
             </Badge>
           )}
-          <span className="truncate text-[11px] text-muted-foreground" title={item.file}>{item.file}</span>
+          <span className="truncate text-[11px] font-medium text-gray-600" title={item.file}>{item.file}</span>
         </div>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-xs"
-              onClick={openPdf}
-              className="shrink-0 text-muted-foreground hover:text-accent-blue"
-              aria-label={`Abrir o PDF${item.page != null ? ` na página ${item.page}` : ""}`}
-            >
-              <ExternalLink size={13} />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{`Abrir o PDF${item.page != null ? ` na página ${item.page}` : ""}`}</TooltipContent>
-        </Tooltip>
-      </CardHeader>
+        <ExternalLink size={13} className="shrink-0 text-muted-foreground/50 transition-colors group-hover/hdr:text-accent-blue" />
+      </button>
 
-      <CardContent className="px-3 py-2 text-[12px] leading-relaxed text-gray-700">
+      <CardContent className="px-3 py-2.5 text-[12px] leading-relaxed text-gray-700">
         {loading && (
           <div className="flex items-center gap-2 py-1 text-[11px] text-muted-foreground">
             <Spinner className="size-3" /> carregando trecho…
@@ -161,14 +153,14 @@ function SourceCard({ item, terms }: { item: SourceItem; terms: Set<string> }) {
         {error && <div className="py-1 text-[11px] italic text-muted-foreground">Trecho indisponível.</div>}
         {shown && (
           <>
-            <p className="whitespace-pre-wrap"><Highlighted text={shown} terms={terms} /></p>
+            <p className="whitespace-pre-wrap border-l-2 border-accent-blue/15 pl-2.5"><Highlighted text={shown} terms={terms} /></p>
             {long && (
               <Button
                 type="button"
                 variant="link"
                 size="xs"
                 onClick={() => setExpanded((e) => !e)}
-                className="mt-1 h-auto p-0 text-[10px] font-medium text-accent-blue"
+                className="mt-1.5 h-auto p-0 text-[10px] font-medium text-accent-blue"
               >
                 {expanded ? <><ChevronUp size={11} /> ver menos</> : <><ChevronDown size={11} /> ver trecho completo</>}
               </Button>
@@ -230,28 +222,33 @@ export default function SourcesPanel({ sources, answerContent, loading = false }
     </div>
   );
 
-  const list = (
-    // min-h-0 é essencial: sem ele, o flex-1 cresce p/ caber os cards (sem rolar).
-    <ScrollArea className="h-full min-h-0 flex-1">
-      <div className="space-y-3 p-3">
-        {loading && items.length === 0 ? (
-          <div className="flex h-full flex-col items-center justify-center gap-3 px-4 text-center text-muted-foreground">
-            <Spinner className="size-5 text-accent-blue" />
-            <p className="text-xs">Buscando as fontes da resposta…</p>
-          </div>
-        ) : items.length === 0 ? (
-          <div className="flex h-full flex-col items-center justify-center px-4 text-center text-muted-foreground">
-            <FileText size={28} className="mb-3 opacity-40" />
-            <p className="text-xs leading-relaxed">
-              As fontes da resposta aparecerão aqui, com a página e o trecho do manual em que a Lina se baseou.
-            </p>
-          </div>
-        ) : (
-          items.map((item, i) => <SourceCard key={`${item.file}-${item.page}-${i}`} item={item} terms={terms} />)
-        )}
+  const list =
+    loading && items.length === 0 ? (
+      <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center text-muted-foreground">
+        <Spinner className="size-5 text-accent-blue" />
+        <p className="text-xs">Buscando as fontes da resposta…</p>
       </div>
-    </ScrollArea>
-  );
+    ) : items.length === 0 ? (
+      <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
+        <div className="mb-3 flex size-12 items-center justify-center rounded-2xl bg-accent-blue/5 ring-1 ring-accent-blue/10">
+          <FileText size={22} className="text-accent-blue/60" />
+        </div>
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          As fontes da resposta aparecerão aqui, com a{" "}
+          <span className="font-medium text-gray-600">página</span> e o{" "}
+          <span className="font-medium text-gray-600">trecho do manual</span> em que a Lina se baseou.
+        </p>
+      </div>
+    ) : (
+      // min-h-0 é essencial: sem ele, o flex-1 cresce p/ caber os cards (sem rolar).
+      <ScrollArea className="h-full min-h-0 flex-1">
+        <div className="space-y-3 p-3">
+          {items.map((item, i) => (
+            <SourceCard key={`${item.file}-${item.page}-${i}`} item={item} terms={terms} />
+          ))}
+        </div>
+      </ScrollArea>
+    );
 
   return (
     <>
