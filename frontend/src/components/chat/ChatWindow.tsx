@@ -537,10 +537,10 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
                   <button
                     type="button"
                     onClick={() => setShowAbout(true)}
-                    className="rounded-full shrink-0 shadow-sm ring-2 ring-transparent hover:ring-accent-blue/40 transition-all focus:outline-none focus-visible:ring-accent-blue/60"
+                    className="size-8 rounded-full shrink-0 shadow-sm ring-2 ring-transparent hover:ring-accent-blue/40 transition-all focus:outline-none focus-visible:ring-accent-blue/60"
                     aria-label="Sobre a Lina"
                   >
-                    <Avatar>
+                    <Avatar className="size-8 shrink-0">
                       <AvatarImage
                         src="/Lina.jpg"
                         alt="Lina, assistente virtual da FAI-UFSCar"
@@ -629,7 +629,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
             </div>
 
             {m.role === 'user' && (
-              <Avatar>
+              <Avatar className="size-8 shrink-0">
                 <AvatarFallback className="bg-muted text-muted-foreground">
                   <User size={18} />
                 </AvatarFallback>
@@ -737,7 +737,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
             <Textarea
               rows={1}
               placeholder={isRecording ? "Gravando... fale sua dúvida" : isTranscribing ? "Transcrevendo áudio..." : "Digite sua dúvida aqui..."}
-              className="flex-1 min-h-0 resize-none border-none bg-transparent shadow-none px-0 py-2 text-sm focus-visible:ring-0 focus-visible:border-none"
+              className="flex-1 min-h-9 max-h-32 resize-none overflow-y-auto border-none bg-transparent shadow-none px-0 py-2 text-sm focus-visible:ring-0 focus-visible:border-none"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
