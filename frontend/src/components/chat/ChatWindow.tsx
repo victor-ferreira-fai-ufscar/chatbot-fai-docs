@@ -235,9 +235,9 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
   const [replyingTo, setReplyingTo] = useState<QuotedRef | null>(null);
   const [showAttachments, setShowAttachments] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
-  // "Modo agêntico": ligado (default) = tool calling + Skills (pode gerar planilha/PDF/DOCX);
-  // desligado = RAG direto pelo manual (útil para testar precisão/alucinação), sem gerar docs.
-  const [agenticMode, setAgenticMode] = useState(true);
+  // "Modo agêntico": ligado = tool calling + Skills (pode gerar planilha/PDF/DOCX);
+  // desligado (default) = RAG direto pelo manual (útil para testar precisão/alucinação), sem gerar docs.
+  const [agenticMode, setAgenticMode] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [conversationId, setConversationId] = useState<number | null>(null);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
@@ -693,8 +693,8 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area */}
-      <div className="relative p-4 bg-card border-t border-border shadow-[0_-4px_10px_rgba(0,0,0,0.02)]">
+      {/* Input Area (flutuante) */}
+      <div className="relative px-4 pb-4 pt-2">
         {/* Setinha "ir para a última mensagem" (aparece ao rolar para cima) */}
         {showScrollToBottom && (
           <Tooltip>
@@ -705,7 +705,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
                 size="icon"
                 onClick={() => scrollToBottom("smooth")}
                 aria-label="Ir para a última mensagem"
-                className="absolute -top-12 left-1/2 -translate-x-1/2 rounded-full bg-card text-muted-foreground shadow-lg hover:text-accent-blue hover:border-accent-blue/40 hover:bg-accent-blue/5 active:scale-95 animate-in fade-in slide-in-from-bottom-2 duration-200 z-40"
+                className="absolute -top-10 left-1/2 -translate-x-1/2 rounded-full bg-card text-muted-foreground shadow-lg hover:text-accent-blue hover:border-accent-blue/40 hover:bg-accent-blue/5 active:scale-95 animate-in fade-in slide-in-from-bottom-2 duration-200 z-40"
               >
                 <ArrowDown size={18} />
               </Button>
@@ -713,84 +713,108 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
             <TooltipContent>Ir para a última mensagem</TooltipContent>
           </Tooltip>
         )}
-        {/* Barra de "respondendo a" (mensagem citada) */}
-        {replyingTo && (
-          <div className="max-w-4xl mx-auto mb-2 flex items-stretch gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200">
-            <div className="flex-1 flex items-start gap-2 rounded-lg border-l-[3px] border-accent-blue bg-accent-blue/5 px-3 py-2">
-              <Reply size={14} className="text-accent-blue mt-0.5 shrink-0" />
-              <div className="min-w-0">
-                <div className="text-[10px] font-semibold text-accent-blue">
-                  Respondendo a {replyingTo.role === 'assistant' ? 'Assistente' : 'Você'}
+
+        <div className="max-w-4xl mx-auto">
+          {/* Barra de "respondendo a" (mensagem citada) */}
+          {replyingTo && (
+            <div className="mb-2 flex items-stretch gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200">
+              <div className="flex-1 flex items-start gap-2 rounded-lg border-l-[3px] border-accent-blue bg-accent-blue/5 px-3 py-2">
+                <Reply size={14} className="text-accent-blue mt-0.5 shrink-0" />
+                <div className="min-w-0">
+                  <div className="text-[10px] font-semibold text-accent-blue">
+                    Respondendo a {replyingTo.role === 'assistant' ? 'Assistente' : 'Você'}
+                  </div>
+                  <div className="text-[11px] text-muted-foreground truncate">{quotePreview(replyingTo.content)}</div>
                 </div>
-                <div className="text-[11px] text-muted-foreground truncate">{quotePreview(replyingTo.content)}</div>
               </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setReplyingTo(null)}
+                    aria-label="Cancelar"
+                    className="self-stretch h-auto text-muted-foreground hover:text-foreground"
+                  >
+                    <X size={16} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Cancelar</TooltipContent>
+              </Tooltip>
             </div>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setReplyingTo(null)}
-                  aria-label="Cancelar"
-                  className="self-stretch h-auto text-muted-foreground hover:text-foreground"
-                >
-                  <X size={16} />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Cancelar</TooltipContent>
-            </Tooltip>
-          </div>
-        )}
-        <div className="max-w-4xl mx-auto flex gap-3 items-end relative">
+          )}
 
-          {/* Attachments Dropdown */}
-          <div ref={attachmentRef} className="relative">
-            {showAttachments && (
-              <div className="absolute bottom-full left-0 mb-4 bg-card border border-border rounded-2xl shadow-2xl p-2 min-w-[200px] animate-in fade-in slide-in-from-bottom-4 duration-300 z-50">
-                <div className="text-[10px] font-bold text-muted-foreground px-3 py-2 uppercase tracking-wider">Enviar para o Chat</div>
-                <button className="w-full flex items-center gap-3 p-3 hover:bg-muted rounded-xl text-sm text-foreground transition-colors group">
-                  <div className="w-8 h-8 bg-accent-blue/10 rounded-lg flex items-center justify-center group-hover:bg-accent-blue/20 transition-colors">
-                    <FileText size={18} className="text-accent-blue" />
-                  </div>
-                  <span>Anexar Arquivo</span>
-                </button>
-                <button className="w-full flex items-center gap-3 p-3 hover:bg-muted rounded-xl text-sm text-foreground transition-colors group">
-                  <div className="w-8 h-8 bg-fai-cyan/10 rounded-lg flex items-center justify-center group-hover:bg-fai-cyan/20 transition-colors">
-                    {/* eslint-disable-next-line jsx-a11y/alt-text */}
-                    <Image size={18} className="text-fai-cyan" />
-                  </div>
-                  <span>Anexar Imagem</span>
-                </button>
-              </div>
-            )}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowAttachments(!showAttachments)}
-                  aria-label="Anexar"
-                  className={cn(
-                    "rounded-full text-muted-foreground transition-all duration-300 hover:text-accent-blue",
-                    showAttachments && "bg-muted text-foreground rotate-45"
-                  )}
-                >
-                  <Plus size={22} />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Anexar</TooltipContent>
-            </Tooltip>
-          </div>
+          {/* Caixa flutuante: + / textarea / microfone / enviar */}
+          <div className="flex items-end gap-1 rounded-[28px] border border-border bg-card px-2 py-1.5 shadow-lg transition-all focus-within:border-accent-blue focus-within:shadow-xl">
 
-          {/* Main Input Field */}
-          <div className="flex-1 flex gap-2 items-center bg-muted rounded-[24px] px-4 py-1.5 border border-border focus-within:border-accent-blue focus-within:bg-card focus-within:shadow-md transition-all">
+            {/* Menu "+" : opções (modo agêntico) + anexos */}
+            <div ref={attachmentRef} className="relative">
+              {showAttachments && (
+                <div className="absolute bottom-full left-0 mb-3 min-w-[248px] rounded-2xl border border-border bg-card p-2 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-300 z-50">
+                  {/* Modo agêntico */}
+                  <div className="px-3 py-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <label htmlFor="agentic-mode" className="cursor-pointer select-none text-sm font-medium text-foreground">
+                        Modo agêntico
+                      </label>
+                      <Switch id="agentic-mode" checked={agenticMode} onCheckedChange={setAgenticMode} />
+                    </div>
+                    <p className="mt-1 text-[11px] leading-snug text-muted-foreground">
+                      {agenticMode
+                        ? "A Lina decide quando consultar o manual e pode gerar planilha, PDF e DOCX."
+                        : "Responde direto com base no manual, sem gerar documentos."}
+                    </p>
+                  </div>
+
+                  <div className="my-1 h-px bg-border" />
+
+                  {/* Anexos */}
+                  <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Enviar para o chat</div>
+                  <button className="group flex w-full items-center gap-3 rounded-xl p-3 text-sm text-foreground transition-colors hover:bg-muted">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-blue/10 transition-colors group-hover:bg-accent-blue/20">
+                      <FileText size={18} className="text-accent-blue" />
+                    </div>
+                    <span>Anexar Arquivo</span>
+                  </button>
+                  <button className="group flex w-full items-center gap-3 rounded-xl p-3 text-sm text-foreground transition-colors hover:bg-muted">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-fai-cyan/10 transition-colors group-hover:bg-fai-cyan/20">
+                      {/* eslint-disable-next-line jsx-a11y/alt-text */}
+                      <Image size={18} className="text-fai-cyan" />
+                    </div>
+                    <span>Anexar Imagem</span>
+                  </button>
+                </div>
+              )}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowAttachments(!showAttachments)}
+                    aria-label="Mais opções"
+                    className={cn(
+                      "relative rounded-full text-muted-foreground transition-all duration-300 hover:text-accent-blue",
+                      showAttachments && "bg-muted text-foreground rotate-45"
+                    )}
+                  >
+                    <Plus size={22} />
+                    {agenticMode && !showAttachments && (
+                      <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-fai-green ring-2 ring-card" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{agenticMode ? "Mais opções · modo agêntico ligado" : "Mais opções"}</TooltipContent>
+              </Tooltip>
+            </div>
+
+            {/* Campo de texto */}
             <Textarea
               data-testid="chat-input"
               rows={1}
               placeholder={isRecording ? "Gravando... fale sua dúvida" : isTranscribing ? "Transcrevendo áudio..." : "Digite sua dúvida aqui..."}
-              className="flex-1 min-h-9 max-h-32 resize-none overflow-y-auto border-none bg-transparent shadow-none px-0 py-2 text-sm focus-visible:ring-0 focus-visible:border-none"
+              className="flex-1 min-h-9 max-h-32 resize-none overflow-y-auto border-none bg-transparent px-1 py-2 text-sm shadow-none focus-visible:ring-0 focus-visible:border-none"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
@@ -801,12 +825,14 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
               }}
               disabled={isTyping || isTranscribing}
             />
+
+            {/* Microfone */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   type="button"
                   variant="ghost"
-                  size="icon-sm"
+                  size="icon"
                   onClick={toggleRecording}
                   aria-label={isRecording ? "Parar gravação" : isTranscribing ? "Transcrevendo..." : "Gravar pergunta por voz"}
                   className={cn(
@@ -830,49 +856,30 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
                 {isRecording ? "Parar gravação" : isTranscribing ? "Transcrevendo..." : "Gravar pergunta por voz"}
               </TooltipContent>
             </Tooltip>
+
+            {/* Enviar */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  size="icon"
+                  data-testid="chat-send"
+                  onClick={handleSend}
+                  aria-label="Enviar"
+                  className="rounded-full bg-accent-blue text-white shadow-md shadow-accent-blue/20 transition-all hover:bg-accent-blue-hover active:scale-95 disabled:opacity-40 disabled:grayscale disabled:shadow-none"
+                  disabled={!input.trim() || isTyping}
+                >
+                  <Send size={20} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Enviar</TooltipContent>
+            </Tooltip>
           </div>
 
-          {/* Send Button */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                type="button"
-                size="icon"
-                data-testid="chat-send"
-                onClick={handleSend}
-                aria-label="Enviar"
-                className="bg-accent-blue hover:bg-accent-blue-hover text-white p-3 rounded-full shadow-lg shadow-accent-blue/20 transition-all active:scale-95 disabled:opacity-50 disabled:grayscale disabled:shadow-none"
-                disabled={!input.trim() || isTyping}
-              >
-                <Send size={20} />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Enviar</TooltipContent>
-          </Tooltip>
-        </div>
-        <div className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[10px] text-muted-foreground">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="flex items-center gap-1.5">
-                <Switch
-                  id="agentic-mode"
-                  checked={agenticMode}
-                  onCheckedChange={setAgenticMode}
-                  className="scale-90"
-                />
-                <label htmlFor="agentic-mode" className="cursor-pointer select-none">
-                  Modo agêntico
-                  {!agenticMode && <span className="text-fai-orange"> · sem gerar documentos</span>}
-                </label>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent className="max-w-xs text-xs leading-relaxed">
-              Ligado: a Lina decide quando consultar o manual e pode gerar planilha, PDF e DOCX.
-              Desligado: responde direto com base no manual (útil para testar precisão), mas não gera documentos.
-            </TooltipContent>
-          </Tooltip>
-          <span className="hidden opacity-50 sm:inline">·</span>
-          <p>O chatbot pode cometer erros. Considere verificar as fontes citadas.</p>
+          {/* Aviso compacto */}
+          <p className="mt-1.5 text-center text-[10px] leading-none text-muted-foreground/80">
+            O chatbot pode cometer erros. Considere verificar as fontes citadas.
+          </p>
         </div>
       </div>
 
