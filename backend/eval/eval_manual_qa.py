@@ -107,10 +107,12 @@ def load_manual_text() -> str:
 _CITE_FILE_RE = re.compile(r"\[([^\[\]]+?\.pdf)[,\]]", re.I)          # "[arquivo.pdf, ...]" inline
 _SRC_FILE_RE = re.compile(r"^[-\s]*([^()]+?\.pdf)", re.I)              # "- arquivo.pdf (pág...)" na lista
 _PAGE_RE = re.compile(r"p[áa]gs?\.?\s*([\d][\d\s,\-]*)", re.I)
+# Captura o NÚMERO-BASE da norma (antes do /ano), p/ casar com o manual mesmo quando o
+# modelo acrescenta o ano (ex.: manual cita "Lei 5.452"; modelo escreve "5.452/1943").
 _LEGAL_RE = re.compile(
-    r"(?:Lei(?:\s+Complementar)?|Decreto(?:-Lei)?|Resolu[çc][ãa]o|Portaria|"
-    r"Instru[çc][ãa]o\s+Normativa|Medida\s+Provis[óo]ria)[^.\n]{0,40}?"
-    r"(\d{1,4}[\.\/]\d{1,4}(?:[\.\/]\d{2,4})?)", re.I)
+    r"(?:Lei(?:\s+Complementar)?|Decreto(?:[-\s]?Lei)?|Resolu[çc][ãa]o|Portaria|"
+    r"Instru[çc][ãa]o\s+Normativa|Medida\s+Provis[óo]ria)[^.;:\n]{0,45}?"
+    r"(\d{1,4}(?:\.\d{1,3})*)\s*(?:/\s*\d{2,4})?", re.I)
 
 
 def cited_files(res) -> list:
@@ -144,7 +146,8 @@ def check():
         print("Sem coleta. Rode primeiro: --collect"); return 2
     results = json.loads(RUN_OUT.read_text(encoding="utf-8"))
     manual = load_manual_text()
-    manual_norm = re.sub(r"\s+", "", manual)
+    # números-base de norma que EXISTEM no manual (allowlist); ref citada fora disso = fabricada.
+    manual_law_bases = {m.group(1).replace(" ", "") for m in _LEGAL_RE.finditer(manual)}
 
     hard = 0
     soft = 0
@@ -160,9 +163,9 @@ def check():
             if p < 1 or p > N_PAGINAS:
                 viol.append(f"pagina_invalida:{p}")
         # C) ref legal fabricada (número não existe no manual)
-        if manual_norm:
+        if manual_law_bases:
             for ref in cited_legal_refs(r):
-                if re.sub(r"\s+", "", ref) not in manual_norm:
+                if ref not in manual_law_bases:
                     viol.append(f"ref_legal_fabricada:{ref}")
         is_abst = bool(ABSTENTION_RE.search(r.get("answer", "")))
         # D) (mole) resposta factual sem fonte

@@ -241,6 +241,21 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
         full_answer = ""
         last_usage = 0
 
+        # Guard determinístico anti-alucinação de referência legal: descarta frases que
+        # citem norma cujo número-base não exista no manual (ex.: ISS Lei 116/2003 inventada).
+        # Casa pelo número-base, então mantém leis que o manual referencia. Ver legal_guard.py.
+        from src.chatbot_fai_docs.legal_guard import LegalRefGuard, manual_law_numbers
+        from src.chatbot_fai_docs.pdf_pages import _extract_pages as _law_pages
+        _law_storage = None
+        if settings.SUPABASE_URL and settings.SERVICE_ROLE_KEY:
+            try:
+                _law_storage = StorageService(base_url=settings.SUPABASE_URL,
+                                              service_key=settings.SERVICE_ROLE_KEY,
+                                              bucket=settings.SUPABASE_BUCKET)
+            except Exception:
+                _law_storage = None
+        guard = LegalRefGuard(manual_law_numbers(_law_storage, _law_pages))
+
         if agent_on:
             # Consumer dedicado do agente: mapeia as tuplas do laco para eventos SSE.
             # 'thought' (raciocinio do modelo) e suprimido; 'tool_status' vai como
@@ -249,11 +264,17 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
                 if kind == "usage":
                     last_usage = payload
                 elif kind == "answer":
-                    full_answer += payload
-                    yield f"data: {json.dumps({'content': payload})}\n\n"
+                    cleaned = guard.feed(payload)
+                    if cleaned:
+                        full_answer += cleaned
+                        yield f"data: {json.dumps({'content': cleaned})}\n\n"
                 elif kind == "tool_status":
                     yield f"data: {json.dumps({'tool_status': payload})}\n\n"
                 # 'thought' suprimido de proposito (nao vai ao usuario)
+            tail = guard.flush()
+            if tail:
+                full_answer += tail
+                yield f"data: {json.dumps({'content': tail})}\n\n"
             source_lines = agent_ctx.sources if agent_ctx else []
             # Downloads produzidos por skills (entregar_documento/gerar_*) -> links inline
             # em Markdown, no MESMO formato do fluxo legado (sem mudar o frontend).
@@ -262,8 +283,8 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
                 full_answer += link_md
                 yield f"data: {json.dumps({'content': link_md})}\n\n"
         elif isinstance(answer, str):
-            full_answer = answer
-            yield f"data: {json.dumps({'content': answer, 'sources': source_lines})}\n\n"
+            full_answer = guard.feed(answer) + guard.flush()
+            yield f"data: {json.dumps({'content': full_answer, 'sources': source_lines})}\n\n"
         else:
             # Gerador de streaming
             for item in answer:
@@ -277,8 +298,14 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
                 else:
                     chunk_content = item
                 
-                full_answer += chunk_content
-                yield f"data: {json.dumps({'content': chunk_content})}\n\n"
+                cleaned = guard.feed(chunk_content)
+                if cleaned:
+                    full_answer += cleaned
+                    yield f"data: {json.dumps({'content': cleaned})}\n\n"
+            tail = guard.flush()
+            if tail:
+                full_answer += tail
+                yield f"data: {json.dumps({'content': tail})}\n\n"
 
         # 2.1. Entrega de documento (FLUXO LEGADO): se o usuario pediu para receber/baixar
         # um manual, um resolvedor por IA identifica QUAL documento ele quer e anexa um link
