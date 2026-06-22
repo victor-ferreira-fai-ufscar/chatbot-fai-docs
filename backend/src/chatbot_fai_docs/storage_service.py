@@ -132,6 +132,23 @@ class StorageService:
             raise StorageError(f"Falha ao verificar objeto ({resp.status_code}): {resp.text}")
         return any(obj.get("name") == object_name for obj in resp.json())
 
+    def resolve_object_name(self, name: str) -> Optional[str]:
+        """Resolve o nome real do objeto no bucket a partir de um nome citado.
+
+        Tenta primeiro o nome sanitizado (padrao dos uploads pela rota do app) e,
+        se nao existir, cai no nome cru (basename) — caso dos uploads feitos pelo
+        dashboard do Supabase, que NAO passam pela sanitizacao e ficam com espacos/
+        acentos. Retorna o nome encontrado no bucket, ou None se nenhum casar.
+        """
+        candidates: list[str] = []
+        for cand in (self.sanitize_object_name(name), PurePosixPath(name).name):
+            if cand and cand not in candidates:
+                candidates.append(cand)
+        for cand in candidates:
+            if self.exists(cand):
+                return cand
+        return None
+
     def delete(self, object_name: str) -> None:
         """Remove um objeto do bucket."""
         url = f"{self._storage_root}/object/{self.bucket}/{object_name}"

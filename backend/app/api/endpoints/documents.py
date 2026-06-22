@@ -106,9 +106,9 @@ async def get_download_url(name: str, storage: StorageService = Depends(get_stor
     `name` pode ser o nome original (ex.: o citado nas fontes); a sanitizacao e
     deterministica, entao casa com o objeto armazenado no upload.
     """
-    object_name = storage.sanitize_object_name(name)
     try:
-        if not storage.exists(object_name):
+        object_name = storage.resolve_object_name(name)
+        if not object_name:
             raise HTTPException(status_code=404, detail="Documento nao encontrado no repositorio.")
         signed_url = storage.create_signed_url(object_name, expires_in=settings.SIGNED_URL_TTL)
     except StorageError as e:
@@ -134,9 +134,9 @@ async def get_page_text(name: str, page: int, storage: StorageService = Depends(
     """
     from src.chatbot_fai_docs.pdf_pages import get_page_text as _page_text
 
-    object_name = storage.sanitize_object_name(name)
     try:
-        if not storage.exists(object_name):
+        object_name = storage.resolve_object_name(name)
+        if not object_name:
             raise HTTPException(status_code=404, detail="Documento nao encontrado no repositorio.")
         text = _page_text(object_name, page, lambda: storage.download(object_name))
     except StorageError as e:
