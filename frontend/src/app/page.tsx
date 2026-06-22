@@ -19,6 +19,7 @@ export default function Home() {
   // Fontes da resposta atual (alimenta a SourcesPanel estilo NotebookLM, 3a coluna).
   const [activeSources, setActiveSources] = useState<string[]>([]);
   const [activeAnswer, setActiveAnswer] = useState<string>("");
+  const [sourcesLoading, setSourcesLoading] = useState(false);
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
@@ -158,10 +159,11 @@ export default function Home() {
             selectedConversationId={selectedConversationId}
             onConversationCreated={fetchHistory}
             onActiveSources={(s, a) => { setActiveSources(s); setActiveAnswer(a); }}
+            onGenerating={(g) => { setSourcesLoading(g); if (g) { setActiveSources([]); setActiveAnswer(""); } }}
           />
         </div>
 
-        <SourcesPanel sources={activeSources} answerContent={activeAnswer} />
+        <SourcesPanel sources={activeSources} answerContent={activeAnswer} loading={sourcesLoading} />
       </main>
     </div>
   );

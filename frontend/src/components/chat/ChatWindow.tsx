@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
+import { Spinner } from "@/components/ui/spinner";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import {
   Dialog,
@@ -41,6 +42,36 @@ interface ChatWindowProps {
   onConversationCreated: () => void;
   // Notifica o pai (page.tsx) das fontes da resposta atual, para alimentar a SourcesPanel.
   onActiveSources?: (sources: string[], answer: string) => void;
+  // Sinaliza início/fim da geração (para a SourcesPanel mostrar loading enquanto a resposta vem).
+  onGenerating?: (generating: boolean) => void;
+}
+
+// Efeito "digitando" (estilo ChatGPT): revela o texto recebido progressivamente, suave mesmo
+// que o backend mande por frase. Pausa quando alcança o que chegou e retoma com o próximo chunk;
+// quando a resposta termina (animate=false), mostra o texto completo de imediato.
+function StreamingMarkdown({ content, animate }: { content: string; animate: boolean }) {
+  const [shown, setShown] = useState(animate ? 0 : content.length);
+  const targetRef = useRef(content);
+  targetRef.current = content;
+
+  useEffect(() => {
+    if (!animate) {
+      setShown(targetRef.current.length);
+      return;
+    }
+    const id = setInterval(() => {
+      setShown((s) => {
+        const target = targetRef.current.length;
+        if (s >= target) return s;
+        return Math.min(target, s + Math.max(2, Math.ceil((target - s) / 15)));
+      });
+    }, 18);
+    return () => clearInterval(id);
+  }, [animate]);
+
+  const text = animate ? content.slice(0, shown) : content;
+  const typing = animate && shown < content.length;
+  return <ReactMarkdown remarkPlugins={[remarkGfm]}>{typing ? text + "▍" : text}</ReactMarkdown>;
 }
 
 function CopyButton({ text }: { text: string }) {
@@ -198,7 +229,7 @@ function ReplyButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-export default function ChatWindow({ config, userId, selectedConversationId, onConversationCreated, onActiveSources }: ChatWindowProps) {
+export default function ChatWindow({ config, userId, selectedConversationId, onConversationCreated, onActiveSources, onGenerating }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [replyingTo, setReplyingTo] = useState<QuotedRef | null>(null);
@@ -300,6 +331,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
     setReplyingTo(null);
     setShowAttachments(false);
     setIsTyping(true);
+    onGenerating?.(true); // SourcesPanel mostra loading e limpa as fontes antigas
     atBottomRef.current = true; // ao enviar, acompanha a resposta ate o fim
 
     // Add user message to UI (com a citação, se houver)
@@ -409,6 +441,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
       });
     } finally {
       setIsTyping(false);
+      onGenerating?.(false);
     }
   };
 
@@ -578,9 +611,20 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
                     ? 'prose-invert prose-p:text-white prose-headings:text-white prose-a:text-blue-200'
                     : 'prose-gray'
                 }`}>
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {m.content || (isTyping && idx === messages.length - 1 ? "..." : "")}
-                  </ReactMarkdown>
+                  {m.content ? (
+                    m.role === 'assistant' ? (
+                      <StreamingMarkdown
+                        content={m.content}
+                        animate={isTyping && idx === messages.length - 1 && !m.genTime}
+                      />
+                    ) : (
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
+                    )
+                  ) : (isTyping && idx === messages.length - 1 ? (
+                    <span className="not-prose inline-flex items-center gap-2 text-sm text-muted-foreground">
+                      <Spinner className="size-4 text-accent-blue" /> Consultando o manual…
+                    </span>
+                  ) : null)}
                 </div>
               </div>
 

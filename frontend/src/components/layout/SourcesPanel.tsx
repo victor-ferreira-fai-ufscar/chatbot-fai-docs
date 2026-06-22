@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import {
   FileText,
   ExternalLink,
-  Loader2,
   ChevronDown,
   ChevronUp,
   ChevronRight,
@@ -12,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -155,7 +155,7 @@ function SourceCard({ item, terms }: { item: SourceItem; terms: Set<string> }) {
       <CardContent className="px-3 py-2 text-[12px] leading-relaxed text-gray-700">
         {loading && (
           <div className="flex items-center gap-2 py-1 text-[11px] text-muted-foreground">
-            <Loader2 size={12} className="animate-spin" /> carregando trecho…
+            <Spinner className="size-3" /> carregando trecho…
           </div>
         )}
         {error && <div className="py-1 text-[11px] italic text-muted-foreground">Trecho indisponível.</div>}
@@ -183,9 +183,10 @@ function SourceCard({ item, terms }: { item: SourceItem; terms: Set<string> }) {
 interface SourcesPanelProps {
   sources: string[];
   answerContent: string;
+  loading?: boolean;
 }
 
-export default function SourcesPanel({ sources, answerContent }: SourcesPanelProps) {
+export default function SourcesPanel({ sources, answerContent, loading = false }: SourcesPanelProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
@@ -232,7 +233,12 @@ export default function SourcesPanel({ sources, answerContent }: SourcesPanelPro
   const list = (
     <ScrollArea className="flex-1">
       <div className="space-y-3 p-3">
-        {items.length === 0 ? (
+        {loading && items.length === 0 ? (
+          <div className="flex h-full flex-col items-center justify-center gap-3 px-4 text-center text-muted-foreground">
+            <Spinner className="size-5 text-accent-blue" />
+            <p className="text-xs">Buscando as fontes da resposta…</p>
+          </div>
+        ) : items.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center px-4 text-center text-muted-foreground">
             <FileText size={28} className="mb-3 opacity-40" />
             <p className="text-xs leading-relaxed">
