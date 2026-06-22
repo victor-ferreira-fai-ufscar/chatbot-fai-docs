@@ -1,0 +1,320 @@
+[
+ {
+  "category": "TI",
+  "question": "Como faço para trocar meu e-mail?",
+  "reference": "Entre em contato com o gestor do seu projeto, ele é responsável pelas suas informações;",
+  "id": "TI-01"
+ },
+ {
+  "category": "TI",
+  "question": "Não estou conseguindo encontrar a alínea \"XYZ\" ao fazer um Solicitação de Compras?",
+  "reference": "Entre em contato com seu gestor de projeto, a alínea \"XYZ\" não foi disponibilizada. (Isso para quando a alínea não está disponível no projeto)",
+  "id": "TI-02"
+ },
+ {
+  "category": "TI",
+  "question": "Esqueci minha senha da área de coordenadores, como faço?",
+  "reference": "Na tela de login, clique em \"Esqueci a senha\", você receberá um e-mail com uma nova senha temporária;",
+  "id": "TI-03"
+ },
+ {
+  "category": "TI",
+  "question": "O que informo no campo matrícula ao preencher o formulário de Membro de Equipe de Trabalho?",
+  "reference": "Você só deve preencher o campo Matrícula se for discente. (este problema já estamos mitigando escondendo o campo matrícula quando não for discente).",
+  "id": "TI-04"
+ },
+ {
+  "category": "Projetos",
+  "question": "Qual é o limite financeiro para a contratação direta de serviços e compras com recursos públicos e como evitar o fracionamento de despesa?",
+  "reference": "Para serviços e compras em geral, o limite é inferior a R$ 40.000,00, desde que não se refiram a parcelas de um mesmo serviço de maior vulto.",
+  "id": "Projetos-01"
+ },
+ {
+  "category": "Projetos",
+  "question": "Quando é indispensável a elaboração de um Termo de Referência (TR)?",
+  "reference": "O TR é obrigatório para aquisições de maior complexidade, devendo conter especificações técnicas, cronograma e critérios de aceitação.",
+  "id": "Projetos-02"
+ },
+ {
+  "category": "Projetos",
+  "question": "Quais os prazos e trâmites para obras de engenharia nos campi da UFSCar?",
+  "reference": "O processo exige aprovação da SeGEF, pode levar até 20 meses para conclusão total e requer planejamento prévio de, no mínimo, 60 dias para documentação simples.",
+  "id": "Projetos-03"
+ },
+ {
+  "category": "Projetos",
+  "question": "Quais dados são obrigatórios na fatura Proforma para evitar atrasos no câmbio?",
+  "reference": "Devem constar os dados completos da FAI como importadora, NCM do item, INCOTERM, dados bancários do exportador e prazo de validade.",
+  "id": "Projetos-04"
+ },
+ {
+  "category": "Projetos",
+  "question": "Como é calculado o valor total de uma importação?",
+  "reference": "O sistema da FAI estima o custo em reais com base na taxa de câmbio e inclui despesas acessórias como frete e armazenagem.",
+  "id": "Projetos-05"
+ },
+ {
+  "category": "Projetos",
+  "question": "Qual é o prazo médio para a conclusão de um processo logístico internacional?",
+  "reference": "Estima-se aproximadamente 20 dias para os trâmites após a liberação da remessa para embarque.",
+  "id": "Projetos-06"
+ },
+ {
+  "category": "Projetos",
+  "question": "Qual a diferença procedimental entre contratar com recursos públicos versus privados?",
+  "reference": "Recursos públicos exigem obrigatoriamente Processo Seletivo Simplificado (edital), enquanto recursos privados permitem a livre escolha pelo coordenador, respeitando vedações a nepotismo.",
+  "id": "Projetos-07"
+ },
+ {
+  "category": "Projetos",
+  "question": "Quais as limitações para a contratação de profissionais autônomos (Pessoa Física)?",
+  "reference": "A contratação exige justificativa técnica, não pode ter subordinação (para não configurar vínculo empregatício) e o profissional deve ter Inscrição Municipal para emitir nota fiscal ou recibo apropriado.",
+  "id": "Projetos-08"
+ },
+ {
+  "category": "Projetos",
+  "question": "É permitido que um funcionário CLT inicie as atividades antes do exame médico?",
+  "reference": "Não, o profissional jamais pode iniciar o trabalho sem a emissão do Atestado de Saúde Ocupacional (ASO).",
+  "id": "Projetos-09"
+ },
+ {
+  "category": "Projetos",
+  "question": "Quais documentos comprovam o vínculo do bolsista para pagamento?",
+  "reference": "Estudantes devem apresentar atestado de matrícula atualizado; membros de Pós-Doutorado exigem declaração da CIP/ProPQ.",
+  "id": "Projetos-10"
+ },
+ {
+  "category": "Projetos",
+  "question": "Qual o prazo para cadastro e pagamento de uma bolsa?",
+  "reference": "O cadastro leva até 7 dias úteis após o recebimento da solicitação e o pagamento ocorre em até 3 dias úteis após a aprovação do coordenador no sistema.",
+  "id": "Projetos-11"
+ },
+ {
+  "category": "Projetos",
+  "question": "Como proceder para emitir uma nota fiscal de serviço para um cliente do projeto?",
+  "reference": "Deve-se utilizar o formulário \"Pedido de Venda\" na plataforma da FAI, informando os dados completos do tomador, descrição detalhada e valor acordado.",
+  "id": "Projetos-12"
+ },
+ {
+  "category": "Projetos",
+  "question": "Onde são geridos os recebimentos de inscrições?",
+  "reference": "Para cursos e eventos, os recebimentos são realizados por meio de uma plataforma específica da Fundação.",
+  "id": "Projetos-13"
+ },
+ {
+  "category": "Projetos",
+  "question": "Como utilizar os rendimentos de aplicação financeira do projeto?",
+  "reference": "Em recursos públicos, o uso depende de autorização no plano de aplicação ou aprovação formal do financiador; em recursos privados, a movimentação é livre conforme as regras da Instituição Apoiada, que devem providenciar ajuste orçamentário para definir os gastos pertinentes aos rendimentos.",
+  "id": "Projetos-14"
+ },
+ {
+  "category": "Projetos",
+  "question": "Com qual antecedência devo solicitar uma prorrogação de prazo (aditivo) do projeto?",
+  "reference": "Alterações de prazo, objeto ou valor devem ser solicitadas com 45 dias de antecedência para viabilizar os trâmites legais e a aprovação do financiador.",
+  "id": "Projetos-15"
+ },
+ {
+  "category": "Projetos",
+  "question": "Qual o prazo máximo para envio de notas fiscais de compras para pagamento?",
+  "reference": "As notas devem ser enviadas dentro do mês de emissão ou, no máximo, até o 5º dia do mês subsequente para evitar multas fiscais.",
+  "id": "Projetos-16"
+ },
+ {
+  "category": "Projetos",
+  "question": "Quais são os limites financeiros para a \"Compra Direta\" de serviços com recursos públicos e como evitar o fracionamento de despesas?",
+  "reference": "No contexto de recursos públicos, a contratação direta é permitida para serviços comuns em valores inferiores a R$ 40.000,00, desde que não se refiram a parcelas de um mesmo serviço de maior vulto.",
+  "id": "Projetos-17"
+ },
+ {
+  "category": "Projetos",
+  "question": "Quando é obrigatória a elaboração de um Termo de Referência (TR) e o que ele deve conter?",
+  "reference": "O TR é indispensável para aquisições de maior complexidade, devendo definir com precisão especificações técnicas, quantidades, cronogramas e critérios de aceitação.",
+  "id": "Projetos-18"
+ },
+ {
+  "category": "Projetos",
+  "question": "O coordenador pode contratar serviços diretamente e solicitar o reembolso posterior?",
+  "reference": "Não, é expressamente vedada a contratação de serviços de qualquer natureza realizada diretamente pelo coordenador, devendo ser executada obrigatoriamente pela FAI UFSCar.",
+  "id": "Projetos-19"
+ },
+ {
+  "category": "Projetos",
+  "question": "Quais justificativas são necessárias para um processo de \"Inexigibilidade\" de licitação em serviços?",
+  "reference": "O coordenador deve encaminhar uma justificativa técnica explicando a motivação da escolha e demonstrando que há um único fornecedor ou profissional capaz de realizar o serviço, tornando a competição inviável.",
+  "id": "Projetos-20"
+ },
+ {
+  "category": "Projetos",
+  "question": "Quais os princípios básicos que devem nortear a escolha de um prestador de serviços?",
+  "reference": "Toda contratação deve observar os princípios da legalidade, impessoalidade, moralidade, publicidade, eficiência e economicidade.",
+  "id": "Projetos-21"
+ },
+ {
+  "category": "Projetos",
+  "question": "Quais são os requisitos obrigatórios para a contratação de profissionais independentes sem vínculo empregatício?",
+  "reference": "A contratação exige justificativa técnica, contrato de prestação de serviços, comprovação de qualificação e a emissão de nota fiscal.",
+  "id": "Projetos-22"
+ },
+ {
+  "category": "Projetos",
+  "question": "Por que o profissional autônomo deve possuir Inscrição Municipal?",
+  "reference": "A Inscrição Municipal é o registro do profissional junto à prefeitura que permite a identificação do prestador e a emissão legal de notas fiscais de serviço.",
+  "id": "Projetos-23"
+ },
+ {
+  "category": "Projetos",
+  "question": "Quais impostos são retidos na fonte no pagamento via RPA?",
+  "reference": "O pagamento está sujeito à retenção de INSS, IRRF (Imposto de Renda) e IBS, conforme a legislação vigente e as regras do município do prestador.",
+  "id": "Projetos-24"
+ },
+ {
+  "category": "Projetos",
+  "question": "Qual é o prazo para que a FAI realize o pagamento após a entrega do recibo de serviço?",
+  "reference": "O pagamento será efetuado pelo departamento de Gestão de Pessoas em até 03 (três) dias úteis após o recebimento e aprovação do formulário de pagamento com a nota fiscal eletrônica.",
+  "id": "Projetos-25"
+ },
+ {
+  "category": "Projetos",
+  "question": "Como evitar que a contratação de um autônomo configure vínculo empregatício com o projeto?",
+  "reference": "É proibida a existência de subordinação ou habitualidade na prestação do serviço, devendo o trabalho ter natureza eventual e técnica.",
+  "id": "Projetos-26"
+ },
+ {
+  "category": "Projetos",
+  "question": "É permitido utilizar recursos de \"Suprimento de Fundos\" para pagar um prestador de serviço pessoa física?",
+  "reference": "Não, é proibida a utilização de recursos de adiantamento para pequenas despesas na contratação de pessoas físicas ou prestação de serviços de qualquer natureza.",
+  "id": "Projetos-27"
+ },
+ {
+  "category": "Projetos",
+  "question": "Como funciona o processo de inexigibilidade para serviços técnicos?",
+  "reference": "O processo de inexigibilidade para serviços técnicos funciona como uma modalidade de contratação direta, aplicada quando a competição é inviável devido à existência de um único fornecedor ou profissional capaz de realizar o serviço. Para que o processo seja instruído corretamente pelo setor de Compras da Fundação, o coordenador deve seguir os seguintes passos e requisitos: Justificativa Técnica: É essencial que o requisitante encaminhe uma justificativa detalhada explicando a motivação da contratação e a razão da escolha daquele fornecedor ou profissional específico. Demonstração de Exclusividade: No caso de serviços ou materiais técnicos, deve-se demonstrar que o objeto possui descrições técnicas únicas e indispensáveis para o sucesso das metas do projeto. Cursos e Eventos: Quando a inexigibilidade for para inscrições em cursos ou congressos, o coordenador deve destacar a relevância da participação para o desenvolvimento das atividades de pesquisa do projeto. Parecer Jurídico: Todo processo de inexigibilidade exige, além da justificativa técnica, a emissão de um parecer jurídico para validar a contratação. Prerrogativa da FAI: Cabe exclusivamente à FAI UFSCar a configuração e a decisão final sobre a necessidade de aplicar a modalidade de inexigibilidade. Exemplos típicos desse processo incluem a contratação de serviços especializados exclusivos, anuidades de instituições técnicas e a inscrição em eventos científicos específicos.",
+  "id": "Projetos-28"
+ },
+ {
+  "category": "Projetos",
+  "question": "Pode-se contratar MEI para prestar serviços ao projeto?",
+  "reference": "Sim, é possível contratar um Microempreendedor Individual (MEI) para prestar serviços ao projeto, uma vez que a FAI UFSCar reconhece essa categoria em seus procedimentos operacionais. No entanto, a contratação deve seguir regras específicas de conformidade: Intermediação Obrigatória da FAI: É expressamente proibido que o coordenador realize a contratação direta de qualquer serviço. A solicitação deve ser enviada exclusivamente por meio da plataforma \"Área de Coordenadores\", e a execução da contratação cabe à FAI UFSCar. Exceção de Pagamento em Conta de Pessoa Física: Diferente das outras empresas, que obrigatoriamente devem receber pagamentos em conta jurídica, no caso do MEI é permitido informar uma conta bancária de pessoa física para o depósito, desde que seja informado também o CPF do titular/dono da empresa. Documentação e Aprovação: O pagamento só ocorre mediante a apresentação de documento fiscal válido (nota fiscal), termo de recebimento e a aprovação expressa do coordenador do projeto. Critérios de Seleção: Para projetos com recursos públicos, a escolha do prestador geralmente exige a observância dos ritos legais de compra ou, em certos casos, a realização de um Processo Seletivo Simplificado (edital). Para projetos com recursos privados, o coordenador tem livre escolha e indicação, respeitando-se as vedações a nepotismo e conflitos de interesse. Justificativa Técnica: Toda solicitação de serviço exige uma descrição clara do objeto e uma justificativa técnica que demonstre a necessidade da contratação para o sucesso das metas do projeto. Em resumo, o MEI é tratado como um fornecedor de serviços (pessoa jurídica), mas com a facilidade adicional de poder receber os valores em sua conta de pessoa física.",
+  "id": "Projetos-29"
+ },
+ {
+  "category": "Projetos",
+  "question": "Qual é o papel da FAI UFSCar nos processos de importação do projeto?",
+  "reference": "A FAI oferece apoio especializado e exclusivo para as importações, que devem estar previstas no projeto.",
+  "id": "Projetos-30"
+ },
+ {
+  "category": "Projetos",
+  "question": "Como deve ser feita a descrição dos itens na Solicitação de Compra (SC)?",
+  "reference": "O coordenador deve informar uma descrição detalhada em português dos produtos ou serviços requisitados.",
+  "id": "Projetos-31"
+ },
+ {
+  "category": "Projetos",
+  "question": "Como o sistema da FAI calcula o valor estimado da aquisição internacional?",
+  "reference": "O sistema utiliza a moeda indicada na \"Proforma\", o valor da taxa de câmbio e inclui uma estimativa de despesas acessórias, como frete e armazenagem.",
+  "id": "Projetos-32"
+ },
+ {
+  "category": "Projetos",
+  "question": "Quais dados do importador devem constar obrigatoriamente na fatura Proforma?",
+  "reference": "Devem constar os dados completos da FAI UFSCar (matriz), incluindo endereço e o CNPJ 66.991.947/0001-30.",
+  "id": "Projetos-33"
+ },
+ {
+  "category": "Projetos",
+  "question": "Quais informações sobre o fornecedor e os itens são indispensáveis na Proforma?",
+  "reference": "Nome e endereço do exportador/fabricante, dados bancários completos (incluindo o código do banco), discriminação completa dos bens, quantidade, preços, peso (líquido e bruto), país de origem e, se disponível, o NCM (Nomenclatura de Classificação do Mercosul).",
+  "id": "Projetos-34"
+ },
+ {
+  "category": "Projetos",
+  "question": "O que define o INCOTERM em uma negociação de importação?",
+  "reference": "O International Commercial Terms define as responsabilidades de cada parte sobre a logística da remessa.",
+  "id": "Projetos-35"
+ },
+ {
+  "category": "Projetos",
+  "question": "Como proceder para a contratação de serviços internacionais (como tradução ou publicação em revistas)?",
+  "reference": "Deve-se anexar a proposta Proforma da empresa em nome da FAI, indicando o CNPJ da Fundação ou de suas filiais.",
+  "id": "Projetos-36"
+ },
+ {
+  "category": "Projetos",
+  "question": "Quais informações são necessárias para o pagamento de inscrições em eventos internacionais?",
+  "reference": "É necessário informar o período de inscrição, link do evento e, se possível, anexar a ficha de inscrição com dados do participante e a Proforma.",
+  "id": "Projetos-37"
+ },
+ {
+  "category": "Projetos",
+  "question": "Qual é o prazo médio estimado para a conclusão de um processo logístico internacional?",
+  "reference": "Após a aprovação da proposta e liberação para embarque, estima-se cerca de 20 dias para os trâmites logísticos, aduaneiros e entrega.",
+  "id": "Projetos-38"
+ },
+ {
+  "category": "Projetos",
+  "question": "Que cuidado o coordenador deve ter ao realizar importações no final da vigência do projeto?",
+  "reference": "Recomenda-se cautela em aquisições próximas ao término do projeto, devendo o gestor da FAI ser consultado em caso de dúvidas.",
+  "id": "Projetos-39"
+ },
+ {
+  "category": "Projetos",
+  "question": "Quais documentos são exigidos para o pagamento final ao fornecedor estrangeiro?",
+  "reference": "O pagamento só ocorre após o recebimento e análise de conformidade, mediante documento fiscal válido (Invoice), termo de recebimento e aprovação do coordenador.",
+  "id": "Projetos-40"
+ },
+ {
+  "category": "Projetos",
+  "question": "Qual é o limite das Despesas Acessórias de Importação financiadas pela FINEP?",
+  "reference": "As Despesas Acessórias de Importação financiadas pela FINEP estão limitadas a 20% do valor total dos equipamentos/produtos a serem importados).",
+  "id": "Projetos-41"
+ },
+ {
+  "category": "Projetos",
+  "question": "A FINEP permite ressarcimento ou adiantamento de valores?",
+  "reference": "A FINEP não permite ressarcimento e adiantamento de valores.",
+  "id": "Projetos-42"
+ },
+ {
+  "category": "Projetos",
+  "question": "A FINEP permite o provisionamento de recursos para contratação de Pessoa Física via CLT?",
+  "reference": "A FINEP não permite provisionamento de recursos referente contratação de Pessoa Física através de CLT.",
+  "id": "Projetos-43"
+ },
+ {
+  "category": "Projetos",
+  "question": "Qual é o prazo máximo para execução de projetos financiados pela FINEP?",
+  "reference": "O prazo máximo para execução de projetos FINEP é de até 60 meses (dependendo do previsto em Edital específico);",
+  "id": "Projetos-44"
+ },
+ {
+  "category": "Projetos",
+  "question": "Os bens ou materiais permanentes adquiridos ou produzidos em projetos FINEP podem ser doados à instituição executora?",
+  "reference": "Os Bens ou Materiais Permanentes, produzidos ou adquiridos poderão ser Doados à Executora do projeto desde que a indicação esteja prevista no Plano de Trabalho aprovado.",
+  "id": "Projetos-45"
+ },
+ {
+  "category": "Projetos",
+  "question": "Qual é o prazo para apresentação da Prestação de Contas Final de um convênio FINEP?",
+  "reference": "O prazo para apresentação de Prestação de Contas Final de convênio FINEP é de 60 dias à contar à partir da data de encerramento do Convênio;",
+  "id": "Projetos-46"
+ },
+ {
+  "category": "Projetos",
+  "question": "Em quanto tempo devem ser devolvidos os recursos remanescentes após o encerramento de um convênio FINEP?",
+  "reference": "O prazo para devolução de recursos remanescentes dos convênios FINEP encerrados é de 30 dias a contar a partir da data de encerramento do Convênio;",
+  "id": "Projetos-47"
+ },
+ {
+  "category": "Projetos",
+  "question": "Quais documentos são necessários para solicitar a prorrogação da vigência de um projeto FINEP?",
+  "reference": "Solicitação de Prorrogação da vigência é necessário Ofício do Coordenador e cronograma de Prazo (a critério da FINEP poderá ser solicitado a Prestação de Contas Parcial e Relatório Técnico Parcial);",
+  "id": "Projetos-48"
+ },
+ {
+  "category": "Projetos",
+  "question": "O que é necessário apresentar para a liberação de novas parcelas de recursos pela FINEP?",
+  "reference": "Solicitação de Liberação de Parcelas de Recursos (Ofício do Coordenador, Prestação de Contas Parcial e Demonstrativo de Despesas e Comprometimento (DDC).",
+  "id": "Projetos-49"
+ }
+]
