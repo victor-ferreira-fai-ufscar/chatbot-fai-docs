@@ -138,3 +138,14 @@ class StorageService:
         resp = requests.delete(url, headers=self._headers(), timeout=self.timeout)
         if resp.status_code >= 400:
             raise StorageError(f"Falha ao remover objeto ({resp.status_code}): {resp.text}")
+
+    def download(self, object_name: str) -> bytes:
+        """Baixa os bytes de um objeto do bucket (acesso admin via service key).
+
+        Usado pela sidebar de fontes para extrair o texto da pagina citada do PDF.
+        """
+        url = f"{self._storage_root}/object/{self.bucket}/{object_name}"
+        resp = requests.get(url, headers=self._headers(), timeout=self.timeout)
+        if resp.status_code >= 400:
+            raise StorageError(f"Falha ao baixar objeto ({resp.status_code}): {resp.text}")
+        return resp.content
