@@ -231,7 +231,8 @@ export default function SourcesPanel({ sources, answerContent, loading = false }
   );
 
   const list = (
-    <ScrollArea className="flex-1">
+    // min-h-0 é essencial: sem ele, o flex-1 cresce p/ caber os cards (sem rolar).
+    <ScrollArea className="h-full min-h-0 flex-1">
       <div className="space-y-3 p-3">
         {loading && items.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center gap-3 px-4 text-center text-muted-foreground">
