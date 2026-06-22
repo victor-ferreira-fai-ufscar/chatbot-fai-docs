@@ -559,7 +559,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
               </Tooltip>
             )}
 
-            <div className={`max-w-[85%] flex flex-col gap-2 ${m.role === 'user' ? 'items-end' : ''}`}>
+            <div data-testid={m.role === 'assistant' ? 'assistant-message' : 'user-message'} className={`max-w-[85%] flex flex-col gap-2 ${m.role === 'user' ? 'items-end' : ''}`}>
               <div
                 onClick={() => { if (m.role === 'assistant' && m.sources?.length && onActiveSources) onActiveSources(m.sources, m.content); }}
                 title={m.role === 'assistant' && m.sources?.length ? 'Ver as fontes desta resposta no painel' : undefined}
@@ -571,7 +571,9 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
                 {m.quoted && m.quoted.content && (
                   <QuotedBlock quoted={m.quoted} onUserBubble={m.role === 'user'} />
                 )}
-                <div className={`prose prose-sm max-w-none prose-p:leading-relaxed ${
+                <div
+                  data-testid={m.role === 'assistant' ? 'assistant-content' : 'user-content'}
+                  className={`prose prose-sm max-w-none prose-p:leading-relaxed ${
                   m.role === 'user'
                     ? 'prose-invert prose-p:text-white prose-headings:text-white prose-a:text-blue-200'
                     : 'prose-gray'
@@ -596,13 +598,13 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
                     <CopyButton text={m.content} />
                     <ReplyButton onClick={() => setReplyingTo({ role: 'assistant', content: m.content })} />
                     {m.genTime && (
-                      <div className="text-[9px] text-muted-foreground italic">
+                      <div data-testid="message-done" className="text-[9px] text-muted-foreground italic">
                         Resposta gerada em {m.genTime.toFixed(2)}s
                       </div>
                     )}
                   </div>
                   {m.sources && m.sources.length > 0 && (
-                    <div className="space-y-2 animate-in fade-in duration-500 mt-1">
+                    <div data-testid="message-sources" className="space-y-2 animate-in fade-in duration-500 mt-1">
                       <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                         <FileText size={10} /> Fontes Pesquisadas
                       </div>
@@ -611,6 +613,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
                           <Button
                             key={i}
                             type="button"
+                            data-testid="source-chip"
                             variant="outline"
                             size="xs"
                             onClick={() => handleDownloadSource(s, m.content)}
@@ -740,6 +743,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
           {/* Main Input Field */}
           <div className="flex-1 flex gap-2 items-center bg-muted rounded-[24px] px-4 py-1.5 border border-border focus-within:border-accent-blue focus-within:bg-card focus-within:shadow-md transition-all">
             <Textarea
+              data-testid="chat-input"
               rows={1}
               placeholder={isRecording ? "Gravando... fale sua dúvida" : isTranscribing ? "Transcrevendo áudio..." : "Digite sua dúvida aqui..."}
               className="flex-1 min-h-9 max-h-32 resize-none overflow-y-auto border-none bg-transparent shadow-none px-0 py-2 text-sm focus-visible:ring-0 focus-visible:border-none"
@@ -790,6 +794,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
               <Button
                 type="button"
                 size="icon"
+                data-testid="chat-send"
                 onClick={handleSend}
                 aria-label="Enviar"
                 className="bg-accent-blue hover:bg-accent-blue-hover text-white p-3 rounded-full shadow-lg shadow-accent-blue/20 transition-all active:scale-95 disabled:opacity-50 disabled:grayscale disabled:shadow-none"
