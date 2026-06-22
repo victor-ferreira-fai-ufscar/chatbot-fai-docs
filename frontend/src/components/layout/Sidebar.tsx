@@ -1,4 +1,5 @@
 import { MessageSquarePlus, Trash2, Settings, History, Plus, ArrowLeft, HelpCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import Image from 'next/image';
 import { useState, useEffect, type MouseEvent } from 'react';
 import { cn } from '@/lib/utils';
 import { SidebarMode } from '@/app/page';
@@ -12,7 +13,6 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import {
   Dialog,
   DialogContent,
@@ -39,6 +39,7 @@ interface SidebarProps {
   onDeleteConversation: (id: number) => void;
   selectedConversationId: number | null;
   conversations: any[];
+  isBackendConnected?: boolean | null;
   config: any;
   setConfig: (v: any) => void;
 }
@@ -59,6 +60,7 @@ export default function Sidebar({
   onDeleteConversation,
   selectedConversationId,
   conversations,
+  isBackendConnected,
   config,
   setConfig
 }: SidebarProps) {
@@ -94,30 +96,61 @@ export default function Sidebar({
   return (
     <>
       <aside className={cn(
-        "bg-sidebar-dark flex flex-col text-gray-300 h-[calc(100vh-3.5rem)] transition-all duration-300 ease-in-out z-20",
+        "bg-sidebar-dark flex flex-col text-gray-300 h-full transition-all duration-300 ease-in-out z-20",
         isCollapsed ? "w-16" : "w-64"
       )}>
 
-        {/* Setinha para minimizar/expandir a barra lateral */}
-        <div className={cn(
-          "flex items-center px-2 py-1.5 border-b border-sidebar-hover/60 shrink-0",
-          isCollapsed ? "justify-center" : "justify-end"
-        )}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                onClick={() => setIsCollapsed(!isCollapsed)}
-                className="text-gray-400 hover:text-white hover:bg-sidebar-hover"
-                aria-label={isCollapsed ? "Expandir menu" : "Minimizar menu"}
-              >
-                {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right">{isCollapsed ? "Expandir menu" : "Minimizar menu"}</TooltipContent>
-          </Tooltip>
-        </div>
+        {/* Topo: marca FAI-UFSCar + minimizar/expandir (estilo ChatGPT) */}
+        {isCollapsed ? (
+          <div className="flex h-14 shrink-0 items-center justify-center border-b border-sidebar-hover/60 px-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setIsCollapsed(false)}
+                  className="group relative flex size-9 items-center justify-center rounded-md transition-colors hover:bg-sidebar-hover"
+                  aria-label="Expandir menu"
+                >
+                  <Image
+                    src="/fai-icone.png"
+                    alt="FAI • UFSCar"
+                    width={24}
+                    height={24}
+                    className="object-contain transition-opacity group-hover:opacity-0"
+                  />
+                  <ChevronRight size={18} className="absolute text-gray-200 opacity-0 transition-opacity group-hover:opacity-100" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right">Expandir menu</TooltipContent>
+            </Tooltip>
+          </div>
+        ) : (
+          <div className="flex h-14 shrink-0 items-center gap-2.5 border-b border-sidebar-hover/60 px-3">
+            <Image
+              src="/fai-icone.png"
+              alt="FAI • UFSCar"
+              width={26}
+              height={26}
+              className="shrink-0 object-contain"
+            />
+            <span className="text-[15px] font-semibold tracking-tight text-white">
+              FAI <span className="font-light text-gray-300">• UFSCar</span>
+            </span>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => setIsCollapsed(true)}
+                  className="ml-auto text-gray-400 hover:bg-sidebar-hover hover:text-white"
+                  aria-label="Minimizar menu"
+                >
+                  <ChevronLeft size={18} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">Minimizar menu</TooltipContent>
+            </Tooltip>
+          </div>
+        )}
 
         {mode === "history" ? (
           <>
@@ -400,15 +433,20 @@ export default function Sidebar({
           </div>
         )}
 
-        {/* Footer Branding */}
-        {!isCollapsed && (
-          <>
-            <Separator className="bg-sidebar-hover" />
-            <div className="p-4 text-[10px] text-gray-600 text-center shrink-0">
-              FAI-UFSCar Chatbot v1.0
+        {/* Rodapé: status de conexão (discreto — só alerta quando o backend cai) */}
+        <div className="mt-auto shrink-0 border-t border-sidebar-hover p-3 text-center">
+          {isBackendConnected === false ? (
+            <div
+              className="flex items-center justify-center gap-1.5 text-[10px] font-medium text-accent-orange"
+              title="Sem conexão com o servidor"
+            >
+              <span className="size-2 animate-pulse rounded-full bg-accent-orange" />
+              {!isCollapsed && <span>Sem conexão</span>}
             </div>
-          </>
-        )}
+          ) : (
+            !isCollapsed && <span className="text-[10px] text-gray-600">FAI-UFSCar Chatbot v1.0</span>
+          )}
+        </div>
       </aside>
 
       {/* Unified Help Modal */}

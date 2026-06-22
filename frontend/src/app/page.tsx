@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Header from "@/components/layout/Header";
 import Sidebar from "@/components/layout/Sidebar";
 import SourcesPanel from "@/components/layout/SourcesPanel";
 import ChatWindow from "@/components/chat/ChatWindow";
@@ -129,13 +128,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
-      <Header 
-        onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)} 
-        isBackendConnected={isBackendConnected}
-      />
-      
-      <main className="flex flex-1 overflow-hidden">
+    <main className="flex h-screen overflow-hidden">
         <Sidebar 
           mode={sidebarMode}
           setMode={setSidebarMode}
@@ -148,6 +141,7 @@ export default function Home() {
           onDeleteConversation={handleDeleteConversation}
           selectedConversationId={selectedConversationId}
           conversations={conversations}
+          isBackendConnected={isBackendConnected}
           config={config}
           setConfig={setConfig}
         />
@@ -164,7 +158,6 @@ export default function Home() {
         </div>
 
         <SourcesPanel sources={activeSources} answerContent={activeAnswer} loading={sourcesLoading} />
-      </main>
-    </div>
+    </main>
   );
 }
