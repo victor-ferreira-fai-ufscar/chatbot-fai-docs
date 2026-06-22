@@ -141,7 +141,11 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
     def generate_response():
         start_time = time.perf_counter()
         conversation_id = request.conversation_id
-        
+        # "Modo Agentico" por requisicao: a UI pode desligar o agente (tool calling + Skills)
+        # para testar alucinacao. None -> usa o default do servidor (AGENT_ENABLED). Com o
+        # agente desligado, NAO ha geracao de planilha/PDF/DOCX (skills) — so o RAG direto.
+        agent_on = request.agentic if request.agentic is not None else settings.AGENT_ENABLED
+
         # 1. Preparar Contexto (resolve o LightRAG acessivel entre os candidatos)
         lightrag_api_url = resolve_lightrag_url(settings.lightrag_candidates())
         config = AppConfig(
@@ -191,7 +195,7 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
         # (gate social + LightRAG), permitindo rollback instantaneo via flag.
         agent_ctx = None
         try:
-            if settings.AGENT_ENABLED:
+            if agent_on:
                 answer, agent_ctx = _run_agent(config, effective_question, conversation_history)
             else:
                 # Gate conversacional: turnos puramente sociais (oi, obrigado, "quem e voce?")
@@ -237,7 +241,7 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
         full_answer = ""
         last_usage = 0
 
-        if settings.AGENT_ENABLED:
+        if agent_on:
             # Consumer dedicado do agente: mapeia as tuplas do laco para eventos SSE.
             # 'thought' (raciocinio do modelo) e suprimido; 'tool_status' vai como
             # evento proprio (o frontend ignora por ora; vira chip "Consultando..." depois).
@@ -280,7 +284,7 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
         # um manual, um resolvedor por IA identifica QUAL documento ele quer e anexa um link
         # assinado ao final da resposta. No modo agente, isso e feito pela skill
         # entregar_documento (decisao do agente), entao este bloco e pulado.
-        if (not settings.AGENT_ENABLED and settings.SUPABASE_URL and settings.SERVICE_ROLE_KEY
+        if (not agent_on and settings.SUPABASE_URL and settings.SERVICE_ROLE_KEY
                 and _maybe_download_request(request.question)):
             try:
                 storage = StorageService(

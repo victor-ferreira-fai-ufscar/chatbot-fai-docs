@@ -24,6 +24,10 @@ class ChatRequest(BaseModel):
     model: str = "gpt-4o-mini"
     top_k: int = 4
     reranker_threshold: float = 0.0
+    # Override por-requisicao do "Modo Agentico" (tool calling + Skills). None = usa o
+    # default do servidor (AGENT_ENABLED). Permite a UI desligar o agente (ex.: testar
+    # alucinacao). Desligado NAO gera planilha/PDF/DOCX (skills).
+    agentic: Optional[bool] = None
 
 class ChatResponse(BaseModel):
     answer: str

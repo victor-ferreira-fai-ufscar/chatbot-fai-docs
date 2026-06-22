@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import {
   Dialog,
@@ -203,6 +204,9 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
   const [replyingTo, setReplyingTo] = useState<QuotedRef | null>(null);
   const [showAttachments, setShowAttachments] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
+  // "Modo agêntico": ligado (default) = tool calling + Skills (pode gerar planilha/PDF/DOCX);
+  // desligado = RAG direto pelo manual (útil para testar precisão/alucinação), sem gerar docs.
+  const [agenticMode, setAgenticMode] = useState(true);
   const [isTyping, setIsTyping] = useState(false);
   const [conversationId, setConversationId] = useState<number | null>(null);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
@@ -320,7 +324,8 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
           provider: config.provider,
           model: config.model,
           top_k: config.topK,
-          reranker_threshold: config.threshold
+          reranker_threshold: config.threshold,
+          agentic: agenticMode
         }),
       });
 
@@ -796,9 +801,30 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
             <TooltipContent>Enviar</TooltipContent>
           </Tooltip>
         </div>
-        <p className="text-[10px] text-muted-foreground text-center mt-3">
-          O chatbot pode cometer erros. Considere verificar as fontes citadas.
-        </p>
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[10px] text-muted-foreground">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center gap-1.5">
+                <Switch
+                  id="agentic-mode"
+                  checked={agenticMode}
+                  onCheckedChange={setAgenticMode}
+                  className="scale-90"
+                />
+                <label htmlFor="agentic-mode" className="cursor-pointer select-none">
+                  Modo agêntico
+                  {!agenticMode && <span className="text-fai-orange"> · sem gerar documentos</span>}
+                </label>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs text-xs leading-relaxed">
+              Ligado: a Lina decide quando consultar o manual e pode gerar planilha, PDF e DOCX.
+              Desligado: responde direto com base no manual (útil para testar precisão), mas não gera documentos.
+            </TooltipContent>
+          </Tooltip>
+          <span className="hidden opacity-50 sm:inline">·</span>
+          <p>O chatbot pode cometer erros. Considere verificar as fontes citadas.</p>
+        </div>
       </div>
 
       {/* Modal "Sobre a Lina" */}
