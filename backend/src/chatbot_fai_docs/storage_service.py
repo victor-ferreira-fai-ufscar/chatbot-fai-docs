@@ -132,13 +132,34 @@ class StorageService:
             raise StorageError(f"Falha ao verificar objeto ({resp.status_code}): {resp.text}")
         return any(obj.get("name") == object_name for obj in resp.json())
 
+    @staticmethod
+    def _name_tokens(name: str) -> list[str]:
+        """Tokens normalizados de um nome de arquivo (sem extensao/acentos), para
+        comparacao frouxa. Ex.: 'Manual do Coordenador.pdf' -> ['manual','do','coordenador']."""
+        stem = PurePosixPath(name).stem
+        ascii_stem = unicodedata.normalize("NFKD", stem).encode("ascii", "ignore").decode("ascii")
+        return [t for t in re.split(r"[^a-z0-9]+", ascii_stem.lower()) if t]
+
+    @classmethod
+    def _name_similarity(cls, a: str, b: str) -> float:
+        """Similaridade [0,1] entre dois nomes por sobreposicao de tokens, tolerante
+        a singular/plural e variacoes (casa por prefixo de >=4 chars, ex.: 'coordenador'
+        ~ 'coordenadores', 'do' ~ 'dos'). Base = tokens do nome citado (a)."""
+        ta, tb = cls._name_tokens(a), cls._name_tokens(b)
+        if not ta or not tb:
+            return 0.0
+        def hit(t: str) -> bool:
+            return any(t == u or (min(len(t), len(u)) >= 4 and (t.startswith(u) or u.startswith(t))) for u in tb)
+        return sum(1 for t in ta if hit(t)) / len(ta)
+
     def resolve_object_name(self, name: str) -> Optional[str]:
         """Resolve o nome real do objeto no bucket a partir de um nome citado.
 
-        Tenta primeiro o nome sanitizado (padrao dos uploads pela rota do app) e,
-        se nao existir, cai no nome cru (basename) — caso dos uploads feitos pelo
-        dashboard do Supabase, que NAO passam pela sanitizacao e ficam com espacos/
-        acentos. Retorna o nome encontrado no bucket, ou None se nenhum casar.
+        Ordem: (1) nome sanitizado (padrao dos uploads pela rota do app); (2) nome
+        cru/basename (uploads pelo dashboard, com espacos/acentos); (3) fallback
+        frouxo contra a LISTAGEM real do bucket — resolve o descasamento entre o nome
+        que o LightRAG cita ('Manual do Coordenador.pdf') e o objeto armazenado
+        ('Manual_dos_Coordenadores.pdf'). Retorna o nome no bucket, ou None.
         """
         candidates: list[str] = []
         for cand in (self.sanitize_object_name(name), PurePosixPath(name).name):
@@ -147,7 +168,25 @@ class StorageService:
         for cand in candidates:
             if self.exists(cand):
                 return cand
-        return None
+
+        # Fallback frouxo: confronta com os objetos REAIS do bucket.
+        try:
+            objects = [o.get("name", "") for o in self.list_objects(limit=100) if o.get("name")]
+        except StorageError:
+            objects = []
+        if not objects:
+            return None
+        # ponytail: com um unico manual (caso atual), o objeto e ele; senao, melhor
+        # match por sobreposicao de tokens (>=0.5). Subir para indice/embeddings se um
+        # dia houver muitos documentos com nomes ambiguos.
+        if len(objects) == 1:
+            return objects[0]
+        best, best_score = None, 0.0
+        for obj in objects:
+            score = self._name_similarity(name, obj)
+            if score > best_score:
+                best, best_score = obj, score
+        return best if best_score >= 0.5 else None
 
     def delete(self, object_name: str) -> None:
         """Remove um objeto do bucket."""

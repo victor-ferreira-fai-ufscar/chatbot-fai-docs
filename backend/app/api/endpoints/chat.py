@@ -173,6 +173,10 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
             print(f"Erro ao carregar historico: {e}")
             conversation_history = []
 
+        # Lista de manuais reais (objetos do bucket) — alimenta {{LISTA_MANUAIS}} no prompt
+        # e o nome canonico das citacoes. Uma unica consulta, reutilizada nos dois usos.
+        manual_names = _bucket_manual_names()
+
         # Citacao (estilo "responder" do WhatsApp): se o usuario mencionou uma mensagem
         # anterior, ela e anexada como contexto explicito a pergunta enviada ao LightRAG.
         # A pergunta original (sem o bloco de citacao) e o que fica salvo no historico;
@@ -232,6 +236,7 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
                         request.mode,
                         conversation_history=conversation_history,
                         history_turns=settings.HISTORY_TURNS,
+                        available_docs=manual_names,
                     )
         except Exception as e:
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
@@ -246,6 +251,7 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
         # Casa pelo número-base, então mantém leis que o manual referencia. Ver legal_guard.py.
         from src.chatbot_fai_docs.legal_guard import LegalRefGuard, manual_law_numbers
         from src.chatbot_fai_docs.pdf_pages import _extract_pages as _law_pages
+        from src.chatbot_fai_docs.source_citation import canonical_manual_name, normalize_source_citations, canonicalize_source_line
         _law_storage = None
         if settings.SUPABASE_URL and settings.SERVICE_ROLE_KEY:
             try:
@@ -256,6 +262,15 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
                 _law_storage = None
         guard = LegalRefGuard(manual_law_numbers(_law_storage, _law_pages))
 
+        # Nome canonico do manual (a partir dos documentos REAIS do bucket) para normalizar
+        # as citacoes "> Fonte: [...]" que o modelo escreve no corpo da resposta — impede
+        # nome de arquivo fabricado (ex.: "M-coordenadoresFAI-01-06_1.pdf"). Sem canonico,
+        # o normalizador remove o nome e mantem so a pagina. Ver source_citation.py.
+        _canon = canonical_manual_name(manual_names)
+        _canon_display = _canon.replace("_", " ") if _canon else None
+        def _fix_cites(text: str) -> str:
+            return normalize_source_citations(text, _canon_display)
+
         if agent_on:
             # Consumer dedicado do agente: mapeia as tuplas do laco para eventos SSE.
             # 'thought' (raciocinio do modelo) e suprimido; 'tool_status' vai como
@@ -264,14 +279,14 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
                 if kind == "usage":
                     last_usage = payload
                 elif kind == "answer":
-                    cleaned = guard.feed(payload)
+                    cleaned = _fix_cites(guard.feed(payload))
                     if cleaned:
                         full_answer += cleaned
                         yield f"data: {json.dumps({'content': cleaned})}\n\n"
                 elif kind == "tool_status":
                     yield f"data: {json.dumps({'tool_status': payload})}\n\n"
                 # 'thought' suprimido de proposito (nao vai ao usuario)
-            tail = guard.flush()
+            tail = _fix_cites(guard.flush())
             if tail:
                 full_answer += tail
                 yield f"data: {json.dumps({'content': tail})}\n\n"
@@ -283,7 +298,7 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
                 full_answer += link_md
                 yield f"data: {json.dumps({'content': link_md})}\n\n"
         elif isinstance(answer, str):
-            full_answer = guard.feed(answer) + guard.flush()
+            full_answer = _fix_cites(guard.feed(answer) + guard.flush())
             yield f"data: {json.dumps({'content': full_answer, 'sources': source_lines})}\n\n"
         else:
             # Gerador de streaming
@@ -298,11 +313,11 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
                 else:
                     chunk_content = item
                 
-                cleaned = guard.feed(chunk_content)
+                cleaned = _fix_cites(guard.feed(chunk_content))
                 if cleaned:
                     full_answer += cleaned
                     yield f"data: {json.dumps({'content': cleaned})}\n\n"
-            tail = guard.flush()
+            tail = _fix_cites(guard.flush())
             if tail:
                 full_answer += tail
                 yield f"data: {json.dumps({'content': tail})}\n\n"
@@ -355,6 +370,12 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
                         yield f"data: {json.dumps({'content': ask_md})}\n\n"
             except Exception as e:
                 print(f"Erro ao resolver/anexar documento: {e}")
+
+        # Unifica o nome exibido nas fontes (cards) com o nome canonico citado no texto,
+        # quando ha um unico manual — evita "dois nomes para o mesmo documento" (LightRAG
+        # cita 'Manual do Coordenador.pdf'; o bucket guarda 'Manual_dos_Coordenadores.pdf').
+        if _canon_display and len(manual_names) == 1 and source_lines:
+            source_lines = [canonicalize_source_line(s, _canon_display) for s in source_lines]
 
         # 3. Finalizar e Salvar no Backend
         final_time = time.perf_counter() - start_time

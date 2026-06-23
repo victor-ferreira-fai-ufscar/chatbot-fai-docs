@@ -162,13 +162,18 @@ class LightRagService:
     def __init__(self, config: AppConfig):
         self.config = config
 
-    def _build_user_prompt(self) -> str:
+    def _build_user_prompt(self, available_docs: list | None = None) -> str:
         prompt_path = Path("src/IA/Prompt.md")
         if prompt_path.exists():
             base_prompt = prompt_path.read_text(encoding="utf-8").strip()
             date_str, time_str = get_current_date_time_pt_br()
-            
-            if self.config.docs_dir.exists():
+
+            # Fonte da verdade da lista de manuais = bucket (passado pelo chamador). So
+            # cai na pasta local (legado) se nenhuma lista vier. Sem isso, {{LISTA_MANUAIS}}
+            # ficava vazio e o modelo fabricava nomes de arquivo ao citar a fonte.
+            if available_docs:
+                docs_str = ", ".join(available_docs)
+            elif self.config.docs_dir.exists():
                 pdf_files = list_pdf_files(self.config.docs_dir)
                 docs_str = ", ".join([f.name for f in pdf_files]) if pdf_files else "Nenhum documento detectado."
             else:
@@ -211,6 +216,7 @@ class LightRagService:
         mode: str,
         conversation_history: list | None = None,
         history_turns: int = 5,
+        available_docs: list | None = None,
     ) -> Tuple[Generator[Tuple[str, str], None, None], list, list]:
         """
         Retorna um gerador (para os chunks de resposta e pensamentos), uma lista vazia de search_results
@@ -218,9 +224,9 @@ class LightRagService:
 
         `conversation_history` é uma lista de dicts {"role", "content"} com os turnos anteriores da
         conversa, repassada ao LightRAG para manter o contexto. `history_turns` limita quantos turnos
-        o LightRAG considera.
+        o LightRAG considera. `available_docs` alimenta {{LISTA_MANUAIS}} no prompt (nomes reais do bucket).
         """
-        user_prompt = self._build_user_prompt()
+        user_prompt = self._build_user_prompt(available_docs)
 
         payload = {
             "query": question,
