@@ -174,7 +174,7 @@ services:
     restart: always
 
   # ───────────────────────────────────────────────────────────────────────────
-  # Reverse proxy MOVIDO para um Caddy central em /opt/stacks/caddy, que agora
+  # Reverse proxy MOVIDO para um Caddy central em /srv/docker/caddy, que agora
   # roteia este chatbot E os demais serviços da máquina por subdomínio
   # (lina/chat/git . fai.ufscar.br) além do acesso histórico por IP. A CA interna
   # daqui (./caddy/data) foi migrada para lá, então a confiança é preservada.
