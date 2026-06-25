@@ -40,6 +40,7 @@ interface SidebarProps {
   selectedConversationId: number | null;
   conversations: any[];
   isBackendConnected?: boolean | null;
+  lightragStatus?: "online" | "offline" | null;
   config: any;
   setConfig: (v: any) => void;
 }
@@ -61,6 +62,7 @@ export default function Sidebar({
   selectedConversationId,
   conversations,
   isBackendConnected,
+  lightragStatus,
   config,
   setConfig
 }: SidebarProps) {
@@ -92,6 +94,19 @@ export default function Sidebar({
   const handleConfigChange = (field: string, value: any) => {
     setConfig((prev: any) => ({ ...prev, [field]: value }));
   };
+
+  // Indicador de conexão do rodapé. Precedência: se o próprio backend não responde,
+  // nada do RAG importa ("Sem conexão"); com backend no ar, refletimos o LightRAG.
+  // Verde = online; laranja (pulsando) = offline/sem conexão; cinza = ainda verificando.
+  // `neutral` = estado informativo (verificando): texto cinza, não laranja de alerta.
+  const connection =
+    isBackendConnected === false
+      ? { color: "bg-accent-orange", pulse: true, online: false, neutral: false, label: "Sem conexão", title: "Sem conexão com o servidor" }
+      : lightragStatus === "online"
+        ? { color: "bg-fai-green", pulse: false, online: true, neutral: false, label: "Online", title: "Base de conhecimento (LightRAG) conectada" }
+        : lightragStatus === "offline"
+          ? { color: "bg-accent-orange", pulse: true, online: false, neutral: false, label: "Base offline", title: "Servidor de RAG (LightRAG) indisponível" }
+          : { color: "bg-gray-500", pulse: true, online: false, neutral: true, label: "Verificando…", title: "Verificando conexão…" };
 
   return (
     <>
@@ -433,19 +448,24 @@ export default function Sidebar({
           </div>
         )}
 
-        {/* Rodapé: status de conexão (discreto — só alerta quando o backend cai) */}
+        {/* Rodapé: status de conexão — bolinha verde (online) / laranja (offline). */}
         <div className="mt-auto shrink-0 border-t border-sidebar-hover p-3 text-center">
-          {isBackendConnected === false ? (
-            <div
-              className="flex items-center justify-center gap-1.5 text-[10px] font-medium text-accent-orange"
-              title="Sem conexão com o servidor"
-            >
-              <span className="size-2 animate-pulse rounded-full bg-accent-orange" />
-              {!isCollapsed && <span>Sem conexão</span>}
-            </div>
-          ) : (
-            !isCollapsed && <span className="text-[10px] text-gray-600">FAI-UFSCar Chatbot v1.0</span>
-          )}
+          <div
+            className={cn(
+              "flex items-center justify-center gap-1.5 text-[10px] font-medium",
+              connection.online || connection.neutral ? "text-gray-400" : "text-accent-orange"
+            )}
+            title={connection.title}
+          >
+            <span
+              className={cn(
+                "size-2 shrink-0 rounded-full",
+                connection.color,
+                connection.pulse && "animate-pulse"
+              )}
+            />
+            {!isCollapsed && <span>{connection.label}</span>}
+          </div>
         </div>
       </aside>
 

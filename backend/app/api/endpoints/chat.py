@@ -271,56 +271,75 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
         def _fix_cites(text: str) -> str:
             return normalize_source_citations(text, _canon_display)
 
-        if agent_on:
-            # Consumer dedicado do agente: mapeia as tuplas do laco para eventos SSE.
-            # 'thought' (raciocinio do modelo) e suprimido; 'tool_status' vai como
-            # evento proprio (o frontend ignora por ora; vira chip "Consultando..." depois).
-            for kind, payload in answer:
-                if kind == "usage":
-                    last_usage = payload
-                elif kind == "answer":
-                    cleaned = _fix_cites(guard.feed(payload))
+        # A CONSUMICAO do gerador e onde o streaming do LightRAG realmente acontece
+        # (a chamada de rede e preguicosa). O try/except acima so cobre a INVOCACAO;
+        # uma falha NO MEIO do stream (timeout do socket numa sintese lenta, ou o
+        # servidor encerrando a conexao) subiria sem evento e o stream morreria mudo —
+        # o usuario via a resposta truncar sem aviso (o "problema de conexao" percebido).
+        # Capturamos aqui para emitir uma mensagem clara e ainda finalizar/persistir o
+        # que ja foi gerado.
+        try:
+            if agent_on:
+                # Consumer dedicado do agente: mapeia as tuplas do laco para eventos SSE.
+                # 'thought' (raciocinio do modelo) e suprimido; 'tool_status' vai como
+                # evento proprio (o frontend ignora por ora; vira chip "Consultando..." depois).
+                for kind, payload in answer:
+                    if kind == "usage":
+                        last_usage = payload
+                    elif kind == "answer":
+                        cleaned = _fix_cites(guard.feed(payload))
+                        if cleaned:
+                            full_answer += cleaned
+                            yield f"data: {json.dumps({'content': cleaned})}\n\n"
+                    elif kind == "tool_status":
+                        yield f"data: {json.dumps({'tool_status': payload})}\n\n"
+                    # 'thought' suprimido de proposito (nao vai ao usuario)
+                tail = _fix_cites(guard.flush())
+                if tail:
+                    full_answer += tail
+                    yield f"data: {json.dumps({'content': tail})}\n\n"
+                source_lines = agent_ctx.sources if agent_ctx else []
+                # Downloads produzidos por skills (entregar_documento/gerar_*) -> links inline
+                # em Markdown, no MESMO formato do fluxo legado (sem mudar o frontend).
+                for nome, url in (agent_ctx.downloads if agent_ctx else []):
+                    link_md = f"\n\n📎 [Baixar **{nome}**]({url})"
+                    full_answer += link_md
+                    yield f"data: {json.dumps({'content': link_md})}\n\n"
+            elif isinstance(answer, str):
+                full_answer = _fix_cites(guard.feed(answer) + guard.flush())
+                yield f"data: {json.dumps({'content': full_answer, 'sources': source_lines})}\n\n"
+            else:
+                # Gerador de streaming
+                for item in answer:
+                    chunk_content = ""
+                    if isinstance(item, tuple):
+                        ctype, content = item
+                        if ctype == "usage":
+                            last_usage = content
+                            continue
+                        chunk_content = content
+                    else:
+                        chunk_content = item
+
+                    cleaned = _fix_cites(guard.feed(chunk_content))
                     if cleaned:
                         full_answer += cleaned
                         yield f"data: {json.dumps({'content': cleaned})}\n\n"
-                elif kind == "tool_status":
-                    yield f"data: {json.dumps({'tool_status': payload})}\n\n"
-                # 'thought' suprimido de proposito (nao vai ao usuario)
-            tail = _fix_cites(guard.flush())
-            if tail:
-                full_answer += tail
-                yield f"data: {json.dumps({'content': tail})}\n\n"
-            source_lines = agent_ctx.sources if agent_ctx else []
-            # Downloads produzidos por skills (entregar_documento/gerar_*) -> links inline
-            # em Markdown, no MESMO formato do fluxo legado (sem mudar o frontend).
-            for nome, url in (agent_ctx.downloads if agent_ctx else []):
-                link_md = f"\n\n📎 [Baixar **{nome}**]({url})"
-                full_answer += link_md
-                yield f"data: {json.dumps({'content': link_md})}\n\n"
-        elif isinstance(answer, str):
-            full_answer = _fix_cites(guard.feed(answer) + guard.flush())
-            yield f"data: {json.dumps({'content': full_answer, 'sources': source_lines})}\n\n"
-        else:
-            # Gerador de streaming
-            for item in answer:
-                chunk_content = ""
-                if isinstance(item, tuple):
-                    ctype, content = item
-                    if ctype == "usage":
-                        last_usage = content
-                        continue
-                    chunk_content = content
-                else:
-                    chunk_content = item
-                
-                cleaned = _fix_cites(guard.feed(chunk_content))
-                if cleaned:
-                    full_answer += cleaned
-                    yield f"data: {json.dumps({'content': cleaned})}\n\n"
-            tail = _fix_cites(guard.flush())
-            if tail:
-                full_answer += tail
-                yield f"data: {json.dumps({'content': tail})}\n\n"
+                tail = _fix_cites(guard.flush())
+                if tail:
+                    full_answer += tail
+                    yield f"data: {json.dumps({'content': tail})}\n\n"
+        except Exception as e:
+            # Log completo no servidor (tipo + mensagem) para diagnostico; ao usuario,
+            # so um aviso amigavel. Segue o fluxo (entrega de doc + persistencia) com o
+            # texto parcial ja gerado, em vez de derrubar a conexao sem explicacao.
+            print(f"Erro durante o streaming da resposta: {type(e).__name__}: {e}")
+            aviso = (
+                "\n\n_A conexão com a base de conhecimento foi interrompida durante a "
+                "geração da resposta. Tente novamente em instantes._"
+            )
+            full_answer += aviso
+            yield f"data: {json.dumps({'content': aviso})}\n\n"
 
         # 2.1. Entrega de documento (FLUXO LEGADO): se o usuario pediu para receber/baixar
         # um manual, um resolvedor por IA identifica QUAL documento ele quer e anexa um link
