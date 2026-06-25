@@ -53,7 +53,7 @@ Para cada modelo: aponta `LLM_MODEL`/`OLLAMA_MODEL` → recria `lightrag`+`backe
 > e estruturadas. **Modelo ativo no chatbot desde 16/06/2026.** GPU/W/Temp/Efic
 > não amostrados. Respostas completas em
 > [`benchmark-gpt-oss-20b-respostas.md`](benchmark-gpt-oss-20b-respostas.md).
-> ✅ Os 2 pontos factuais foram conferidos no manual (16/06): **Q4 está CORRETO** (o
+> [x] Os 2 pontos factuais foram conferidos no manual (16/06): **Q4 está CORRETO** (o
 > manual exige "no mínimo 3 orçamentos formais... acima de 10 salários-mínimos
 > nacional", e a "Resolução FAI•UFSCar nº 013/2026" citada existe de fato no
 > documento). **Q7 ficou incompleto** (respondeu só "Setor de Projetos"; o manual

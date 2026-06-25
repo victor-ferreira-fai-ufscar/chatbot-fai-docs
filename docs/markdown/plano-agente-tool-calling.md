@@ -213,7 +213,7 @@ def run_stream(question, conversation_history, ctx) -> Generator[tuple, None, No
         messages.append({"role": "assistant", "content": answer_buf or None,
                          "tool_calls": to_openai_tool_calls(tool_calls)})
         for call in tool_calls:
-            yield ("tool_status", f"🔧 {call['name']}…")               # UX opcional (evento SSE)
+            yield ("tool_status", f"{call['name']}…")               # UX opcional (evento SSE)
             result = registry.dispatch(call["name"], call["arguments"], ctx)  # valida args + timeout
             messages.append({"role": "tool", "tool_call_id": call["id"],
                              "content": result.for_model})             # texto p/ o modelo
@@ -240,7 +240,7 @@ def run_stream(question, conversation_history, ctx) -> Generator[tuple, None, No
 
 Cada uma é uma pasta `SKILL.md` + `handler.py` (`kind: native`).
 
-### 5.1 `consultar_base_conhecimento` — LightRAG como skill  ⭐ núcleo
+### 5.1 `consultar_base_conhecimento` — LightRAG como skill  núcleo
 
 `SKILL.md` (frontmatter resumido):
 ```yaml
@@ -292,7 +292,7 @@ parameters:
 - Substituir o bloco `if use_smalltalk_gate / else LightRAG` por **uma** chamada a `AgentService.run_stream(...)`, que devolve o **mesmo gerador de tuplas** já consumido pela seção "2. Processar Resposta". Mínima mudança no resto do endpoint.
 - **Smalltalk gate é aposentado no cutover** (não vira fast‑path): no mundo do agente, um turno social é uma única chamada ao modelo que simplesmente **não chama skill** — o *retrieval* já é evitado e a antiga economia de ~13s do RAG passa a ser **automática**, então o gate perde a função de roteamento. Removem‑se `smalltalk_gate.py`/`is_smalltalk()` e o `answer_conversational()` do `llm.py`; o comportamento social (responder cordial, sem disparar o protocolo de negativa) passa para o `Prompt.md` (§6.2). Um *fast‑path* enxuto só se reintroduz **se** a latência de turnos sociais virar problema real na medição — backlog, não pré‑otimização.
 - O bloco de download pós‑resposta (hoje em `chat.py`) é **removido** — vira a skill `entregar_documento`.
-- Emitir `tool_status` como evento SSE opcional (ex.: "🔧 Consultando os manuais…") melhora a percepção de latência durante o laço.
+- Emitir `tool_status` como evento SSE opcional (ex.: "Consultando os manuais…") melhora a percepção de latência durante o laço.
 
 ### 6.2 `Prompt.md` — novo "Protocolo de Skills"
 Adicionar uma seção ao `Prompt.md` (lido a cada requisição, sem rebuild):
@@ -313,7 +313,7 @@ Adicionar uma seção ao `Prompt.md` (lido a cada requisição, sem rebuild):
 | 8.5 | Skill `gerar_documento_pdf` (+ deps no Dockerfile) | `backend/skills/gerar_documento_pdf/`, `backend/Dockerfile` | "gere um PDF de Y" → PDF baixável |
 | 8.6 | Skill `entregar_documento` (reuso do resolver) | `backend/skills/entregar_documento/` | "me envia o manual do coordenador" → signed URL |
 | 8.7 | Integração no endpoint + Prompt.md (Protocolo de Skills) | `chat.py`, `src/IA/Prompt.md` | regressão: factual, social, download, geração |
-| 8.8 | ⏸️ **ADIADO → Dashboard Administrativo (Fase 11):** observabilidade/auditoria das skills (persistência no `metadata` + visualização) deixa de ser passo avulso e entra no dashboard | (Fase 11) | — |
+| 8.8 | ⏸**ADIADO → Dashboard Administrativo (Fase 11):** observabilidade/auditoria das skills (persistência no `metadata` + visualização) deixa de ser passo avulso e entra no dashboard | (Fase 11) | — |
 | 8.9 | **Matriz model‑agnostic:** rodar a bateria com 2–3 modelos locais | (harness de teste) | gpt‑oss vs qwen3 vs mistral: qualidade de tool calling + artefatos idênticos |
 
 **Config nova** (`app/core/config.py`): `AGENT_ENABLED: bool = False`, `MAX_TOOL_STEPS: int = 5`, `TOOL_TIMEOUT_S: int = 60`, `SKILLS_DIR: Path` (default `backend/skills`), `SKILL_INSTRUCTIONS_MODE: str = "preamble"` (`preamble` | `on_demand`). Manter `AGENT_ENABLED=false` permite rollback instantâneo para o fluxo atual durante a transição.

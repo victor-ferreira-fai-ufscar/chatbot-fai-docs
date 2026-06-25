@@ -14,7 +14,7 @@ Corrida da **mesma bateria de 9 perguntas** pela rota real do chatbot
   de **raciocínio** (pensa antes de responder). O `<think>`/análise fica fora do
   campo `content`. Respostas mais detalhadas e estruturadas (tabelas, listas).
 
-> ⚠️ **Duas ressalvas de precisão factual** a conferir no manual antes de adotar
+> **Duas ressalvas de precisão factual** a conferir no manual antes de adotar
 > em produção:
 > - **Q4:** citou limite de "**acima de 10 salários-mínimos**" para exigir 3
 >   orçamentos — número não mencionado pelos outros modelos; verificar.
@@ -80,7 +80,7 @@ Não para a entrega inicial. O coordenador apresenta **apenas 1 orçamento** com
 
 > Fontes: M-coordenadoresFAI-01-06; Knowledge Graph "Compra ou Alienação Processo"
 >
-> ⚠️ Conferir o limite de "10 salários-mínimos" no manual (não citado por outros modelos).
+> Conferir o limite de "10 salários-mínimos" no manual (não citado por outros modelos).
 
 ### Q5 — Como a fiscalização da FAI documenta imprevistos técnicos que afetem custo, qualidade ou prazo?
 
@@ -106,7 +106,7 @@ Respondeu: o **Setor de Projetos** da FAI-UFSCar, que coordena a abertura de pro
 
 > Fonte: M-coordenadoresFAI-01-06
 >
-> ⚠️ Diverge do `gemma4:12b` (que indicou equipes especializadas via Gestor do Projeto + canais e-mail/telefone/presencial). Conferir no manual.
+> Diverge do `gemma4:12b` (que indicou equipes especializadas via Gestor do Projeto + canais e-mail/telefone/presencial). Conferir no manual.
 
 ### Q8 — Posso comprar materiais com meu próprio dinheiro e pedir reembolso total à FAI?
 

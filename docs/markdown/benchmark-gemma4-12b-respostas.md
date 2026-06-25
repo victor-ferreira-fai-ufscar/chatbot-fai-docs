@@ -29,7 +29,7 @@ Corrida da **mesma bateria de 9 perguntas** pela rota real do chatbot
 **Médias:** TTFT ~26,7s · total ~33,6s (consistente com os ~32,5s do registro
 anterior — `gemma4:12b` segue lento, mas estável nesta corrida).
 
-> ⚠️ Avaliação **qualitativa** (precisão/completude) ainda manual — os tempos
+> Avaliação **qualitativa** (precisão/completude) ainda manual — os tempos
 > medem velocidade/custo, não qualidade.
 
 ## Respostas

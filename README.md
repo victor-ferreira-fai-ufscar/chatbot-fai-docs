@@ -2,7 +2,7 @@
 
 Sistema de RAG (Retrieval-Augmented Generation) que integra uma base de conhecimento de PDFs a um **Grafo de Conhecimento (LightRAG)** para a recuperação de contexto. O PostgreSQL (Supabase) é usado para a **persistência do histórico de conversas** e o **Supabase Storage** para o armazenamento e entrega dos documentos. O projeto evoluiu para uma arquitetura Full-Stack moderna.
 
-## 🏗️ Arquitetura do Sistema
+## Arquitetura do Sistema
 
 O projeto adota uma arquitetura cliente-servidor robusta:
 
@@ -10,7 +10,7 @@ O projeto adota uma arquitetura cliente-servidor robusta:
 - **Backend (FastAPI):** API REST em Python focada em alta performance, gerenciamento do RAG, streaming de respostas de LLMs (Google GenAI / OpenAI / Ollama) e persistência de dados.
 - **Banco de Dados (PostgreSQL + Supabase):** Persistência do **histórico de conversas** (tabelas relacionais com chaves `SERIAL`) e, via **Supabase Storage**, armazenamento dos PDFs originais para entrega por URL assinada.
 
-## 🧩 Motor de Recuperação (RAG)
+## Motor de Recuperação (RAG)
 
 A recuperação de contexto é feita pelo **LightRAG (Grafo de Conhecimento)**, conectado a um servidor `LightRAG` dedicado que opera em paralelo ao backend. Fluxo:
 
@@ -21,14 +21,14 @@ A recuperação de contexto é feita pelo **LightRAG (Grafo de Conhecimento)**, 
 
 > **Sobre o papel do Supabase:** o Supabase **não** atua como motor de RAG. Ele cumpre dois papéis distintos: (1) **histórico de conversas** no PostgreSQL e (2) **Supabase Storage** como repositório dos documentos, para entrega via URL assinada. Existe no código um modo vetorial clássico (`pgvector` + Cross-Encoder), mantido como **legado** e atualmente **não exposto na interface**.
 
-## 💬 Funcionalidades de Conversa e Entrega de Documentos
+## Funcionalidades de Conversa e Entrega de Documentos
 
 - **Entrega de Documentos com Resolução por IA:** os manuais ficam num bucket privado do Supabase Storage. Quando o usuário pede um arquivo em linguagem natural ("me envia esse documento"), um resolvedor por IA usa o **histórico da conversa** e os **documentos citados** para identificar **qual** arquivo enviar e anexa um link assinado temporário. Se o pedido for ambíguo, o assistente **pergunta qual documento** deseja.
 - **Fontes Clicáveis:** os chips de "Fontes Pesquisadas" abaixo de cada resposta abrem/baixam o documento original via URL assinada.
 - **Citação / Menção de Mensagem (estilo WhatsApp):** botão "Responder" em qualquer mensagem que cita o trecho anterior, o envia como contexto explícito para a IA e persiste a citação no histórico.
 - **Navegação:** setinha "ir para a última mensagem" acima do input, com auto-seguir inteligente durante o streaming.
 
-## 📦 Tecnologias e Dependências Principais
+## Tecnologias e Dependências Principais
 
 ### Backend (`/backend`)
 
@@ -45,7 +45,7 @@ A recuperação de contexto é feita pelo **LightRAG (Grafo de Conhecimento)**, 
 - **TailwindCSS:** Estilização utilitária e temas escuros fluidos.
 - **Markdown Parsers:** Renderização profissional de respostas da IA, incluindo tabelas e blocos de código.
 
-## 🚀 Como Rodar o Projeto Localmente
+## Como Rodar o Projeto Localmente
 
 O projeto exige que tanto o Backend quanto o Frontend estejam em execução.
 
@@ -130,7 +130,7 @@ npm run dev
 
 > *Nota:* A interface web estará disponível em `http://localhost:3000`.
 
-## 🤖 Modelos Open Source (Ollama)
+## Modelos Open Source (Ollama)
 
 O backend é projetado para operar 100% offline via Ollama. Exemplo de uso:
 
@@ -139,7 +139,7 @@ OPENAI_BASE_URL=http://localhost:11434/v1
 OPENAI_MODEL=llama3.2:3b
 ```
 
-## 🛤️ Próximos Passos e Integrações Futuras
+## Próximos Passos e Integrações Futuras
 
 1. **OCR Avançado (Fallback Híbrido)**: Adaptar a estrutura Google Cloud Vision para resgatar informações em *Scans* onde a extração direta da CPU falha.
 2. **Autenticação de Usuários**: Expandir o schema SERIAL para atrelar conversas a usuários logados de forma segura.

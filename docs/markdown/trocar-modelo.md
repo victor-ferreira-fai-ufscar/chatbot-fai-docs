@@ -56,7 +56,7 @@ Depois, mande uma pergunta no chat e confira a resposta.
 
 ---
 
-## ⚠️ Avisos importantes
+## Avisos importantes
 
 1. **VRAM compartilhada (32 GB):** o LLM de resposta, o Whisper (medium, ~5 GB) e
    os embeddings dividem a mesma GPU. Um LLM muito maior pode não caber junto com
