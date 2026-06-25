@@ -356,17 +356,23 @@ class LightRagService:
             if not cut and answer_buf:
                 yield ("answer", answer_buf)
 
-            # Enriquecimento DETERMINISTICO das fontes com a pagina consultada.
-            # Roda DEPOIS do streaming (nao atrasa a resposta ao usuario): uma
-            # chamada only_need_context devolve os chunks usados, de onde extraimos
-            # os rodapes de pagina. Assim a pagina sempre acompanha a fonte, sem
-            # depender de o modelo te-la citado no texto.
-            page_map = self._fetch_pages_by_reference(payload, headers) if collected_refs else {}
+            # FONTE CERTEIRA: so listamos fontes quando a resposta esta FUNDAMENTADA.
+            # Pelo protocolo do prompt, uma resposta ancorada no manual SEMPRE cita
+            # "> Fonte: [arquivo, pag N]"; uma NEGATIVA (tema fora do manual) NUNCA cita.
+            # Logo, ausencia de citacao = abstencao/nao-fundamentada -> NAO exibir fontes
+            # (evita "fonte fantasma" quando a informacao nao esta no manual, mesmo que o
+            # retrieval tenha trazido chunks). Bonus: pula a 2a consulta nesse caso.
             cited_map = _parse_cited_pages(seen_text)
-            for file_path, ref_id in collected_refs:
-                retrieved = {p for p in page_map.get(ref_id, []) if p > 0}
-                cited = _cited_pages_for(file_path, cited_map)
-                source_lines.append(_format_source_line(file_path, _resolve_pages(retrieved, cited)))
+            answer_cited = bool(cited_map) or bool(re.search(r"(?im)>?\s*fonte\s*:\s*\[", seen_text))
+            if answer_cited and collected_refs:
+                # Enriquecimento DETERMINISTICO da pagina: only_need_context devolve os
+                # chunks usados, de onde extraimos os rodapes de pagina (a pagina nao
+                # depende de o modelo te-la citado certo, so de a resposta ser fundamentada).
+                page_map = self._fetch_pages_by_reference(payload, headers)
+                for file_path, ref_id in collected_refs:
+                    retrieved = {p for p in page_map.get(ref_id, []) if p > 0}
+                    cited = _cited_pages_for(file_path, cited_map)
+                    source_lines.append(_format_source_line(file_path, _resolve_pages(retrieved, cited)))
 
         # O retorno é o gerador em si e uma list de source_lines (sendo popularizada pelo gerador por reflexão)
         return stream_generator(), [], source_lines
