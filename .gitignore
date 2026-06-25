@@ -17,6 +17,10 @@ lightrag/data/
 .streamlit/
 .vscode/
 
+# Reranker (Infinity): cache de modelos do HuggingFace baixado em runtime (GBs).
+# O diretorio e recriado automaticamente pelo bind-mount do docker-compose.
+reranker/cache/
+
 # Caddy: CA interna, certificados e estado (gerados em runtime)
 caddy/data/
 caddy/config/

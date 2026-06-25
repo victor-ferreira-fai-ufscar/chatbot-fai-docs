@@ -50,12 +50,12 @@ services:
       # mesmo com 80+ entidades recuperadas. Com 3000+3000 sobra espaco para os chunks.
       MAX_ENTITY_TOKENS: "6000"
       MAX_RELATION_TOKENS: "5000"
-      # Quantos chunks de texto-fonte sao recuperados. Reduzido 32 -> 10: o manual
-      # re-indexado (page-aware) tem apenas ~22 chunks, entao top_k=32 recuperava o
+      # Quantos chunks de texto-fonte sao recuperados. Reduzido 32 -> 10 -> 8: o manual
+      # re-indexado (page-aware) tem apenas ~22 chunks, entao top_k alto recuperava o
       # DOCUMENTO INTEIRO toda vez, diluindo o sinal e estourando a faixa de paginas
-      # citadas ("quase todo o PDF"). Com 10, a recuperacao foca nos trechos mais
-      # relevantes -> resposta mais direta e citacao de pagina precisa.
-      CHUNK_TOP_K: "10"
+      # citadas ("quase todo o PDF"). Com 8 + reranker (ver RERANK_* abaixo), pegamos os
+      # 8 chunks MAIS relevantes (nao os 8 mais proximos) -> resposta direta e pagina precisa.
+      CHUNK_TOP_K: "8"
       EMBEDDING_BINDING: ollama
       EMBEDDING_MODEL: bge-m3:latest
       EMBEDDING_DIM: "1024"
@@ -68,9 +68,56 @@ services:
       # estoura timeout (ReadTimeout).
       MAX_ASYNC: "1"
       TIMEOUT: "600"
+      # ── Reranker (cross-encoder) servido localmente pelo Infinity (servico 'reranker'
+      # mais abaixo). Ollama NAO serve reranker (arquitetura cross-encoder, nao geracao),
+      # por isso o servico dedicado. Usamos o binding 'cohere' porque o endpoint /rerank do
+      # Infinity e compativel com a API de rerank da Cohere. Reordena os chunks recuperados
+      # pelos MAIS relevantes a pergunta antes de montar o contexto -> menos ruido/diluicao
+      # com top_k baixo. Rollback instantaneo: RERANK_BINDING=null (volta ao atual).
+      RERANK_BINDING: cohere
+      RERANK_MODEL: BAAI/bge-reranker-v2-m3
+      RERANK_BINDING_HOST: http://127.0.0.1:7997/rerank
+      # O Infinity local nao exige auth, mas o binding manda o header X-API-Key; valor
+      # dummy resolve. Da p/ sobrescrever via RERANK_API_KEY no .env se um dia exigir.
+      RERANK_BINDING_API_KEY: ${RERANK_API_KEY:-dummy}
+      RERANK_BY_DEFAULT: "True"
+      # 0.0 = apenas REORDENA (mantem todos os chunks). Depois de validar, suba p/ 0.4-0.6
+      # para FILTRAR chunks fracos (corta diluicao/alucinacao). Mudar exige so restart.
+      MIN_RERANK_SCORE: "0.0"
     volumes:
       - ./lightrag/data/rag_storage:/app/data/rag_storage
       - ./lightrag/data/inputs:/app/data/inputs
+    depends_on:
+      - reranker
+    restart: always
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # Reranker (cross-encoder) local — Infinity. Reordena os chunks recuperados pelo
+  # LightRAG pelos MAIS relevantes a pergunta, melhorando a precisao com top_k baixo.
+  # Ollama nao cobre reranking, por isso este servico dedicado. network_mode host
+  # expoe em 127.0.0.1:7997 (uso interno — NAO expor fora, sem auth real).
+  reranker:
+    image: michaelf34/infinity:0.0.68
+    container_name: fai_reranker
+    network_mode: host
+    # Roda em CPU de proposito. A GPU desta maquina e uma RTX 5090 (Blackwell, sm_120)
+    # e o torch 2.4/cu121 embutido nesta imagem do Infinity NAO tem kernels p/ sm_120
+    # ("CUDA error: no kernel image is available"). Como o cross-encoder e pequeno
+    # (~568M) e so reordena ~CHUNK_TOP_K trechos por query, em CPU leva <1-2s — aceitavel
+    # perto da sintese do gpt-oss — e ainda deixa a VRAM 100% para o LLM. (Para usar a
+    # GPU seria preciso uma imagem com torch>=2.7 + CUDA 12.8, suporte a Blackwell.)
+    volumes:
+      # Cache do HuggingFace: baixa o modelo (~2 GB) UMA vez e persiste entre restarts.
+      - ./reranker/cache:/app/.cache
+    # 'v2' e o subcomando do Infinity; sobe o endpoint /rerank na porta 7997.
+    command: >
+      v2
+      --model-id BAAI/bge-reranker-v2-m3
+      --revision main
+      --device cpu
+      --dtype float32
+      --engine torch
+      --port 7997
     restart: always
 
   backend:
