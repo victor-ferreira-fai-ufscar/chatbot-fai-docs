@@ -17,9 +17,11 @@ lightrag/data/
 .streamlit/
 .vscode/
 
-# Reranker (Infinity): cache de modelos do HuggingFace baixado em runtime (GBs).
-# O diretorio e recriado automaticamente pelo bind-mount do docker-compose.
+# Reranker: cache de modelos do HuggingFace baixado em runtime (GBs). Recriado
+# automaticamente pelo bind-mount do docker-compose. (cache/ = legado Infinity/CPU;
+# tei-cache/ = TEI na GPU, em uso.)
 reranker/cache/
+reranker/tei-cache/
 
 # Caddy: CA interna, certificados e estado (gerados em runtime)
 caddy/data/
