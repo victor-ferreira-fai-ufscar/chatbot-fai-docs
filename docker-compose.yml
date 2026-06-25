@@ -88,7 +88,10 @@ services:
       - ./lightrag/data/rag_storage:/app/data/rag_storage
       - ./lightrag/data/inputs:/app/data/inputs
     depends_on:
-      - reranker
+      # Espera o reranker ficar HEALTHY (nao so 'started'), p/ nunca pegar o modelo
+      # meio-carregado apos restart/reboot. Ver healthcheck no servico 'reranker'.
+      reranker:
+        condition: service_healthy
     restart: always
 
   # ───────────────────────────────────────────────────────────────────────────
@@ -118,6 +121,15 @@ services:
       --dtype float32
       --engine torch
       --port 7997
+    # Healthcheck: o LightRAG so sobe depois deste servico ficar 'healthy'
+    # (depends_on.condition do lightrag). start_period cobre os ~76s de load do
+    # modelo em CPU, durante os quais falhas nao contam como unhealthy.
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:7997/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 90s
     restart: always
 
   backend:
