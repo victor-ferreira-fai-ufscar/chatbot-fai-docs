@@ -27,7 +27,11 @@ services:
       # imune a repeat_penalty) reproduzido em Ollama/vLLM/llama.cpp -> instavel para
       # sintese. gpt-oss tem KV cache baratissimo (~2.6 GB) e melhor co-residencia.
       LLM_MODEL: gpt-oss:latest
-      LLM_BINDING_HOST: http://127.0.0.1:11434
+      # O host do LLM aponta para o PROXY-SHIM (:11435), nao para o Ollama direto (:11434).
+      # O shim injeta think="high" no gpt-oss (raciocinio profundo; o binding ollama do
+      # LightRAG nao envia esse campo) e remove o `thinking` da resposta. Rollback: voltar
+      # para http://127.0.0.1:11434 e restart. Embeddings continuam direto no :11434.
+      LLM_BINDING_HOST: http://127.0.0.1:11435
       # Temperatura da sintese. ANTES nao era setada -> caia no DEFAULT_TEMPERATURE=1.0
       # do LightRAG (pior caso para fundamentacao estrita: incentiva divagacao e
       # citacao inconsistente). Fixada baixa (0.1) via binding_options do LightRAG
@@ -40,6 +44,10 @@ services:
       # MAX_TOTAL_TOKENS=48000 de contexto-fonte, sobram ~17000 tokens para raciocinio
       # + resposta. O KV cache do gpt-oss e barato, entao 65536 cabe na VRAM da RTX 5090.
       OLLAMA_LLM_NUM_CTX: "65536"
+      # Teto de geracao ILIMITADO (-1): o raciocinio "high" do gpt-oss (via shim) usa ~4-5k
+      # tokens de pensamento + resposta, cabendo nos ~17.5k livres (65536 - 48000 de contexto).
+      # Explicito para nunca truncar o raciocinio; NAO setar valor baixo (ex.: 128/8192).
+      OLLAMA_LLM_NUM_PREDICT: "-1"
       # 48000 de contexto montado dentro dos 52224 de num_ctx -> sobram ~4000 tokens
       # para a geracao da resposta. Mais contexto-fonte = respostas mais aprofundadas,
       # mesmo quando o grafo retorna muitas entidades/relacoes.
@@ -94,6 +102,10 @@ services:
       # responde), p/ nunca pegar o reranker meio-carregado apos restart/reboot.
       reranker-adapter:
         condition: service_healthy
+      # Espera o shim do LLM ficar HEALTHY (so passa quando o Ollama responde), p/ o
+      # LightRAG nunca subir antes do caminho do LLM (com think=high) estar pronto.
+      ollama-think-shim:
+        condition: service_healthy
     restart: always
 
   # ───────────────────────────────────────────────────────────────────────────
@@ -137,6 +149,34 @@ services:
       timeout: 5s
       retries: 15
       start_period: 90s
+    restart: always
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # Proxy-shim Ollama: injeta reasoning "high" no gpt-oss. O binding ollama do LightRAG
+  # 1.5.2 NAO repassa o campo de topo `think` da API do Ollama, e Modelfile/SYSTEM
+  # "Reasoning: high" nao setam o nivel (template harmony ignora) -> o gpt-oss raciocina
+  # raso (medium). Este micro-servico (CPU) fica ENTRE o LightRAG e o Ollama (mesmo padrao
+  # do adaptador cohere->TEI): injeta think="high" em /api/chat e /api/generate e remove o
+  # `thinking` da resposta p/ o raciocinio nunca vazar. So o LLM passa pelo shim; os
+  # embeddings continuam direto no :11434. Seu /health so passa quando o Ollama responde,
+  # entao gateia o startup do lightrag (depends_on:service_healthy).
+  ollama-think-shim:
+    build:
+      context: ./ollama-think-shim
+      dockerfile: Dockerfile
+    container_name: fai_ollama_think_shim
+    network_mode: host
+    environment:
+      OLLAMA_UPSTREAM: http://127.0.0.1:11434
+      THINK_LEVEL: high
+      THINK_MODELS: gpt-oss
+      STRIP_THINKING: "true"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:11435/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
     restart: always
 
   backend:
