@@ -80,9 +80,12 @@ services:
       # dummy resolve. Da p/ sobrescrever via RERANK_API_KEY no .env se um dia exigir.
       RERANK_BINDING_API_KEY: ${RERANK_API_KEY:-dummy}
       RERANK_BY_DEFAULT: "True"
-      # 0.0 = apenas REORDENA (mantem todos os chunks). Depois de validar, suba p/ 0.4-0.6
-      # para FILTRAR chunks fracos (corta diluicao/alucinacao). Mudar exige so restart.
-      MIN_RERANK_SCORE: "0.0"
+      # Filtra chunks fracos ANTES da sintese (corta diluicao/alucinacao). 0.0 = so reordena.
+      # 0.06 escolhido por MEDICAO real deste reranker (cohere->TEI, escala sigmoide 0..1):
+      # distribuicao bimodal -> ruido <=~0.10, trecho legitimo >=0.42. 0.06 corta a cauda de
+      # ruido sem nunca derrubar o secundario relevante (~0.42). NAO usar 0.4-0.6: cortaria o
+      # 0.42 e causaria abstencao indevida. Manter a env explicita (fallback do codigo e 0.5).
+      MIN_RERANK_SCORE: "0.06"
     volumes:
       - ./lightrag/data/rag_storage:/app/data/rag_storage
       - ./lightrag/data/inputs:/app/data/inputs

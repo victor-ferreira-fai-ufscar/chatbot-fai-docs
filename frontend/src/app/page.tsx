@@ -28,7 +28,7 @@ export default function Home() {
   // Configurações Globais de Chat
   const [config, setConfig] = useState({
     ragEngine: "LightRAG (Grafo)",
-    lightragMode: "hybrid",
+    lightragMode: "mix",
     provider: "OpenAI API",
     model: "gpt-4o-mini",
     topK: 4,
@@ -82,11 +82,19 @@ export default function Home() {
     const savedConfig = localStorage.getItem("fai_chatbot_config");
     if (savedConfig) {
       try {
-        setConfig(JSON.parse(savedConfig));
+        const parsed = JSON.parse(savedConfig);
+        // Migracao unica: configs antigas ficaram no default "hybrid". "mix" (grafo+vetorial)
+        // recupera o trecho exato e provou-se bem mais preciso, entao empurramos "mix" UMA vez.
+        // Escolhas futuras do usuario no seletor de Modo sao respeitadas (flag impede repetir).
+        if (!localStorage.getItem("fai_cfg_mode_mix_v1")) {
+          parsed.lightragMode = "mix";
+        }
+        setConfig(parsed);
       } catch (e) {
         console.error("Erro ao carregar config", e);
       }
     }
+    localStorage.setItem("fai_cfg_mode_mix_v1", "1");
     let uid = localStorage.getItem("fai_user_id");
     if (!uid) {
       uid = (crypto?.randomUUID?.() ?? `sess-${Date.now()}-${Math.random().toString(36).slice(2)}`);

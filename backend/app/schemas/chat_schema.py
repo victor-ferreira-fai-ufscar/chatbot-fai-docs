@@ -19,7 +19,7 @@ class ChatRequest(BaseModel):
     conversation_id: Optional[int] = None
     user_id: str = "guest"
     rag_engine: str = Field("LightRAG (Grafo)", pattern=r"^(LightRAG \(Grafo\)|Supabase \(Padrão\))$")
-    mode: str = "hybrid" # Specifical for LightRAG
+    mode: str = "mix" # Specifical for LightRAG: "mix" une grafo + vetorial (recupera o trecho exato)
     provider: str = "OpenAI API"
     model: str = "gpt-4o-mini"
     top_k: int = 4
