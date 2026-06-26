@@ -87,13 +87,22 @@ class LegalRefGuard:
     def feed(self, chunk: str) -> str:
         self._buf += chunk or ""
         out = []
+        search_from = 0
         while True:
-            m = self._BOUNDARY.search(self._buf)
+            m = self._BOUNDARY.search(self._buf, search_from)
             if not m:
                 break
             cut = m.end()
+            # NAO cortar DENTRO de uma citacao '[...]' aberta. O ponto de "pág."/"págs."
+            # cai num boundary e partiria a citacao ao meio (ex.: "[Arquivo.pdf, págs." | " 38]"),
+            # impedindo a normalizacao do nome do arquivo (normalize_source_citations exige o
+            # '[...]' inteiro). Pula este boundary e busca o proximo APOS o fechamento ']'.
+            if self._buf.count("[", 0, cut) > self._buf.count("]", 0, cut):
+                search_from = cut
+                continue
             sentence, self._buf = self._buf[:cut], self._buf[cut:]
             out.append(self._clean(sentence))
+            search_from = 0
         return "".join(out)
 
     def flush(self) -> str:

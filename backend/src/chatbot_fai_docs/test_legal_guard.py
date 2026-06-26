@@ -59,5 +59,15 @@ check("8.241" in m._FALLBACK_ALLOWED and "116" in m._FALLBACK_ALLOWED
       and "999.999" not in m._FALLBACK_ALLOWED,
       "fallback contem leis do manual (incl. ISS 116) e nao numeros arbitrarios")
 
+# A citacao '[...]' NAO pode ser partida pelo ponto de "pág."/"págs." (senao a
+# normalizacao do nome do arquivo, a jusante, nao casa o '[...]' inteiro e o nome
+# errado escrito pelo modelo vaza no corpo da resposta).
+gd = g()
+out = gd.feed("Texto base. ") + gd.feed("> Fonte: [Arquivo.pdf, pá") + gd.feed("gs. 38, 39, 40]") + gd.flush()
+check("[Arquivo.pdf, págs. 38, 39, 40]" in out, "mantem a citacao '[...]' INTEIRA apesar do ponto de 'págs.'")
+gd = g()
+out = gd.feed("Resp. ") + gd.feed("> Fonte: [X.pdf, pág. 25]") + gd.flush()
+check("[X.pdf, pág. 25]" in out, "mantem a citacao com 'pág.' singular inteira")
+
 print(f"\n{'TODOS OK' if not failures else str(failures) + ' FALHA(S)'}")
 sys.exit(1 if failures else 0)
