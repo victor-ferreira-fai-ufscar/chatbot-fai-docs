@@ -157,6 +157,46 @@ function extractSourcePage(sourceLine: string): number | null {
   return m ? parseInt(m[1], 10) : null;
 }
 
+// Todas as páginas de uma linha de fonte (trata "pág. 8" e "págs. 4-6, 9"), ordenadas.
+function extractAllPages(sourceLine: string): number[] {
+  const label = extractPagesLabel(sourceLine);
+  if (!label) return [];
+  const pages = new Set<number>();
+  for (const tok of label.replace(/p[áa]gs?\./i, "").split(/[,\s]+/)) {
+    const r = tok.match(/^(\d{1,4})(?:-(\d{1,4}))?$/);
+    if (!r) continue;
+    const a = parseInt(r[1], 10);
+    const b = r[2] ? parseInt(r[2], 10) : a;
+    if (b >= a && b - a < 60) for (let p = a; p <= b; p++) pages.add(p);
+  }
+  return [...pages].sort((x, y) => x - y);
+}
+
+// Acima de 5 fontes, unifica os chips por documento: 1 chip por arquivo, com todas
+// as páginas reunidas (ex.: "- Arquivo.pdf (págs. 26, 27, 28)"). Até 5, devolve as
+// linhas como vieram. As linhas sintetizadas usam o MESMO formato do backend, então
+// extractFilename/extractPagesLabel/extractSourcePage seguem funcionando no chip e no clique.
+function groupSourceLines(sources: string[]): string[] {
+  if (sources.length <= 5) return sources;
+  const order: string[] = [];
+  const pagesByFile = new Map<string, Set<number>>();
+  for (const s of sources) {
+    const file = extractFilename(s);
+    if (!file) continue;
+    if (!pagesByFile.has(file)) {
+      pagesByFile.set(file, new Set());
+      order.push(file); // preserva a ordem de 1a aparição do documento
+    }
+    for (const p of extractAllPages(s)) pagesByFile.get(file)!.add(p);
+  }
+  return order.map((file) => {
+    const pages = [...pagesByFile.get(file)!].sort((a, b) => a - b);
+    if (pages.length === 0) return `- ${file}`;
+    const label = pages.length === 1 ? `pág. ${pages[0]}` : `págs. ${pages.join(", ")}`;
+    return `- ${file} (${label})`;
+  });
+}
+
 // Procura, no texto da resposta, a pagina citada para um arquivo no formato
 // "[arquivo.pdf, pag. N]" (best-effort: usa o numero de rodape que o modelo citou).
 // Retorna null quando nao ha citacao de pagina correspondente.
@@ -654,7 +694,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
                         <FileText size={10} /> Fontes Pesquisadas
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        {m.sources.map((s, i) => (
+                        {groupSourceLines(m.sources).map((s, i) => (
                           <Button
                             key={i}
                             type="button"
