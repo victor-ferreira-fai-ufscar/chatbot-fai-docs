@@ -312,12 +312,15 @@ class LightRagService:
             "history_turns": history_turns,
         }
 
-        # O timeout evita congelamentos indefinidos. 60s em geral é suficiente para a resposta chegar.
-        # Caso GraphRAG demore, aumentamos.
+        # Timeout (connect, read). O read e o GAP entre bytes do stream: com gpt-oss em
+        # raciocinio "high" (via ollama-think-shim) a fase de "pensar" pode passar de 2 min
+        # SEM emitir conteudo -> 120s estourava (ReadTimeout) e a resposta vinha
+        # "interrompida". 600s casa com o TIMEOUT do servidor LightRAG; connect curto (10s)
+        # ainda detecta o LightRAG fora do ar rapido.
         headers = {}
         if self.config.lightrag_api_key:
             headers["X-API-Key"] = self.config.lightrag_api_key
-        resp = requests.post(f"{self.config.lightrag_api_url}/query/stream", json=payload, stream=True, timeout=120, headers=headers)
+        resp = requests.post(f"{self.config.lightrag_api_url}/query/stream", json=payload, stream=True, timeout=(10, 600), headers=headers)
         resp.raise_for_status()
 
         # Conjunto de manuais reais conhecidos (para so exibir fontes quando a referencia
