@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, User, Mic, Square, Loader2, Plus, Image, FileText, X, Copy, Check, Download, Reply, ArrowDown } from "lucide-react";
+import { Send, User, Mic, Square, Loader2, Plus, Trash2, Image, FileText, X, Copy, Check, Download, Reply, ArrowDown } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
@@ -44,6 +44,9 @@ interface ChatWindowProps {
   onActiveSources?: (sources: string[], answer: string) => void;
   // Sinaliza início/fim da geração (para a SourcesPanel mostrar loading enquanto a resposta vem).
   onGenerating?: (generating: boolean) => void;
+  // Limpa a conversa atual da tela (nova conversa), SEM apagar o histórico. Acionado
+  // pela lixeira do input; o pai apenas desseleciona a conversa (setSelectedConversationId(null)).
+  onNewChat?: () => void;
 }
 
 // Efeito "digitando" (estilo ChatGPT): revela o texto recebido progressivamente, suave mesmo
@@ -270,7 +273,7 @@ function ReplyButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-export default function ChatWindow({ config, userId, selectedConversationId, onConversationCreated, onActiveSources, onGenerating }: ChatWindowProps) {
+export default function ChatWindow({ config, userId, selectedConversationId, onConversationCreated, onActiveSources, onGenerating, onNewChat }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [replyingTo, setReplyingTo] = useState<QuotedRef | null>(null);
@@ -600,6 +603,19 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
     }
   };
 
+  // Lixeira do input: limpa a conversa da tela e volta para uma nova, SEM apagar nada
+  // do histórico (a conversa salva continua acessível pela barra lateral). Reseta o
+  // estado local e avisa o pai (onNewChat) para desselecionar a conversa atual.
+  const handleClearConversation = () => {
+    if (isTyping) return;
+    setMessages([]);
+    setConversationId(null);
+    setInput("");
+    setReplyingTo(null);
+    if (onActiveSources) onActiveSources([], "");
+    onNewChat?.();
+  };
+
   return (
     <div className="flex flex-col h-full bg-muted/30">
       {/* Messages Area */}
@@ -849,6 +865,24 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
                 <TooltipContent>{agenticMode ? "Mais opções · modo agêntico ligado" : "Mais opções"}</TooltipContent>
               </Tooltip>
             </div>
+
+            {/* Limpar conversa (nova conversa, sem apagar o histórico) */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleClearConversation}
+                  aria-label="Limpar conversa"
+                  disabled={isTyping || messages.length === 0}
+                  className="rounded-full text-muted-foreground transition-colors hover:text-destructive disabled:opacity-30"
+                >
+                  <Trash2 size={20} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Limpar conversa</TooltipContent>
+            </Tooltip>
 
             {/* Campo de texto */}
             <Textarea

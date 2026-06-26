@@ -187,6 +187,7 @@ export default function Home() {
             userId={userId}
             selectedConversationId={selectedConversationId}
             onConversationCreated={fetchHistory}
+            onNewChat={handleNewChat}
             onActiveSources={(s, a) => { setActiveSources(s); setActiveAnswer(a); }}
             onGenerating={(g) => { setSourcesLoading(g); if (g) { setActiveSources([]); setActiveAnswer(""); } }}
           />
