@@ -56,14 +56,24 @@ services:
       # ja estouram sozinhos o MAX_TOTAL_TOKENS=13000, zerando o orcamento dos chunks
       # de texto. Resultado: modos com grafo (local/mix/hybrid) retornavam "no-context"
       # mesmo com 80+ entidades recuperadas. Com 3000+3000 sobra espaco para os chunks.
-      MAX_ENTITY_TOKENS: "6000"
-      MAX_RELATION_TOKENS: "5000"
+      # Onda 3: 6000/5000 -> 4000/3500 libera ~3500 tokens do MAX_TOTAL_TOKENS aos chunks
+      # de TEXTO (onde esta a resposta factual nos manuais) -> sintese mais profunda. NAO
+      # zerar: no modo mix as relacoes do grafo ainda agregam contexto.
+      MAX_ENTITY_TOKENS: "4000"
+      MAX_RELATION_TOKENS: "3500"
       # Quantos chunks de texto-fonte sao recuperados. Reduzido 32 -> 10 -> 8: o manual
       # re-indexado (page-aware) tem apenas ~22 chunks, entao top_k alto recuperava o
       # DOCUMENTO INTEIRO toda vez, diluindo o sinal e estourando a faixa de paginas
       # citadas ("quase todo o PDF"). Com 8 + reranker (ver RERANK_* abaixo), pegamos os
       # 8 chunks MAIS relevantes (nao os 8 mais proximos) -> resposta direta e pagina precisa.
-      CHUNK_TOP_K: "8"
+      # Onda 2: 8 -> 10. O 8 foi escolhido SEM filtro de rerank ativo; agora com
+      # MIN_RERANK_SCORE=0.06 ha rede de seguranca, entao ampliar o pool reranqueado de
+      # 8 -> 10 (de ~22 chunks) da mais recall sem voltar ao "PDF inteiro". Se a faixa de
+      # paginas citadas voltar a borrar, baixar de volta p/ 8.
+      CHUNK_TOP_K: "10"
+      # Onda 2: entidades/relacoes do grafo recuperadas. Default do LightRAG = 40, que num
+      # grafo de ~22 chunks traz quase tudo e dilui. 24 e mais focado e reproduzivel.
+      TOP_K: "24"
       EMBEDDING_BINDING: ollama
       EMBEDDING_MODEL: bge-m3:latest
       EMBEDDING_DIM: "1024"
