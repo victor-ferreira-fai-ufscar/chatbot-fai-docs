@@ -16,8 +16,9 @@ FALLBACK_RE = re.compile(
 )
 # Negativa amigavel em portugues (alinhada ao protocolo de negativa do Prompt.md).
 NO_CONTEXT_MSG = (
-    "Não encontrei informações sobre isso nos manuais disponíveis no momento. "
-    "Você pode reformular a pergunta ou verificar se o assunto consta nos documentos indexados."
+    "Não encontrei essa informação nos manuais disponíveis no momento. Você pode reformular a "
+    "pergunta ou, se o assunto for da FAI•UFSCar, entrar em contato pelo telefone (16) 3351-9000 "
+    "ou pelo e-mail fai@fai.ufscar.br, e falar com o gestor do seu projeto, que poderá ajudar."
 )
 
 from src.chatbot_fai_docs.config import AppConfig
