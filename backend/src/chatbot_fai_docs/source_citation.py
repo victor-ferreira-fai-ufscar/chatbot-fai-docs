@@ -83,17 +83,22 @@ def canonicalize_source_line(line: str, canonical: Optional[str]) -> str:
     return f"{m.group(1)}{canonical}{pages}"
 
 
-def normalize_source_citations(text: str, canonical: Optional[str]) -> str:
+def normalize_source_citations(text: str, canonical: Optional[str], page_shift: int = 0) -> str:
     """Reescreve toda citacao '[arquivo, pag. N]' do texto.
 
     - Com `canonical`: troca o nome do arquivo pelo canonico, preservando a pagina.
     - Sem `canonical`: remove o nome (mantem so a pagina, ou descarta a citacao vazia).
+    - `page_shift`: desloca os numeros de pagina (ex.: +1 quando o rodape do PDF marca o
+      FIM da pagina e o trecho citado e da pagina seguinte). Mantem a citacao INLINE
+      consistente com a pagina exibida nos cards.
     """
     if not text or "[" not in text:
         return text
 
     def repl(m: re.Match) -> str:
         page = (m.group(2) or "").strip()
+        if page_shift and page:
+            page = re.sub(r"\d+", lambda d: str(int(d.group()) + page_shift), page)
         if canonical:
             return f"[{canonical}, {page}]" if page else f"[{canonical}]"
         # Sem nome canonico: nunca exibir nome fabricado -> so a pagina.
@@ -126,6 +131,11 @@ if __name__ == "__main__":
     assert canonicalize_source_line("- X.pdf (pág. 8)", None) == "- X.pdf (pág. 8)"
     # texto sem citacao passa intacto
     assert normalize_source_citations("sem fonte aqui", CANON) == "sem fonte aqui"
+    # page_shift desloca a(s) pagina(s) preservando o resto (off-by-one do rodape)
+    assert normalize_source_citations("> Fonte: [x.pdf, pág. 14]", CANON, page_shift=1) == \
+        "> Fonte: [Manual_dos_Coordenadores.pdf, pág. 15]"
+    assert normalize_source_citations("> Fonte: [x.pdf, págs. 4-6, 9]", CANON, page_shift=1) == \
+        "> Fonte: [Manual_dos_Coordenadores.pdf, págs. 5-7, 10]"
     # canonical picker
     assert canonical_manual_name(["Manual_dos_Coordenadores.pdf"]) == "Manual_dos_Coordenadores.pdf"
     assert canonical_manual_name([]) is None

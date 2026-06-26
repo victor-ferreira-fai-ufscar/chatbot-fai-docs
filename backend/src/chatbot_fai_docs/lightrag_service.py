@@ -29,6 +29,13 @@ from src.chatbot_fai_docs.pdfs import list_pdf_files
 # parser de PDF deixou embutido no texto do chunk. E daqui que extraimos a pagina
 # REAL consultada, de forma deterministica (sem depender de o modelo cita-la).
 _FOOTER_PAGE_RE = re.compile(r"(?m)^[ \t]*(\d{1,3})[ \t]*$")
+# O rodape "N" e impresso no FIM da pagina N (o parser de PDF concatena as paginas sem
+# marcar limites), logo o CONTEUDO que vem APOS o rodape N pertence a pagina N+1. As
+# funcoes abaixo extraem o rodape CRU (N) e o hibrido cited-vs-retrieved resolve sobre
+# esse valor cru; este offset e somado SO na EXIBICAO da pagina, corrigindo o off-by-one
+# sem alterar o hibrido nem os testes. Heuristica; a solucao definitiva e re-indexar com
+# um marcador de pagina no INICIO de cada pagina. Para desligar, use 0.
+_PAGE_FOOTER_OFFSET = 1
 # Bloco "Document Chunks" da resposta de contexto do LightRAG (only_need_context):
 # um objeto JSON por linha dentro de uma cerca ```json ... ```.
 _CHUNKS_BLOCK_RE = re.compile(r"Document Chunks.*?```json(.*?)```", re.S | re.I)
@@ -478,7 +485,9 @@ class LightRagService:
                             continue
                         seen_pages.add((file_path, p))
                         files_with_page.add(file_path)
-                        source_lines.append(_format_source_line_scored(file_path, p, page_score.get(p)))
+                        # +_PAGE_FOOTER_OFFSET: rodape = fim da pagina; o trecho e da seguinte.
+                        # Score continua indexado pela pagina CRUA (p).
+                        source_lines.append(_format_source_line_scored(file_path, p + _PAGE_FOOTER_OFFSET, page_score.get(p)))
                 # Arquivo sem nenhuma pagina resolvida: lista so o nome (1x), e apenas se
                 # ele ainda nao apareceu com pagina.
                 for file_path in dict.fromkeys(no_page):
