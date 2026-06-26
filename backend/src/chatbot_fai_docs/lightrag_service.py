@@ -80,6 +80,28 @@ def _parse_pages_by_reference(context_text: str) -> dict:
     return by_ref
 
 
+def _parse_chunks(context_text: str) -> list:
+    """A partir do texto de contexto do LightRAG (only_need_context), devolve
+    [(reference_id, content)] por CHUNK (granularidade fina). Usado para re-pontuar
+    cada trecho no reranker e mapear o score de volta para as paginas (rodape)."""
+    m = _CHUNKS_BLOCK_RE.search(context_text or "")
+    if not m:
+        return []
+    out = []
+    for line in m.group(1).splitlines():
+        line = line.strip().rstrip(",")
+        if not line.startswith("{"):
+            continue
+        try:
+            obj = json.loads(line)
+        except Exception:
+            continue
+        ref = str(obj.get("reference_id", "")).strip()
+        if ref:
+            out.append((ref, obj.get("content", "") or ""))
+    return out
+
+
 # Modelos costumam escrever o nome do arquivo/citacao com tracos e espacos
 # Unicode (hifen nao-quebravel U+2011, espaco estreito U+202F etc.), o que
 # quebraria o match com o nome real (ASCII). Normalizamos para ASCII antes.
@@ -158,6 +180,15 @@ def _format_source_line(file_path: str, pages) -> str:
     return f"- {file_path} ({label} {compact})"
 
 
+def _format_source_line_scored(file_path: str, page: int, score) -> str:
+    """Linha de fonte por PAGINA com a relevancia (%) do rerank, quando disponivel:
+    '- arquivo.pdf (pág. 14 · 98%)'. Sem score: '- arquivo.pdf (pág. 14)'. O '· N%' so
+    e lido pela SourcesPanel (card); a lista inline da resposta o remove."""
+    if score is not None and score > 0:
+        return f"- {file_path} (pág. {page} · {round(score * 100)}%)"
+    return f"- {file_path} (pág. {page})"
+
+
 class LightRagService:
     def __init__(self, config: AppConfig):
         self.config = config
@@ -209,6 +240,50 @@ class LightRagService:
             return _parse_pages_by_reference(text)
         except Exception:
             return {}
+
+    def _fetch_context_chunks(self, base_payload: dict, headers: dict) -> list:
+        """Como _fetch_pages_by_reference, mas devolve os chunks finais (pos-rerank)
+        como [(reference_id, content)] — granularidade por trecho, para extrair a
+        pagina (rodape) E re-pontuar a relevancia. Falha suave -> []."""
+        try:
+            ctx_payload = dict(base_payload)
+            ctx_payload["stream"] = False
+            ctx_payload["only_need_context"] = True
+            resp = requests.post(
+                f"{self.config.lightrag_api_url}/query",
+                json=ctx_payload, timeout=60, headers=headers,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            text = data.get("response", "") if isinstance(data, dict) else data
+            if not isinstance(text, str):
+                text = json.dumps(text, ensure_ascii=False)
+            return _parse_chunks(text)
+        except Exception:
+            return []
+
+    def _rerank_scores(self, query: str, contents: list) -> list:
+        """Re-pontua os chunks finais chamando o MESMO reranker do LightRAG (adaptador
+        Cohere->TEI). O LightRAG nao expoe o score na resposta, entao recalculamos aqui
+        para exibir a relevancia (%) por pagina. Devolve scores [0..1] alinhados a
+        `contents`; falha suave -> [] (fontes saem sem %)."""
+        if not getattr(self.config, "rerank_url", None) or not contents:
+            return []
+        try:
+            resp = requests.post(
+                self.config.rerank_url,
+                json={"model": self.config.reranker_model, "query": query, "documents": contents},
+                timeout=15,
+            )
+            resp.raise_for_status()
+            scores = [0.0] * len(contents)
+            for r in resp.json().get("results", []):
+                i, s = r.get("index"), r.get("relevance_score")
+                if isinstance(i, int) and 0 <= i < len(contents) and isinstance(s, (int, float)):
+                    scores[i] = float(s)
+            return scores
+        except Exception:
+            return []
 
     def answer_question_stream(
         self,
@@ -363,16 +438,48 @@ class LightRagService:
             # (evita "fonte fantasma" quando a informacao nao esta no manual, mesmo que o
             # retrieval tenha trazido chunks). Bonus: pula a 2a consulta nesse caso.
             cited_map = _parse_cited_pages(seen_text)
-            answer_cited = bool(cited_map) or bool(re.search(r"(?im)>?\s*fonte\s*:\s*\[", seen_text))
+            # Reconhece o marcador de citacao "> Fonte:" mesmo quando o modelo foge do
+            # formato com colchetes (ex.: "> Fonte: *arquivo*, pag N" em italico) — assim
+            # uma resposta FUNDAMENTADA nunca fica sem fontes no painel por desvio de formato.
+            answer_cited = bool(cited_map) or bool(re.search(r"(?im)>\s*fonte\b", seen_text))
             if answer_cited and collected_refs:
-                # Enriquecimento DETERMINISTICO da pagina: only_need_context devolve os
-                # chunks usados, de onde extraimos os rodapes de pagina (a pagina nao
-                # depende de o modelo te-la citado certo, so de a resposta ser fundamentada).
-                page_map = self._fetch_pages_by_reference(payload, headers)
+                # Uma unica chamada only_need_context devolve os chunks finais (pos-rerank):
+                # deles extraimos a PAGINA (rodape, deterministico) e RE-PONTUAMOS a
+                # relevancia no reranker (o LightRAG nao expoe o score). O score do chunk
+                # propaga para as paginas que ele contem (max por pagina) -> relevancia %.
+                chunks = self._fetch_context_chunks(payload, headers)
+                page_map: dict = {}
+                for ref_id, content in chunks:
+                    page_map.setdefault(ref_id, []).extend(_footer_pages(content))
+                scores = self._rerank_scores(payload.get("query", ""), [c for _, c in chunks])
+                page_score: dict = {}
+                for (ref_id, content), s in zip(chunks, scores):
+                    for p in _footer_pages(content):
+                        if p > 0:
+                            page_score[p] = max(page_score.get(p, 0.0), s)
+                # Uma linha por PAGINA (com o '· N%' quando ha score), SEM REPETIR a mesma
+                # pagina: se ela vier de varias refs/chunks, entra uma unica vez.
+                seen_pages: set = set()
+                files_with_page: set = set()
+                no_page: list = []
                 for file_path, ref_id in collected_refs:
                     retrieved = {p for p in page_map.get(ref_id, []) if p > 0}
                     cited = _cited_pages_for(file_path, cited_map)
-                    source_lines.append(_format_source_line(file_path, _resolve_pages(retrieved, cited)))
+                    pages = _resolve_pages(retrieved, cited)
+                    if not pages:
+                        no_page.append(file_path)
+                        continue
+                    for p in pages:
+                        if (file_path, p) in seen_pages:
+                            continue
+                        seen_pages.add((file_path, p))
+                        files_with_page.add(file_path)
+                        source_lines.append(_format_source_line_scored(file_path, p, page_score.get(p)))
+                # Arquivo sem nenhuma pagina resolvida: lista so o nome (1x), e apenas se
+                # ele ainda nao apareceu com pagina.
+                for file_path in dict.fromkeys(no_page):
+                    if file_path not in files_with_page:
+                        source_lines.append(f"- {file_path}")
 
         # O retorno é o gerador em si e uma list de source_lines (sendo popularizada pelo gerador por reflexão)
         return stream_generator(), [], source_lines

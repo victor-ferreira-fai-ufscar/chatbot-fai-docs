@@ -159,6 +159,7 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
             reranker_threshold=settings.RERANKER_THRESHOLD,
             lightrag_api_url=lightrag_api_url,
             lightrag_api_key=settings.LIGHTRAG_API_KEY,
+            rerank_url=settings.RERANK_URL,
         )
 
         # Carregar historico anterior da conversa (turnos previos) para dar contexto ao LightRAG.

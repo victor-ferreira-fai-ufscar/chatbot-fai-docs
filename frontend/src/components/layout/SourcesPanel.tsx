@@ -48,6 +48,12 @@ function parsePages(line: string): number[] {
   return [...pages].sort((x, y) => x - y);
 }
 
+// Relevância (%) do trecho, anexada pelo backend como "· 98%" na linha da fonte.
+function parseScore(line: string): number | null {
+  const m = line.match(/·\s*(\d{1,3})\s*%/);
+  return m ? parseInt(m[1], 10) : null;
+}
+
 // Normaliza para comparacao (minuscula, sem acento, so alfanumerico).
 function norm(s: string): string {
   return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]/g, "");
@@ -86,6 +92,7 @@ function Highlighted({ text, terms }: { text: string; terms: Set<string> }) {
 interface SourceItem {
   file: string;
   page: number | null;
+  score: number | null;
 }
 
 function SourceCard({ item, terms }: { item: SourceItem; terms: Set<string> }) {
@@ -139,6 +146,21 @@ function SourceCard({ item, terms }: { item: SourceItem; terms: Set<string> }) {
               Pág. {item.page}
             </Badge>
           )}
+          {item.score != null && (
+            <Badge
+              variant="secondary"
+              title="Relevância do trecho para a pergunta (reranker)"
+              className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold ${
+                item.score >= 70
+                  ? "bg-fai-green/10 text-fai-green"
+                  : item.score >= 40
+                    ? "bg-amber-100 text-amber-700"
+                    : "bg-gray-100 text-gray-500"
+              }`}
+            >
+              {item.score}%
+            </Badge>
+          )}
           <span className="truncate text-[11px] font-medium text-gray-600" title={item.file}>{item.file}</span>
         </div>
         <ExternalLink size={13} className="shrink-0 text-muted-foreground/50 transition-colors group-hover/hdr:text-accent-blue" />
@@ -184,12 +206,20 @@ export default function SourcesPanel({ sources, answerContent, loading = false }
 
   // Expande cada linha de fonte (que pode citar varias paginas) num card por pagina.
   const items: SourceItem[] = [];
+  const seenItems = new Set<string>(); // dedup por arquivo+página: nunca repetir a mesma página
+  const pushItem = (it: SourceItem) => {
+    const key = `${it.file}|${it.page ?? ""}`;
+    if (seenItems.has(key)) return;
+    seenItems.add(key);
+    items.push(it);
+  };
   for (const line of sources || []) {
     const file = parseFilename(line);
     if (!file) continue;
     const pages = parsePages(line);
-    if (pages.length === 0) items.push({ file, page: null });
-    else for (const p of pages) items.push({ file, page: p });
+    const score = parseScore(line);
+    if (pages.length === 0) pushItem({ file, page: null, score });
+    else for (const p of pages) pushItem({ file, page: p, score });
   }
   const terms = answerTerms(answerContent);
 

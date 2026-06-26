@@ -145,9 +145,10 @@ function extractFilename(sourceLine: string): string {
 }
 
 // Rótulo de página de uma linha de fonte ("pág. 12" / "págs. 4-6, 9"), ou null.
+// Remove a relevância ("· 98%"): ela é exibida só no card da SourcesPanel, não no chip inline.
 function extractPagesLabel(sourceLine: string): string | null {
   const m = sourceLine.match(/\((p[áa]gs?\.[^)]*)\)/i);
-  return m ? m[1].trim() : null;
+  return m ? m[1].replace(/\s*·\s*\d{1,3}\s*%/, "").trim() : null;
 }
 
 // Primeira página citada na linha de fonte (para abrir o PDF direto nela), ou null.

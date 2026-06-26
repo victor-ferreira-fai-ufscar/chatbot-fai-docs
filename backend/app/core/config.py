@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     LIGHTRAG_API_URLS: Optional[str] = None
     # API key do servidor LightRAG (header X-API-Key), usada quando ele exige autenticacao
     LIGHTRAG_API_KEY: Optional[str] = None
+    # Endpoint do reranker (adaptador Cohere->TEI). O backend chama p/ RE-PONTUAR os
+    # chunks finais e exibir a relevancia (%) por pagina nas fontes do frontend.
+    RERANK_URL: str = "http://localhost:7997/rerank"
     # Default RAG engine to use when multiple are available: 'LightRAG' or 'Supabase'
     DEFAULT_RAG_ENGINE: str = "LightRAG"
     # Numero de turnos (pares user/assistant) do historico enviados ao LightRAG como contexto

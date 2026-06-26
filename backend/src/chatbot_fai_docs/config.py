@@ -21,6 +21,9 @@ class AppConfig:
     lightrag_api_url: str
     # Chave enviada no header X-API-Key quando o servidor LightRAG exige autenticacao
     lightrag_api_key: str | None = None
+    # Endpoint do reranker (mesmo usado pelo LightRAG) p/ RE-PONTUAR os chunks finais
+    # e exibir a relevancia (%) por pagina nas fontes. None = nao pontua.
+    rerank_url: str | None = None
 
     @classmethod
     def from_env(cls, *, docs_dir: Path | None = None) -> "AppConfig":
@@ -39,4 +42,5 @@ class AppConfig:
             reranker_threshold=float(os.getenv("RERANKER_THRESHOLD", "0.0")),
             lightrag_api_url=os.getenv("LIGHTRAG_API_URL", "http://localhost:9621").strip(),
             lightrag_api_key=(os.getenv("LIGHTRAG_API_KEY") or "").strip() or None,
+            rerank_url=(os.getenv("RERANK_URL", "http://localhost:7997/rerank").strip() or None),
         )
