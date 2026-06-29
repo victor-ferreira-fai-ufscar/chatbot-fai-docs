@@ -45,11 +45,11 @@ def check(cond, msg):
     print(f"[{status}] {msg}")
 
 
-# --- _footer_pages: numeros isolados em linha = rodape ---
-content = "texto qualquer\n4\nmais texto\n5\n6\nlista: 1) item nao conta\nFundacao 2024\n"
-check(_m._footer_pages(content) == [4, 5, 6], "_footer_pages pega so numeros isolados em linha")
-check(_m._footer_pages("") == [], "_footer_pages vazio em conteudo vazio")
-check(_m._footer_pages("1.2\n5.452\n") == [], "_footer_pages ignora numeros com pontuacao")
+# --- _marker_pages: marcadores [PÁGINA N] no inicio de cada pagina ---
+content = "[PÁGINA 4]\nmais texto\n[PÁGINA 5]\n[PÁGINA 6]\nlista: 1) item nao conta\nFundacao 2024\n"
+check(_m._marker_pages(content) == [4, 5, 6], "_marker_pages pega os marcadores [PÁGINA N]")
+check(_m._marker_pages("") == [], "_marker_pages vazio em conteudo vazio")
+check(_m._marker_pages("texto sem marcador\n1.2\n5.452\n") == [], "_marker_pages ignora numeros soltos (sem marcador)")
 
 # --- _compact_pages: faixas compactas, unicas e ordenadas ---
 check(_m._compact_pages([4, 5, 6, 9]) == "4-6, 9", "_compact_pages junta consecutivos e mantem isolados")
@@ -68,9 +68,9 @@ ctx = (
     "Knowledge Graph Data...\n\n"
     "Document Chunks (Each entry ...):\n\n"
     "```json\n"
-    '{"reference_id": "1", "content": "abc\\n64\\nExpediente\\n65\\n"}\n'
-    '{"reference_id": "1", "content": "xyz\\n39\\n40\\n41\\n"},\n'
-    '{"reference_id": "2", "content": "outro doc\\n3\\n"}\n'
+    '{"reference_id": "1", "content": "[PÁGINA 64] abc [PÁGINA 65] Expediente"}\n'
+    '{"reference_id": "1", "content": "[PÁGINA 39] xyz [PÁGINA 40] [PÁGINA 41]"},\n'
+    '{"reference_id": "2", "content": "[PÁGINA 3] outro doc"}\n'
     "```\n"
 )
 pm = _m._parse_pages_by_reference(ctx)

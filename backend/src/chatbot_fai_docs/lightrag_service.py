@@ -25,25 +25,20 @@ from src.chatbot_fai_docs.config import AppConfig
 from src.chatbot_fai_docs.utils import get_current_date_time_pt_br
 from src.chatbot_fai_docs.pdfs import list_pdf_files
 
-# Um numero isolado (1 a 3 digitos) em uma linha inteira = rodape de pagina que o
-# parser de PDF deixou embutido no texto do chunk. E daqui que extraimos a pagina
-# REAL consultada, de forma deterministica (sem depender de o modelo cita-la).
-_FOOTER_PAGE_RE = re.compile(r"(?m)^[ \t]*(\d{1,3})[ \t]*$")
-# O rodape "N" e impresso no FIM da pagina N (o parser de PDF concatena as paginas sem
-# marcar limites), logo o CONTEUDO que vem APOS o rodape N pertence a pagina N+1. As
-# funcoes abaixo extraem o rodape CRU (N) e o hibrido cited-vs-retrieved resolve sobre
-# esse valor cru; este offset e somado SO na EXIBICAO da pagina, corrigindo o off-by-one
-# sem alterar o hibrido nem os testes. Heuristica; a solucao definitiva e re-indexar com
-# um marcador de pagina no INICIO de cada pagina. Para desligar, use 0.
-_PAGE_FOOTER_OFFSET = 1
+# Marcador de pagina inserido no INICIO de cada pagina na indexacao page-aware:
+# "[PÁGINA N]". O conteudo que SEGUE o marcador e da pagina N -> sem off-by-one (ao
+# contrario do antigo rodape, que ficava no FIM da pagina e exigia +1). E daqui que
+# extraimos a pagina REAL, de forma deterministica, sem depender de o modelo cita-la.
+_PAGE_MARK_RE = re.compile(r"\[P[ÁA]GINA\s+(\d{1,4})\]")
 # Bloco "Document Chunks" da resposta de contexto do LightRAG (only_need_context):
 # um objeto JSON por linha dentro de uma cerca ```json ... ```.
 _CHUNKS_BLOCK_RE = re.compile(r"Document Chunks.*?```json(.*?)```", re.S | re.I)
 
 
-def _footer_pages(content: str) -> list:
-    """Numeros de pagina (rodape) embutidos no texto de um chunk, em ordem."""
-    return [int(m.group(1)) for m in _FOOTER_PAGE_RE.finditer(content or "")]
+def _marker_pages(content: str) -> list:
+    """Numeros de pagina a partir dos marcadores [PÁGINA N] (inicio de cada pagina),
+    em ordem. O trecho que segue o marcador e da pagina N (sem off-by-one)."""
+    return [int(m.group(1)) for m in _PAGE_MARK_RE.finditer(content or "")]
 
 
 def _compact_pages(pages) -> str:
@@ -84,7 +79,7 @@ def _parse_pages_by_reference(context_text: str) -> dict:
         ref = str(obj.get("reference_id", "")).strip()
         if not ref:
             continue
-        by_ref.setdefault(ref, []).extend(_footer_pages(obj.get("content", "")))
+        by_ref.setdefault(ref, []).extend(_marker_pages(obj.get("content", "")))
     return by_ref
 
 
@@ -461,11 +456,11 @@ class LightRagService:
                 chunks = self._fetch_context_chunks(payload, headers)
                 page_map: dict = {}
                 for ref_id, content in chunks:
-                    page_map.setdefault(ref_id, []).extend(_footer_pages(content))
+                    page_map.setdefault(ref_id, []).extend(_marker_pages(content))
                 scores = self._rerank_scores(payload.get("query", ""), [c for _, c in chunks])
                 page_score: dict = {}
                 for (ref_id, content), s in zip(chunks, scores):
-                    for p in _footer_pages(content):
+                    for p in _marker_pages(content):
                         if p > 0:
                             page_score[p] = max(page_score.get(p, 0.0), s)
                 # Uma linha por PAGINA (com o '· N%' quando ha score), SEM REPETIR a mesma
@@ -485,9 +480,8 @@ class LightRagService:
                             continue
                         seen_pages.add((file_path, p))
                         files_with_page.add(file_path)
-                        # +_PAGE_FOOTER_OFFSET: rodape = fim da pagina; o trecho e da seguinte.
-                        # Score continua indexado pela pagina CRUA (p).
-                        source_lines.append(_format_source_line_scored(file_path, p + _PAGE_FOOTER_OFFSET, page_score.get(p)))
+                        # Marcador [PÁGINA N] -> pagina ja correta (sem offset).
+                        source_lines.append(_format_source_line_scored(file_path, p, page_score.get(p)))
                 # Arquivo sem nenhuma pagina resolvida: lista so o nome (1x), e apenas se
                 # ele ainda nao apareceu com pagina.
                 for file_path in dict.fromkeys(no_page):

@@ -270,11 +270,9 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
         _canon = canonical_manual_name(manual_names)
         _canon_display = _canon.replace("_", " ") if _canon else None
         def _fix_cites(text: str) -> str:
-            # page_shift=1 SO no fluxo RAG: o rodape do PDF marca o FIM da pagina, entao o
-            # trecho citado e da pagina seguinte. Mantem a citacao inline consistente com a
-            # pagina dos cards (que tambem somam +1). No agente as fontes vem por outro
-            # caminho (agent_ctx), entao nao deslocamos aqui para nao criar divergencia.
-            return normalize_source_citations(text, _canon_display, page_shift=(0 if agent_on else 1))
+            # Indexacao page-aware com marcador [PÁGINA N] no INICIO da pagina -> o modelo
+            # ja cita a pagina correta; sem necessidade de deslocar (page_shift=0).
+            return normalize_source_citations(text, _canon_display)
 
         # A CONSUMICAO do gerador e onde o streaming do LightRAG realmente acontece
         # (a chamada de rede e preguicosa). O try/except acima so cobre a INVOCACAO;
