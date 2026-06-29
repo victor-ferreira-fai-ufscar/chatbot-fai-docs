@@ -59,8 +59,13 @@ services:
       # Onda 3: 6000/5000 -> 4000/3500 libera ~3500 tokens do MAX_TOTAL_TOKENS aos chunks
       # de TEXTO (onde esta a resposta factual nos manuais) -> sintese mais profunda. NAO
       # zerar: no modo mix as relacoes do grafo ainda agregam contexto.
-      MAX_ENTITY_TOKENS: "4000"
-      MAX_RELATION_TOKENS: "3500"
+      # Onda 5 (profundidade a pedido, trocando latencia por qualidade): 4000/3500 ->
+      # 5000/4500. Com TOP_K=32 o grafo recupera mais entidades/relacoes; estes caps
+      # passam a deixar MAIS desse contexto entrar na sintese. Total montado (14 chunks
+      # ~17k + 5000 + 4500 = ~26.5k) segue bem abaixo de MAX_TOTAL_TOKENS=48000, sem
+      # comprometer a folga de raciocinio do gpt-oss think=high.
+      MAX_ENTITY_TOKENS: "5000"
+      MAX_RELATION_TOKENS: "4500"
       # Quantos chunks de texto-fonte sao recuperados. Reduzido 32 -> 10 -> 8: o manual
       # re-indexado (page-aware) tem apenas ~22 chunks, entao top_k alto recuperava o
       # DOCUMENTO INTEIRO toda vez, diluindo o sinal e estourando a faixa de paginas
@@ -70,10 +75,15 @@ services:
       # MIN_RERANK_SCORE=0.06 ha rede de seguranca, entao ampliar o pool reranqueado de
       # 8 -> 10 (de ~22 chunks) da mais recall sem voltar ao "PDF inteiro". Se a faixa de
       # paginas citadas voltar a borrar, baixar de volta p/ 8.
-      CHUNK_TOP_K: "10"
+      # Onda 5: 10 -> 14. O manual correto re-indexado tem 36 chunks (nao ~22), entao 14
+      # reranqueados (39% do doc) ainda e seletivo (reranker + MIN_RERANK_SCORE=0.06
+      # filtram), dando mais recall factual sem voltar ao "PDF inteiro". VIGIAR a faixa de
+      # paginas citadas: se borrar (cita quase todo o PDF), baixar de volta p/ 10.
+      CHUNK_TOP_K: "14"
       # Onda 2: entidades/relacoes do grafo recuperadas. Default do LightRAG = 40, que num
       # grafo de ~22 chunks traz quase tudo e dilui. 24 e mais focado e reproduzivel.
-      TOP_K: "24"
+      # Onda 5: 24 -> 32 (mais candidatos do grafo p/ os caps maiores de entity/relation).
+      TOP_K: "32"
       EMBEDDING_BINDING: ollama
       EMBEDDING_MODEL: bge-m3:latest
       EMBEDDING_DIM: "1024"
