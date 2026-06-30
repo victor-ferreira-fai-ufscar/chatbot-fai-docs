@@ -97,6 +97,15 @@ ans_uni = "> Fonte: [M‑coord‑FAI-01.pdf, pág. 70]"
 cu = _m._parse_cited_pages(ans_uni)
 check(cu.get("m-coord-fai-01.pdf") == [70], f"_parse_cited_pages: normaliza Unicode ({cu})")
 check(_m._cited_pages_for("M‑coord‑FAI-01.pdf", cu) == [70], "_cited_pages_for: casa apesar do Unicode")
+# Formato SOLTO na linha "> Fonte:" (italico/markdown ou sem colchetes) tambem e capturado
+ci = _m._parse_cited_pages("> Fonte: *Manual dos Coordenadores.pdf, págs. 59-60*")
+check(ci.get("manual dos coordenadores.pdf") == [59, 60], f"_parse_cited_pages: italico c/ asteriscos ({ci})")
+cs = _m._parse_cited_pages("Texto.\n> Fonte: Manual.pdf, pág 12")
+check(cs.get("manual.pdf") == [12], f"_parse_cited_pages: sem colchetes ({cs})")
+# Nome de arquivo MENCIONADO no corpo (fora de "> Fonte:") NAO e citacao
+check(_m._parse_cited_pages("consulte o Manual.pdf, pág 5 para detalhes") == {}, "_parse_cited_pages: .pdf no corpo (sem '> Fonte:') -> nao conta")
+# Negativa com "> Fonte:" solto SEM pagina -> {} (e o que impede o painel gigante)
+check(_m._parse_cited_pages("Nao consta.\n> Fonte: [Manual dos Coordenadores.pdf]") == {}, "_parse_cited_pages: '> Fonte:' sem pagina -> {}")
 
 # --- _cited_pages_for: match frouxo do nome ---
 cmap = {"m-coordenadores.pdf": [42]}
@@ -105,12 +114,12 @@ check(_m._cited_pages_for("/docs/M-Coordenadores.pdf", cmap) == [42], "_cited_pa
 check(_m._cited_pages_for("Outro.pdf", cmap) == [], "_cited_pages_for: sem match -> []")
 
 # --- _resolve_pages: o nucleo do hibrido validado ---
-check(_m._resolve_pages({10, 11, 12, 40, 41}, [12]) == [12], "hibrido: citada confirmada -> precisa")
-check(sorted(_m._resolve_pages({10, 11, 12}, [99])) == [10, 11, 12], "hibrido: citada alucinada -> cai no recuperado")
-check(sorted(_m._resolve_pages({10, 11, 12}, [])) == [10, 11, 12], "hibrido: sem citacao -> recuperado")
-check(_m._resolve_pages(set(), [12]) == [12], "hibrido: recuperado vazio (falha) -> confia no citado")
-check(_m._resolve_pages(set(), []) == [], "hibrido: nada -> sem pagina")
-check(sorted(_m._resolve_pages({4, 5, 12}, [12, 99])) == [12], "hibrido: filtra so as citadas validas")
+check(_m._resolve_pages({10, 11, 12, 40, 41}, [12]) == [12], "resolve: citada confirmada -> precisa")
+check(_m._resolve_pages({10, 11, 12}, [99]) == [], "resolve: citada alucinada -> NAO exibe (sem fallback p/ recuperado)")
+check(_m._resolve_pages({10, 11, 12}, []) == [], "resolve: sem citacao -> NAO exibe (nunca despeja o recuperado)")
+check(_m._resolve_pages(set(), [12]) == [12], "resolve: recuperado vazio (falha) -> confia no citado")
+check(_m._resolve_pages(set(), []) == [], "resolve: nada -> sem pagina")
+check(sorted(_m._resolve_pages({4, 5, 12}, [12, 99])) == [12], "resolve: filtra so as citadas validas")
 
 print()
 print("RESULTADO:", "TODOS OK" if failures == 0 else f"{failures} FALHA(S)")

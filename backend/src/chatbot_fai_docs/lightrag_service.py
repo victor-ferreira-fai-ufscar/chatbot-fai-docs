@@ -122,31 +122,57 @@ def _norm(s: str) -> str:
 # "[arquivo.pdf, pág. 12]" / "[arquivo.pdf, págs. 4-6]" / "[arquivo.pdf - pag 12]".
 _CITED_PAGE_RE = re.compile(r"\[([^\[\]]+?)[,;\s\-]+p[aá]gs?\.?\s*([\d\s,\-]+?)\]", re.I)
 _PAGE_TOKEN_RE = re.compile(r"(\d{1,3})(?:\s*-\s*(\d{1,3}))?$")
+# Linha de fonte "> Fonte: ..." (so no INICIO da linha). Usada para capturar a
+# citacao mesmo quando o modelo foge dos colchetes — ex.: em italico/markdown
+# "> Fonte: *arquivo.pdf, pág. N*" ou sem delimitador "> Fonte: arquivo.pdf, pág N".
+_FONTE_LINE_RE = re.compile(r"(?im)^\s*>?\s*fonte\s*:\s*(.+)$")
+# Citacao SEM colchetes dentro da linha de fonte: <arquivo>.<ext> ... pag N.
+_LOOSE_CITE_RE = re.compile(
+    r"([^\s,;*_\[\]][^,;*_\[\]\n]*?\.(?:pdf|docx?|txt|md))[\"'*_\]\s,;\-]+p[aá]gs?\.?\s*([\d\s,\-]+)",
+    re.I,
+)
+
+
+def _expand_page_tokens(tok_str: str) -> list:
+    """Expande "4-6, 9" -> [4,5,6,9] (faixas e isolados; descarta intervalos absurdos)."""
+    pages = []
+    for tok in re.split(r"[,\s]+", tok_str):
+        mm = _PAGE_TOKEN_RE.match(tok.strip())
+        if not mm:
+            continue
+        a = int(mm.group(1))
+        b = int(mm.group(2)) if mm.group(2) else a
+        if 0 < a <= b and b - a < 200:
+            pages.extend(range(a, b + 1))
+    return pages
 
 
 def _parse_cited_pages(answer_text: str) -> dict:
     """{nome_do_arquivo_lower: [paginas]} a partir das citacoes que o MODELO
-    escreveu na resposta ('[arquivo.pdf, pág. N]'). Essa pagina e por-trecho
-    (o modelo escolhe a do conteudo que usou), logo mais precisa que o conjunto
-    recuperado; por isso ela e validada (anti-alucinacao) contra esse conjunto
-    antes de ser usada."""
+    escreveu na resposta. Captura o formato com colchetes ('[arquivo.pdf, pág. N]')
+    E o formato solto na linha '> Fonte:' (italico/markdown ou sem delimitador),
+    pois o modelo as vezes foge dos colchetes. Essa pagina e por-trecho (o modelo
+    escolhe a do conteudo que usou), logo mais precisa que o conjunto recuperado;
+    por isso ela e validada (anti-alucinacao) contra esse conjunto antes de usar."""
+    txt = _norm(answer_text)
     out: dict = {}
-    for m in _CITED_PAGE_RE.finditer(_norm(answer_text)):
-        fname = m.group(1).strip().lower().rsplit("/", 1)[-1].rsplit("\\", 1)[-1].strip()
-        if not fname:
-            continue
-        pages = []
-        for tok in re.split(r"[,\s]+", m.group(2)):
-            mm = _PAGE_TOKEN_RE.match(tok.strip())
-            if not mm:
-                continue
-            a = int(mm.group(1))
-            b = int(mm.group(2)) if mm.group(2) else a
-            if 0 < a <= b and b - a < 200:
-                pages.extend(range(a, b + 1))
-        if pages:
+
+    def _add(fname_raw: str, pages_str: str) -> None:
+        fname = (fname_raw.strip().lower().rsplit("/", 1)[-1]
+                 .rsplit("\\", 1)[-1].strip(" *_\"'"))
+        pages = _expand_page_tokens(pages_str)
+        if fname and pages:
             out.setdefault(fname, []).extend(pages)
-    return out
+
+    for m in _CITED_PAGE_RE.finditer(txt):
+        _add(m.group(1), m.group(2))
+    # Formato solto, APENAS nas linhas "> Fonte:" (evita capturar nomes de arquivo
+    # mencionados no corpo da resposta).
+    for fl in _FONTE_LINE_RE.finditer(txt):
+        for m in _LOOSE_CITE_RE.finditer(fl.group(1)):
+            _add(m.group(1), m.group(2))
+    # Dedup + ordena (colchetes e formato solto podem capturar a mesma citacao).
+    return {fn: sorted(set(pp)) for fn, pp in out.items()}
 
 
 def _cited_pages_for(file_path: str, cited_map: dict) -> list:
@@ -160,17 +186,18 @@ def _cited_pages_for(file_path: str, cited_map: dict) -> list:
 
 
 def _resolve_pages(retrieved: set, cited: list) -> list:
-    """Hibrido validado: prioriza a pagina PRECISA citada pelo modelo, desde que
-    confirmada no conjunto RECUPERADO (deterministico); senao, cai no conjunto
-    recuperado. Se o conjunto recuperado nao veio (falha de rede), confia no
-    citado. Garante que sempre haja pagina quando ha qualquer sinal."""
-    if cited and retrieved:
-        validated = [p for p in cited if p in retrieved]
-        if validated:
-            return validated
-    elif cited and not retrieved:
+    """Paginas a exibir, dirigidas pela CITACAO do modelo (validada), nunca pelo
+    conjunto recuperado cru. Se o modelo citou paginas: mostra as que se confirmam
+    no recuperado (anti-alucinacao); se o recuperado nao veio (falha de rede),
+    confia no citado. Se o modelo NAO citou pagina, NAO exibe nada — em especial,
+    nunca despeja o conjunto recuperado inteiro (numa pergunta ampla ele traz
+    dezenas de paginas e estoura o painel; negativa que escorrega do protocolo
+    citando solto fica sem fonte)."""
+    if not cited:
+        return []
+    if not retrieved:
         return list(cited)
-    return sorted(retrieved)
+    return [p for p in cited if p in retrieved]
 
 
 def _format_source_line(file_path: str, pages) -> str:
@@ -443,11 +470,13 @@ class LightRagService:
             # Logo, ausencia de citacao = abstencao/nao-fundamentada -> NAO exibir fontes
             # (evita "fonte fantasma" quando a informacao nao esta no manual, mesmo que o
             # retrieval tenha trazido chunks). Bonus: pula a 2a consulta nesse caso.
+            # So exibe fontes quando ha citacao de PAGINA parseavel — em colchetes OU no
+            # formato solto da linha "> Fonte:" (italico/markdown), ambos cobertos por
+            # _parse_cited_pages. Um "> Fonte:" SEM pagina (tipico de respostas negativas
+            # que escorregam do protocolo) NAO conta: a negativa fica sem fontes, em vez de
+            # disparar o fallback que listava o conjunto recuperado inteiro.
             cited_map = _parse_cited_pages(seen_text)
-            # Reconhece o marcador de citacao "> Fonte:" mesmo quando o modelo foge do
-            # formato com colchetes (ex.: "> Fonte: *arquivo*, pag N" em italico) — assim
-            # uma resposta FUNDAMENTADA nunca fica sem fontes no painel por desvio de formato.
-            answer_cited = bool(cited_map) or bool(re.search(r"(?im)>\s*fonte\b", seen_text))
+            answer_cited = bool(cited_map)
             if answer_cited and collected_refs:
                 # Uma unica chamada only_need_context devolve os chunks finais (pos-rerank):
                 # deles extraimos a PAGINA (rodape, deterministico) e RE-PONTUAMOS a
