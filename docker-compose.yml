@@ -37,7 +37,10 @@ services:
       # citacao inconsistente). Fixada baixa (0.1) via binding_options do LightRAG
       # (lightrag/llm/binding_options.py injeta como options.temperature no Ollama).
       # O QueryRequest da API NAO expoe temperature; so da pra fixar por env do servidor.
-      OLLAMA_LLM_TEMPERATURE: "0.1"
+      # 0.1 -> 0.0 (greedy): a recuperacao e deterministica (probe 8/8 identico), mas a
+      # SINTESE oscilava entre resposta completa e abstencao para a MESMA pergunta. Greedy
+      # reduz o sampling p/ consistencia. Em teste.
+      OLLAMA_LLM_TEMPERATURE: "0.0"
       # Janela total (entrada+saida) por requisicao, alocada por slot paralelo do
       # Ollama (KV cache na VRAM). 65536 da folga de geracao para um modelo de
       # RACIOCINIO (gpt-oss "pensa" antes de responder e consome tokens nisso): com
@@ -188,7 +191,10 @@ services:
     network_mode: host
     environment:
       OLLAMA_UPSTREAM: http://127.0.0.1:11434
-      THINK_LEVEL: high
+      # A/B de consistencia: testando 'medium' vs 'high'. Racicionio mais curto = menos
+      # pontos de ramificacao na decisao responder-vs-abster -> hipotese de sintese mais
+      # reproduzivel (probe consistency_probe.py mede o flip). Rollback: voltar p/ high.
+      THINK_LEVEL: medium
       THINK_MODELS: gpt-oss
       STRIP_THINKING: "true"
     healthcheck:

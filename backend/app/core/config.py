@@ -54,6 +54,19 @@ class Settings(BaseSettings):
     # instantaneo para o fluxo RAG fixo atual. Skills ficam em backend/skills/*/SKILL.md
     # (uma pasta por skill com SKILL.md + handler). Ver docs/plano-agente-tool-calling.md.
     AGENT_ENABLED: bool = False
+
+    # Cache de RESPOSTA no backend (consistencia + latencia). O LightRAG nao cacheia
+    # streaming, entao a sintese nao-deterministica re-roda toda vez ("as vezes responde,
+    # as vezes nao"). Este cache devolve a MESMA resposta para a mesma pergunta dentro do
+    # TTL. So 1o turno (sem historico) e so resposta FUNDAMENTADA (com fontes). Ver
+    # src/chatbot_fai_docs/response_cache.py. Desligue com RESPONSE_CACHE_ENABLED=false.
+    RESPONSE_CACHE_ENABLED: bool = True
+    RESPONSE_CACHE_TTL_S: int = 86400          # 24h: estavel dentro do dia
+    RESPONSE_CACHE_MAX_ENTRIES: int = 2000
+    # Suba este valor (qualquer string nova) para ESTOURAR o cache na mao apos reindexar
+    # o manual (mesmo nome de arquivo, conteudo novo) ou mudar o Prompt.md.
+    RESPONSE_CACHE_VERSION: str = "1"
+
     MAX_TOOL_STEPS: int = 5            # teto de iteracoes do laco (guarda anti-loop)
     TOOL_TIMEOUT_S: int = 60           # timeout por execucao de skill
     SKILLS_DIR: Path = BASE_DIR / "skills"

@@ -14,8 +14,66 @@ from src.chatbot_fai_docs.lightrag_resolver import resolve_lightrag_url
 from src.chatbot_fai_docs.smalltalk_gate import is_smalltalk
 from src.chatbot_fai_docs.storage_service import StorageService
 from src.chatbot_fai_docs.document_resolver import resolve_document_request
+from src.chatbot_fai_docs.response_cache import ResponseCache, make_key
 
 router = APIRouter()
+
+# Cache de resposta do processo (LRU+TTL). Singleton: vive entre requisicoes, zera no
+# restart do backend. Ver response_cache.py para a politica (so 1o turno, so fundamentada).
+_response_cache = ResponseCache(
+    ttl_seconds=settings.RESPONSE_CACHE_TTL_S,
+    max_entries=settings.RESPONSE_CACHE_MAX_ENTRIES,
+)
+
+
+def _replay_chunks(text: str, size: int = 60):
+    """Fatia o texto cacheado em pedacos word-safe para reproduzir o efeito de digitacao
+    no acerto de cache (o frontend concatena os eventos 'content')."""
+    buf = ""
+    for word in re.split(r"(\s+)", text):
+        buf += word
+        if len(buf) >= size:
+            yield buf
+            buf = ""
+    if buf:
+        yield buf
+
+
+def _finalize_and_persist(repo, request, conversation_id, quoted_meta,
+                          full_answer, source_lines, gen_time, last_usage):
+    """Persiste o turno (cria conversa+titulo se nova; salva pergunta e resposta) e emite
+    o evento final 'done'. Extraido para ser reutilizado pelo caminho normal E pelo acerto
+    de cache. Gera eventos SSE (strings 'data: ...')."""
+    try:
+        if not conversation_id:
+            chat_client = ChatClient()
+            title_settings = ChatSettings(
+                provider="Ollama local" if not settings.OPENAI_API_KEY else "OpenAI API",
+                api_key="ollama" if not settings.OPENAI_API_KEY else settings.OPENAI_API_KEY,
+                model=settings.OLLAMA_MODEL if not settings.OPENAI_API_KEY else "gpt-4o-mini",
+                base_url=settings.OLLAMA_BASE_URL if not settings.OPENAI_API_KEY else None,
+            )
+            try:
+                suggested_title = chat_client.generate_title(request.question, title_settings)
+            except Exception as e:
+                print(f"Erro ao gerar título: {e}")
+                suggested_title = request.question[:30] + "..."
+            conversation_id = repo.create_conversation(
+                title=suggested_title, rag_engine=request.rag_engine, user_id=request.user_id,
+            )
+            repo.add_message(conversation_id, "user", request.question,
+                             metadata={"quoted": quoted_meta} if quoted_meta else None)
+        else:
+            repo.add_message(conversation_id, "user", request.question,
+                             metadata={"quoted": quoted_meta} if quoted_meta else None)
+
+        repo.add_message(conversation_id, "assistant", full_answer,
+                         metadata={"sources": source_lines, "gen_time": gen_time, "usage": last_usage})
+
+        yield f"data: {json.dumps({'done': True, 'conversation_id': conversation_id, 'gen_time': gen_time, 'usage': last_usage, 'sources': source_lines})}\n\n"
+    except Exception as e:
+        print(f"Erro ao persistir histórico: {e}")
+        yield f"data: {json.dumps({'error': 'Erro ao salvar histórico: ' + str(e)})}\n\n"
 
 # Pre-filtro barato (regex) para decidir se vale a pena acionar o resolvedor de
 # documentos por IA — evita uma chamada extra de LLM em perguntas puramente
@@ -193,6 +251,27 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
                 f"\"\"\"\n{quoted_snippet}\n\"\"\"\n\n"
                 f"Com base nessa mensagem citada, responda:\n{request.question}"
             )
+
+        # Cache de resposta (consistencia + latencia). Elegivel SO no 1o turno (sem
+        # historico), sem citacao (quoted) e sem intencao de download (URL assinada expira):
+        # nesses casos a resposta independe de estado da conversa, entao a MESMA pergunta
+        # deve dar a MESMA resposta. cache_key=None desliga leitura E escrita para este turno.
+        cache_key = None
+        if (settings.RESPONSE_CACHE_ENABLED and not conversation_history
+                and not request.quoted and not _maybe_download_request(request.question)):
+            cache_key = make_key(request.question, request.mode, agent_on,
+                                 manual_names, settings.RESPONSE_CACHE_VERSION)
+            cached = _response_cache.get(cache_key)
+            if cached:
+                # ACERTO: reproduz a resposta fundamentada ja gerada (byte-a-byte), em chunks
+                # para manter o efeito de digitacao, e persiste o turno normalmente.
+                for piece in _replay_chunks(cached["answer"]):
+                    yield f"data: {json.dumps({'content': piece})}\n\n"
+                yield from _finalize_and_persist(
+                    repo, request, conversation_id, quoted_meta,
+                    cached["answer"], cached["sources"],
+                    time.perf_counter() - start_time, 0)
+                return
 
         # Roteamento. Com AGENT_ENABLED, o AGENTE (laco de tool calling + Skills)
         # decide a cada turno se/qual skill usar — incl. consultar o LightRAG SO quando
@@ -401,53 +480,18 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
 
         # 3. Finalizar e Salvar no Backend
         final_time = time.perf_counter() - start_time
-        
-        try:
-            # Gerar título se for nova conversa
-            if not conversation_id:
-                chat_client = ChatClient()
-                # Simplificação: Usar gpt-4o-mini ou modelo local para título
-                title_settings = ChatSettings(
-                    provider="Ollama local" if not settings.OPENAI_API_KEY else "OpenAI API",
-                    api_key="ollama" if not settings.OPENAI_API_KEY else settings.OPENAI_API_KEY,
-                    model=settings.OLLAMA_MODEL if not settings.OPENAI_API_KEY else "gpt-4o-mini",
-                    base_url=settings.OLLAMA_BASE_URL if not settings.OPENAI_API_KEY else None
-                )
-                try:
-                    suggested_title = chat_client.generate_title(request.question, title_settings)
-                except Exception as e:
-                    print(f"Erro ao gerar título: {e}")
-                    suggested_title = request.question[:30] + "..."
-                
-                conversation_id = repo.create_conversation(
-                    title=suggested_title,
-                    rag_engine=request.rag_engine,
-                    user_id=request.user_id,
-                )
-                repo.add_message(conversation_id, "user", request.question,
-                                 metadata={"quoted": quoted_meta} if quoted_meta else None)
-            else:
-                # Conversa existente: persistir a pergunta deste turno (faltava antes)
-                repo.add_message(conversation_id, "user", request.question,
-                                 metadata={"quoted": quoted_meta} if quoted_meta else None)
 
-            # Salvar resposta da IA
-            repo.add_message(
-                conversation_id, 
-                "assistant", 
-                full_answer, 
-                metadata={
-                    "sources": source_lines,
-                    "gen_time": final_time,
-                    "usage": last_usage
-                }
-            )
-            
-            # Enviar evento final com metadados
-            yield f"data: {json.dumps({'done': True, 'conversation_id': conversation_id, 'gen_time': final_time, 'usage': last_usage, 'sources': source_lines})}\n\n"
-        except Exception as e:
-            print(f"Erro ao persistir histórico: {e}")
-            yield f"data: {json.dumps({'error': 'Erro ao salvar histórico: ' + str(e)})}\n\n"
+        # Grava no cache de resposta SOMENTE quando: elegivel (cache_key setado = 1o turno
+        # sem quoted/download), resposta FUNDAMENTADA (tem fontes), sem erro/truncamento e
+        # sem link de download (URL assinada expira). Assim nunca trava uma abstencao; quando
+        # responde certo, fixa o resultado -> consistencia para repeticoes da MESMA pergunta.
+        if (cache_key and full_answer and source_lines
+                and "conexão com a base de conhecimento foi interrompida" not in full_answer
+                and "📎 [Baixar" not in full_answer):
+            _response_cache.put(cache_key, {"answer": full_answer, "sources": source_lines})
+
+        yield from _finalize_and_persist(repo, request, conversation_id, quoted_meta,
+                                         full_answer, source_lines, final_time, last_usage)
 
     return StreamingResponse(generate_response(), media_type="text/event-stream")
 
