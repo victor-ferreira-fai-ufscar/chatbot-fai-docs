@@ -218,6 +218,7 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
             lightrag_api_url=lightrag_api_url,
             lightrag_api_key=settings.LIGHTRAG_API_KEY,
             rerank_url=settings.RERANK_URL,
+            rerank_fallback_enabled=settings.RERANK_FALLBACK_ENABLED,
         )
 
         # Carregar historico anterior da conversa (turnos previos) para dar contexto ao LightRAG.

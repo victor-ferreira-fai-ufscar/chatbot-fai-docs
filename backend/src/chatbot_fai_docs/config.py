@@ -24,6 +24,10 @@ class AppConfig:
     # Endpoint do reranker (mesmo usado pelo LightRAG) p/ RE-PONTUAR os chunks finais
     # e exibir a relevancia (%) por pagina nas fontes. None = nao pontua.
     rerank_url: str | None = None
+    # Fallback de recuperacao: se a busca COM reranker devolver contexto vazio, refaz com
+    # enable_rerank=False (chunks pela ordem do embedding, que casa sinonimos que o
+    # cross-encoder perde). Preenchido pelo endpoint a partir de RERANK_FALLBACK_ENABLED.
+    rerank_fallback_enabled: bool = False
 
     @classmethod
     def from_env(cls, *, docs_dir: Path | None = None) -> "AppConfig":

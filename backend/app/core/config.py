@@ -40,6 +40,13 @@ class Settings(BaseSettings):
     # Endpoint do reranker (adaptador Cohere->TEI). O backend chama p/ RE-PONTUAR os
     # chunks finais e exibir a relevancia (%) por pagina nas fontes do frontend.
     RERANK_URL: str = "http://localhost:7997/rerank"
+    # Fallback de recuperacao (gap lexical): quando a busca COM reranker devolve contexto
+    # VAZIO (nenhum chunk de texto passa o corte MIN_RERANK_SCORE do servidor LightRAG), a
+    # sintese absteria sem fonte mesmo com o tema no manual — ex.: "reforma de laboratorio"
+    # nao casa "obra/servico de engenharia" no cross-encoder do reranker. Nesse caso, refaz
+    # com enable_rerank=False: os chunks voltam pela ordem do EMBEDDING (bge-m3), que
+    # recupera esses sinonimos. Desligue com RERANK_FALLBACK_ENABLED=false.
+    RERANK_FALLBACK_ENABLED: bool = True
     # Default RAG engine to use when multiple are available: 'LightRAG' or 'Supabase'
     DEFAULT_RAG_ENGINE: str = "LightRAG"
     # Numero de turnos (pares user/assistant) do historico enviados ao LightRAG como contexto

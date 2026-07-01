@@ -342,14 +342,31 @@ class LightRagService:
             "history_turns": history_turns,
         }
 
+        headers = {}
+        if self.config.lightrag_api_key:
+            headers["X-API-Key"] = self.config.lightrag_api_key
+
+        # Fallback de recuperacao (gap lexical): sonda o contexto COM reranker (default do
+        # servidor). Se NENHUM chunk de texto passa o corte MIN_RERANK_SCORE, a busca
+        # absteria sem fonte mesmo com o tema no manual (ex.: "reforma de laboratorio" nao
+        # casa "obra/servico de engenharia" no cross-encoder). Nesse caso refaz com
+        # enable_rerank=False: os chunks voltam pela ordem do EMBEDDING (bge-m3), que
+        # recupera esses sinonimos. A sonda VIRA o contexto final (reusada abaixo p/ extrair
+        # paginas), entao NAO adiciona chamada de rede no caminho feliz. Rollback: flag off.
+        prefetched_chunks = None
+        rerank_off = False
+        if getattr(self.config, "rerank_fallback_enabled", False):
+            prefetched_chunks = self._fetch_context_chunks(payload, headers)
+            if not prefetched_chunks:
+                rerank_off = True
+                payload["enable_rerank"] = False
+                prefetched_chunks = self._fetch_context_chunks(payload, headers)
+
         # Timeout (connect, read). O read e o GAP entre bytes do stream: com gpt-oss em
         # raciocinio "high" (via ollama-think-shim) a fase de "pensar" pode passar de 2 min
         # SEM emitir conteudo -> 120s estourava (ReadTimeout) e a resposta vinha
         # "interrompida". 600s casa com o TIMEOUT do servidor LightRAG; connect curto (10s)
         # ainda detecta o LightRAG fora do ar rapido.
-        headers = {}
-        if self.config.lightrag_api_key:
-            headers["X-API-Key"] = self.config.lightrag_api_key
         resp = requests.post(f"{self.config.lightrag_api_url}/query/stream", json=payload, stream=True, timeout=(10, 600), headers=headers)
         resp.raise_for_status()
 
@@ -482,11 +499,16 @@ class LightRagService:
                 # deles extraimos a PAGINA (rodape, deterministico) e RE-PONTUAMOS a
                 # relevancia no reranker (o LightRAG nao expoe o score). O score do chunk
                 # propaga para as paginas que ele contem (max por pagina) -> relevancia %.
-                chunks = self._fetch_context_chunks(payload, headers)
+                # Reusa os chunks ja buscados pela sonda do fallback (mesmo payload); so
+                # busca aqui se a sonda nao rodou (fallback desligado).
+                chunks = prefetched_chunks if prefetched_chunks is not None else self._fetch_context_chunks(payload, headers)
                 page_map: dict = {}
                 for ref_id, content in chunks:
                     page_map.setdefault(ref_id, []).extend(_marker_pages(content))
-                scores = self._rerank_scores(payload.get("query", ""), [c for _, c in chunks])
+                # No modo fallback (rerank OFF), NAO exibimos o "· N%": o reranker pontua o
+                # conteudo certo perto de zero justamente para a query que disparou o
+                # fallback, entao o "1%" enganaria. Sem score -> "(pag. N)" limpo.
+                scores = [] if rerank_off else self._rerank_scores(payload.get("query", ""), [c for _, c in chunks])
                 page_score: dict = {}
                 for (ref_id, content), s in zip(chunks, scores):
                     for p in _marker_pages(content):
