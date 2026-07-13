@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List
 from app.core.config import settings
-from app.schemas.history_schema import Conversation, ConversationCreate, Message
+from app.schemas.history_schema import Conversation, ConversationCreate, ConversationRename, Message
 from src.chatbot_fai_docs.repository import get_repo_from_url
 from typing import Optional
 
@@ -42,6 +42,26 @@ async def get_messages(conversation_id: int, user_id: str = "guest", repo = Depe
         return repo.get_messages(conversation_id, user_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.patch("/{conversation_id}")
+async def rename_conversation(
+    conversation_id: int,
+    payload: ConversationRename,
+    user_id: str = "guest",
+    repo = Depends(get_repo),
+):
+    """Renomeia o título de uma conversa (escopo pelo user_id: só o dono renomeia)."""
+    title = payload.title.strip()
+    if not title:
+        raise HTTPException(status_code=422, detail="O título não pode ser vazio.")
+    title = title[:200]  # teto defensivo (o título vira label na sidebar)
+    try:
+        ok = repo.update_title(conversation_id, title, user_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    if not ok:
+        raise HTTPException(status_code=404, detail="Conversa não encontrada.")
+    return {"status": "success", "id": conversation_id, "title": title}
 
 @router.delete("/{conversation_id}")
 async def delete_conversation(conversation_id: int, user_id: str = "guest", repo = Depends(get_repo)):

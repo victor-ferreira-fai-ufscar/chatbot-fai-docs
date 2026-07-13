@@ -9,6 +9,9 @@ class ConversationBase(BaseModel):
 class ConversationCreate(ConversationBase):
     user_id: str = "guest"
 
+class ConversationRename(BaseModel):
+    title: str
+
 class Conversation(ConversationBase):
     id: int
     user_id: str

@@ -1,6 +1,6 @@
-import { MessageSquarePlus, Trash2, Settings, History, Plus, ArrowLeft, HelpCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MessageSquarePlus, Trash2, Settings, History, Plus, ArrowLeft, HelpCircle, ChevronLeft, ChevronRight, Pencil, Check } from 'lucide-react';
 import Image from 'next/image';
-import { useState, useEffect, type MouseEvent } from 'react';
+import { useState, useEffect, useRef, type MouseEvent } from 'react';
 import { cn } from '@/lib/utils';
 import { SidebarMode } from '@/app/page';
 import { Button } from '@/components/ui/button';
@@ -37,6 +37,7 @@ interface SidebarProps {
   onOpenSettings: () => void;
   onSelectConversation: (id: number) => void;
   onDeleteConversation: (id: number) => void;
+  onRenameConversation: (id: number, title: string) => void;
   selectedConversationId: number | null;
   conversations: any[];
   isBackendConnected?: boolean | null;
@@ -59,6 +60,7 @@ export default function Sidebar({
   onOpenSettings,
   onSelectConversation,
   onDeleteConversation,
+  onRenameConversation,
   selectedConversationId,
   conversations,
   isBackendConnected,
@@ -68,6 +70,47 @@ export default function Sidebar({
 }: SidebarProps) {
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [ollamaModels, setOllamaModels] = useState<{name: string, label: string}[]>([]);
+
+  // Renomear conversa (edição inline): id em edição + rascunho do título. O ref evita
+  // commit duplo — ao apertar Enter, o input desmonta e dispara onBlur logo em seguida.
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingTitle, setEditingTitle] = useState("");
+  const renameFinishing = useRef(false);
+  // Quando a edição termina por TECLADO (Enter/Escape), devolvemos o foco ao lápis
+  // daquela linha para o usuário não ser jogado ao <body>. Fica null em fim por
+  // mouse/blur (aí o foco deve ir para onde o usuário clicou, não voltar ao lápis).
+  const refocusRenameId = useRef<number | null>(null);
+
+  // Após a edição fechar, se veio do teclado, devolve o foco ao lápis da linha
+  // (o botão só volta a existir depois do re-render, daí o rAF).
+  useEffect(() => {
+    if (editingId !== null || refocusRenameId.current === null) return;
+    const id = refocusRenameId.current;
+    refocusRenameId.current = null;
+    requestAnimationFrame(() => {
+      document.querySelector<HTMLButtonElement>(`[data-rename-id="${id}"]`)?.focus();
+    });
+  }, [editingId]);
+
+  const startRename = (id: number, currentTitle: string) => {
+    setEditingId(id);
+    setEditingTitle(currentTitle);
+    renameFinishing.current = false;
+  };
+
+  const commitRename = (id: number, originalTitle: string) => {
+    if (renameFinishing.current) return;
+    renameFinishing.current = true;
+    const title = editingTitle.trim();
+    setEditingId(null);
+    // Só chama a API se o título mudou de fato (e não ficou vazio).
+    if (title && title !== originalTitle) onRenameConversation(id, title);
+  };
+
+  const cancelRename = () => {
+    renameFinishing.current = true;
+    setEditingId(null);
+  };
 
   useEffect(() => {
     if (config.provider === "Ollama local") {
@@ -224,7 +267,9 @@ export default function Sidebar({
                   <div className="px-3 text-xs text-gray-500 italic">Nenhuma conversa recente</div>
                 ) : (
                   <div className="space-y-1">
-                    {conversations.map((conv) => (
+                    {conversations.map((conv) => {
+                      const isEditing = editingId === conv.id;
+                      return (
                       <div
                         key={conv.id}
                         className={cn(
@@ -232,29 +277,84 @@ export default function Sidebar({
                           selectedConversationId === conv.id ? "bg-sidebar-hover text-white shadow-sm" : "hover:bg-sidebar-hover/50"
                         )}
                       >
-                        <button
-                          onClick={() => onSelectConversation(conv.id)}
-                          className="flex-1 text-left px-3 py-2 text-sm truncate"
-                          title={conv.title}
-                        >
-                          {conv.title}
-                        </button>
+                        {isEditing ? (
+                          <>
+                            <input
+                              autoFocus
+                              value={editingTitle}
+                              onChange={(e) => setEditingTitle(e.target.value)}
+                              onFocus={(e) => e.target.select()}
+                              onKeyDown={(e) => {
+                                // Fim por teclado: marca a linha p/ devolver o foco ao lápis.
+                                if (e.key === "Enter") { e.preventDefault(); refocusRenameId.current = conv.id; commitRename(conv.id, conv.title); }
+                                else if (e.key === "Escape") { e.preventDefault(); refocusRenameId.current = conv.id; cancelRename(); }
+                              }}
+                              onBlur={() => commitRename(conv.id, conv.title)}
+                              maxLength={200}
+                              className="flex-1 min-w-0 rounded bg-sidebar-dark px-3 py-2 text-sm text-white outline-none ring-1 ring-accent-blue"
+                              aria-label="Novo título da conversa"
+                            />
+                            <Button
+                              variant="ghost"
+                              size="icon-xs"
+                              // onMouseDown (não onClick): dispara ANTES do onBlur do input,
+                              // então o commit acontece com o botão ainda montado.
+                              onMouseDown={(e: MouseEvent<HTMLButtonElement>) => {
+                                e.preventDefault();
+                                commitRename(conv.id, conv.title);
+                              }}
+                              className="text-gray-400 hover:text-fai-green hover:bg-transparent"
+                              title="Salvar"
+                              aria-label="Salvar título"
+                            >
+                              <Check size={14} />
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => onSelectConversation(conv.id)}
+                              className="flex-1 min-w-0 text-left px-3 py-2 text-sm truncate"
+                              title={conv.title}
+                            >
+                              {conv.title}
+                            </button>
 
-                        <Button
-                          variant="ghost"
-                          size="icon-xs"
-                          onClick={(e: MouseEvent<HTMLButtonElement>) => {
-                            e.stopPropagation();
-                            onDeleteConversation(conv.id);
-                          }}
-                          className="text-gray-500 hover:text-accent-orange hover:bg-transparent opacity-0 group-hover:opacity-100 transition-all"
-                          title="Excluir conversa"
-                          aria-label="Excluir conversa"
-                        >
-                          <Trash2 size={13} />
-                        </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon-xs"
+                              data-rename-id={conv.id}
+                              onClick={(e: MouseEvent<HTMLButtonElement>) => {
+                                e.stopPropagation();
+                                startRename(conv.id, conv.title);
+                              }}
+                              // focus:opacity-100 revela no foco por teclado (senão o anel de
+                              // foco fica em opacity-0 -> falha de WCAG 2.4.7 Focus Visible).
+                              className="text-gray-500 hover:text-accent-blue hover:bg-transparent opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all"
+                              title="Renomear conversa"
+                              aria-label={`Renomear conversa: ${conv.title}`}
+                            >
+                              <Pencil size={13} />
+                            </Button>
+
+                            <Button
+                              variant="ghost"
+                              size="icon-xs"
+                              onClick={(e: MouseEvent<HTMLButtonElement>) => {
+                                e.stopPropagation();
+                                onDeleteConversation(conv.id);
+                              }}
+                              className="text-gray-500 hover:text-accent-orange hover:bg-transparent opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all"
+                              title="Excluir conversa"
+                              aria-label={`Excluir conversa: ${conv.title}`}
+                            >
+                              <Trash2 size={13} />
+                            </Button>
+                          </>
+                        )}
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )
               )}

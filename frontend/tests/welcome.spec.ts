@@ -177,7 +177,7 @@ test.describe("Tela de boas-vindas", () => {
     await expect(page.getByTestId("welcome-message")).toBeVisible();
 
     // Seleciona a conversa na sidebar: boas-vindas some, mensagens carregam.
-    await page.getByRole("button", { name: "Conversa antiga" }).click();
+    await page.getByRole("button", { name: "Conversa antiga", exact: true }).click();
     await expect(page.getByTestId("welcome-message")).toHaveCount(0);
     await expect(page.getByTestId("user-content")).toHaveText("pergunta antiga");
     await expect(page.getByTestId("assistant-content")).toContainText("resposta antiga");
@@ -199,7 +199,7 @@ test.describe("Tela de boas-vindas", () => {
     await page.goto("/");
 
     // Entra na conversa 7 e manda um follow-up (o stream fica pendurado 4s).
-    await page.getByRole("button", { name: "Conversa antiga" }).click();
+    await page.getByRole("button", { name: "Conversa antiga", exact: true }).click();
     await expect(page.getByTestId("assistant-content")).toContainText("resposta antiga");
     await page.getByTestId("chat-input").fill("follow-up na conversa 7");
     await page.getByTestId("chat-send").click();
@@ -230,7 +230,7 @@ test.describe("Tela de boas-vindas", () => {
     });
     await page.goto("/");
 
-    await page.getByRole("button", { name: "Conversa antiga" }).click();
+    await page.getByRole("button", { name: "Conversa antiga", exact: true }).click();
 
     // Nem tela em branco, nem boas-vindas fingindo conversa nova: erro com retry.
     const errorBox = page.getByTestId("conversation-load-error");

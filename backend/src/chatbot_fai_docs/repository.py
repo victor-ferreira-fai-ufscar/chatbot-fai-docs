@@ -124,14 +124,24 @@ class PostgresChatRepository:
                 )
             conn.commit()
 
-    def update_title(self, conversation_id: int, new_title: str) -> None:
+    def update_title(self, conversation_id: int, new_title: str, user_id: Optional[str] = None) -> bool:
+        """Renomeia uma conversa. Com user_id, so renomeia se a conversa for daquele
+        usuario (impede renomear conversa de terceiros). Retorna True se algo mudou."""
         with psycopg.connect(self.database_url) as conn:
             with conn.cursor() as cur:
-                cur.execute(
-                    "UPDATE chat_conversations SET title = %s WHERE id = %s",
-                    (new_title, conversation_id)
-                )
+                if user_id is not None:
+                    cur.execute(
+                        "UPDATE chat_conversations SET title = %s WHERE id = %s AND user_id = %s",
+                        (new_title, conversation_id, user_id)
+                    )
+                else:
+                    cur.execute(
+                        "UPDATE chat_conversations SET title = %s WHERE id = %s",
+                        (new_title, conversation_id)
+                    )
+                affected = cur.rowcount
             conn.commit()
+        return affected > 0
 
     def delete_conversation(self, conversation_id: int, user_id: Optional[str] = None) -> None:
         with psycopg.connect(self.database_url) as conn:
@@ -188,11 +198,12 @@ class InMemoryChatRepository:
         self._messages.setdefault(conversation_id, []).append(msg)
         self._next_msg_id += 1
 
-    def update_title(self, conversation_id: int, new_title: str) -> None:
+    def update_title(self, conversation_id: int, new_title: str, user_id: Optional[str] = None) -> bool:
         for c in self._conversations:
-            if c.id == conversation_id:
+            if c.id == conversation_id and (user_id is None or c.user_id == user_id):
                 c.title = new_title
-                return
+                return True
+        return False
 
     def delete_conversation(self, conversation_id: int, user_id: Optional[str] = None) -> None:
         if user_id is not None:

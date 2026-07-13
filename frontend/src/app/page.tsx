@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Sidebar from "@/components/layout/Sidebar";
 import SourcesPanel from "@/components/layout/SourcesPanel";
 import ChatWindow from "@/components/chat/ChatWindow";
@@ -8,7 +8,7 @@ import ChatWindow from "@/components/chat/ChatWindow";
 export type SidebarMode = "history" | "settings";
 
 export default function Home() {
-  const [conversations, setConversations] = useState([]);
+  const [conversations, setConversations] = useState<any[]>([]);
   const [sidebarMode, setSidebarMode] = useState<SidebarMode>("history");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [selectedConversationId, setSelectedConversationId] = useState<number | null>(null);
@@ -22,6 +22,10 @@ export default function Home() {
   const [activeSources, setActiveSources] = useState<string[]>([]);
   const [activeAnswer, setActiveAnswer] = useState<string>("");
   const [sourcesLoading, setSourcesLoading] = useState(false);
+  // Renomeações otimistas ainda não confirmadas pelo servidor (id -> título novo).
+  // fetchHistory sobrepõe esses títulos por cima do payload do backend até o servidor
+  // refletir o valor — sem isso, um GET obsoleto (poll de 15s) reverteria o rename.
+  const pendingRenamesRef = useRef<Map<number, string>>(new Map());
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
@@ -46,6 +50,18 @@ export default function Home() {
       const response = await fetch(`${API_BASE_URL}/history/?user_id=${encodeURIComponent(uid)}`);
       if (response.ok) {
         const data = await response.json();
+        // Preserva renomeações pendentes: se este GET foi lido ANTES do PATCH commitar,
+        // ele traz o título antigo. Sobrepomos pelo pendente; quando o servidor já
+        // reflete o novo, limpamos o pendente (reconciliado).
+        const pend = pendingRenamesRef.current;
+        if (pend.size > 0) {
+          for (const c of data) {
+            const p = pend.get(c.id);
+            if (p === undefined) continue;
+            if (c.title === p) pend.delete(c.id);
+            else c.title = p;
+          }
+        }
         setConversations(data);
       }
     } catch (e) {
@@ -133,11 +149,35 @@ export default function Home() {
     setSidebarMode("history");
   };
 
+  const handleRenameConversation = async (id: number, newTitle: string) => {
+    const title = newTitle.trim();
+    if (!title || !userId) return;
+    // Marca como pendente ANTES do update otimista: sobrevive a um fetchHistory
+    // concorrente (poll de 15s / fim de streaming) até o servidor confirmar.
+    pendingRenamesRef.current.set(id, title);
+    setConversations((prev) => prev.map((c: any) => (c.id === id ? { ...c, title } : c)));
+    try {
+      const res = await fetch(`${API_BASE_URL}/history/${id}?user_id=${encodeURIComponent(userId)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      // Sucesso: mantém pendente até um fetchHistory ver o título novo — um GET obsoleto
+      // (lido antes do PATCH) ainda pode estar em voo. O próximo poll reconcilia e limpa.
+    } catch (e) {
+      console.error("Erro ao renomear conversa", e);
+      pendingRenamesRef.current.delete(id);
+      fetchHistory();
+    }
+  };
+
   const handleDeleteConversation = async (id: number) => {
     if (!confirm("Tem certeza que deseja excluir esta conversa?")) return;
 
     try {
       await fetch(`${API_BASE_URL}/history/${id}?user_id=${encodeURIComponent(userId ?? "")}`, { method: 'DELETE' });
+      pendingRenamesRef.current.delete(id); // conversa foi embora: descarta rename pendente órfão
       setConversations(conversations.filter((c: any) => c.id !== id));
       if (selectedConversationId === id) setSelectedConversationId(null);
       fetchHistory();
@@ -181,6 +221,7 @@ export default function Home() {
           onOpenSettings={toggleSettings}
           onSelectConversation={handleSelectConversation}
           onDeleteConversation={handleDeleteConversation}
+          onRenameConversation={handleRenameConversation}
           selectedConversationId={selectedConversationId}
           conversations={conversations}
           isBackendConnected={isBackendConnected}
