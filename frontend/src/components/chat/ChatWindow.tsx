@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, User, Mic, Square, Loader2, Plus, Trash2, Image, FileText, X, Copy, Check, Download, Reply, ArrowDown } from "lucide-react";
+import { Send, User, Mic, Square, Loader2, Plus, Trash2, Image, FileText, X, Copy, Check, Download, Reply, ArrowDown, Sparkles } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
@@ -256,6 +256,92 @@ function QuotedBlock({ quoted, onUserBubble }: { quoted: QuotedRef; onUserBubble
   );
 }
 
+// Sugestões da tela de boas-vindas: perguntas VERBATIM da bateria de consistência
+// (backend/eval/.probe_high.json), já validadas com resposta fundamentada no manual.
+// Não encurtar: remover um qualificador ("com recursos públicos") muda a recuperação.
+const SUGGESTED_QUESTIONS = [
+  "Qual é o limite financeiro para a contratação direta de serviços e compras com recursos públicos e como evitar o fracionamento de despesa?",
+  "Quais as limitações para a contratação de profissionais autônomos (Pessoa Física)?",
+  "Quais os prazos e trâmites para obras de engenharia nos campi da UFSCar?",
+];
+
+// Tela de boas-vindas (estado vazio): saudação da Lina + sugestões de perguntas.
+// Aparece ao entrar no chat ou ao iniciar uma nova conversa; some na primeira mensagem.
+function WelcomeScreen({
+  onSuggestion,
+  onAbout,
+  suggestionsDisabled,
+}: {
+  onSuggestion: (question: string) => void;
+  onAbout: () => void;
+  suggestionsDisabled: boolean;
+}) {
+  return (
+    // min-h-full (e não h-full): em janelas baixas o conteúdo excede o contêiner e,
+    // com altura fixa + justify-center, o topo (avatar) ficaria cortado sem scroll.
+    <div
+      data-testid="welcome-message"
+      className="flex min-h-full flex-col items-center justify-center gap-4 px-6 text-center animate-in fade-in slide-in-from-bottom-4 duration-500"
+    >
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            onClick={onAbout}
+            aria-label="Sobre a Lina"
+            className="rounded-full transition-transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue/60"
+          >
+            <Avatar className="size-20 shadow-md ring-4 ring-accent-blue/10">
+              <AvatarImage
+                src="/Lina.jpg"
+                alt="Lina, assistente virtual da FAI-UFSCar"
+                className="object-cover"
+              />
+              <AvatarFallback className="bg-primary text-primary-foreground text-2xl">L</AvatarFallback>
+            </Avatar>
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>Sobre a Lina</TooltipContent>
+      </Tooltip>
+
+      <div className="max-w-md space-y-1.5">
+        <h2 className="text-xl font-bold text-foreground">Olá! Eu sou a Lina 👋</h2>
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          Sou a assistente virtual da FAI-UFSCar e estou aqui para ajudar você com
+          dúvidas sobre manuais, procedimentos e documentos institucionais,
+          indicando as fontes sempre que possível. Como posso ajudar hoje?
+        </p>
+      </div>
+
+      <div className="mt-2 w-full max-w-md space-y-2">
+        <div className="flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          <Sparkles size={10} /> Experimente perguntar
+        </div>
+        <div className="flex flex-wrap justify-center gap-2">
+          {SUGGESTED_QUESTIONS.map((question) => (
+            <Button
+              key={question}
+              type="button"
+              data-testid="suggestion-chip"
+              variant="outline"
+              size="sm"
+              disabled={suggestionsDisabled}
+              onClick={() => onSuggestion(question)}
+              // shrink + max-w-full anulam o shrink-0 da base do Button: sem eles o
+              // chip fica na largura de linha única (max-content) e estoura o contêiner.
+              // Texto do hover em accent-blue-hover (não accent-blue): sobre o fundo
+              // accent-blue/10, o tom claro fica em ~3,9:1 — abaixo do AA para 12px.
+              className="h-auto max-w-full shrink whitespace-normal rounded-full bg-card px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent-blue/10 hover:text-accent-blue-hover hover:border-accent-blue/30"
+            >
+              {question}
+            </Button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Botão "Responder" (mencionar mensagem como contexto).
 function ReplyButton({ onClick }: { onClick: () => void }) {
   return (
@@ -295,38 +381,61 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
   const messagesEndRef = useRef<HTMLDivElement>(null);
   // Rastreia se o usuario esta perto do fim (para auto-seguir novas mensagens sem "puxar" quem rolou para cima).
   const atBottomRef = useRef(true);
+  // Controlador do stream de resposta em curso; abortado quando a conversa muda.
+  const sendAbortRef = useRef<AbortController | null>(null);
+  // Falha ao carregar a conversa selecionada (mostra erro inline com retry).
+  const [loadError, setLoadError] = useState(false);
+
+  // Carrega as mensagens de uma conversa do histórico. Fora do useEffect porque o
+  // botão "Tentar novamente" precisa reexecutá-la: re-clicar a MESMA conversa na
+  // sidebar não re-dispara o efeito (mesmo id -> bail-out do React).
+  const loadConversation = async (id: number) => {
+    setLoadError(false);
+    setIsTyping(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/history/${id}/messages?user_id=${encodeURIComponent(userId ?? "")}`);
+      if (response.ok) {
+        const data = await response.json();
+        // Map backend messages to frontend format
+        setMessages(data.map((m: any) => ({
+          role: m.role,
+          content: m.content,
+          sources: m.metadata?.sources,
+          genTime: m.metadata?.gen_time,
+          usage: m.metadata?.usage,
+          quoted: m.metadata?.quoted
+        })));
+        // Alimenta a SourcesPanel com as fontes da ultima resposta da conversa carregada.
+        const lastAsst = [...data].reverse().find((m: any) => m.role === "assistant" && m.metadata?.sources?.length);
+        if (onActiveSources) onActiveSources(lastAsst?.metadata?.sources || [], lastAsst?.content || "");
+      } else {
+        setLoadError(true);
+        toast.error("Não foi possível carregar a conversa. Tente novamente.");
+      }
+    } catch (e) {
+      console.error("Erro ao carregar mensagens", e);
+      setLoadError(true);
+      toast.error("Não foi possível carregar a conversa. Tente novamente.");
+    } finally {
+      setIsTyping(false);
+    }
+  };
 
   // Sync internal conversationId with prop and fetch messages if needed
   useEffect(() => {
+    // Trocar de conversa MATA o stream em curso: sem isso, o "done" do stream antigo
+    // restauraria o conversationId anterior por baixo da tela de boas-vindas e a
+    // próxima pergunta seria anexada (com o contexto!) àquela conversa antiga.
+    sendAbortRef.current?.abort();
+    sendAbortRef.current = null;
     setConversationId(selectedConversationId);
+    // Uma citação pendente pertence à conversa anterior — descartá-la evita enviar
+    // "Respondendo a..." de uma mensagem que não está mais na tela.
+    setReplyingTo(null);
 
+    setLoadError(false);
     if (selectedConversationId) {
-      const fetchMessages = async () => {
-        setIsTyping(true);
-        try {
-          const response = await fetch(`${API_BASE_URL}/history/${selectedConversationId}/messages?user_id=${encodeURIComponent(userId ?? "")}`);
-          if (response.ok) {
-            const data = await response.json();
-            // Map backend messages to frontend format
-            setMessages(data.map((m: any) => ({
-              role: m.role,
-              content: m.content,
-              sources: m.metadata?.sources,
-              genTime: m.metadata?.gen_time,
-              usage: m.metadata?.usage,
-              quoted: m.metadata?.quoted
-            })));
-            // Alimenta a SourcesPanel com as fontes da ultima resposta da conversa carregada.
-            const lastAsst = [...data].reverse().find((m: any) => m.role === "assistant" && m.metadata?.sources?.length);
-            if (onActiveSources) onActiveSources(lastAsst?.metadata?.sources || [], lastAsst?.content || "");
-          }
-        } catch (e) {
-          console.error("Erro ao carregar mensagens", e);
-        } finally {
-          setIsTyping(false);
-        }
-      };
-      fetchMessages();
+      loadConversation(selectedConversationId);
     } else {
       // Reset for new chat
       setMessages([]);
@@ -366,12 +475,16 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
     }
   }, [messages]);
 
-  const handleSend = async () => {
-    if (!input.trim() || isTyping) return;
+  // `text` permite enviar uma pergunta pronta (sugestões da tela de boas-vindas)
+  // sem passar pelo estado do input.
+  const handleSend = async (text?: string) => {
+    const userMessage = (text ?? input).trim();
+    if (!userMessage || isTyping) return;
 
-    const userMessage = input.trim();
     const quoted = replyingTo;
-    setInput("");
+    // Só limpa o input quando a mensagem veio dele: um clique em sugestão não pode
+    // descartar um rascunho que o usuário tenha digitado.
+    if (text == null) setInput("");
     setReplyingTo(null);
     setShowAttachments(false);
     setIsTyping(true);
@@ -384,9 +497,14 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
     // Prepare assistant placeholder message
     setMessages(prev => [...prev, { role: "assistant", content: "" }]);
 
+    // Abortado pelo useEffect se o usuário trocar de conversa no meio do stream.
+    const ac = new AbortController();
+    sendAbortRef.current = ac;
+
     try {
       const response = await fetch(`${API_BASE_URL}/chat/stream`, {
         method: 'POST',
+        signal: ac.signal,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -443,6 +561,9 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
 
               // Update the last assistant message in real-time
               setMessages(prev => {
+                // Um último chunk pode chegar logo após a troca de conversa limpar a
+                // tela (antes do abort derrubar o reader) — não há bolha para escrever.
+                if (prev.length === 0) return prev;
                 const newMessages = [...prev];
                 const lastMsgIndex = newMessages.length - 1;
                 newMessages[lastMsgIndex] = {
@@ -477,13 +598,19 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
       }
 
     } catch (error: any) {
-      console.error("Erro no chat:", error);
-      setMessages(prev => {
-        const newMessages = [...prev];
-        newMessages[newMessages.length - 1].content = `Desculpe, ocorreu um erro de conexão: ${error.message}`;
-        return newMessages;
-      });
+      // Abort esperado (troca de conversa): o efeito já limpou a tela — não há
+      // bolha de resposta para preencher com mensagem de erro.
+      if (!ac.signal.aborted) {
+        console.error("Erro no chat:", error);
+        setMessages(prev => {
+          if (prev.length === 0) return prev;
+          const newMessages = [...prev];
+          newMessages[newMessages.length - 1].content = `Desculpe, ocorreu um erro de conexão: ${error.message}`;
+          return newMessages;
+        });
+      }
     } finally {
+      if (sendAbortRef.current === ac) sendAbortRef.current = null;
       setIsTyping(false);
       onGenerating?.(false);
     }
@@ -622,8 +749,46 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
       <div
         ref={messagesContainerRef}
         onScroll={handleMessagesScroll}
-        className="flex-1 overflow-y-auto p-6 space-y-6"
+        tabIndex={-1}
+        className="flex-1 overflow-y-auto p-6 space-y-6 focus:outline-none"
       >
+        {/* Boas-vindas SÓ no estado de conversa nova: sem mensagens, sem carregamento
+            em curso (isTyping) e sem conversa selecionada — se o load de uma conversa
+            selecionada falhar, a área fica vazia (com toast) em vez de fingir conversa
+            nova com o conversation_id antigo. */}
+        {messages.length === 0 && !isTyping && !selectedConversationId && (
+          <WelcomeScreen
+            onSuggestion={(question) => {
+              handleSend(question);
+              // O chip clicado desmonta junto com a tela; devolve o foco a um alvo
+              // persistente para navegação por teclado/leitor de tela.
+              messagesContainerRef.current?.focus();
+            }}
+            onAbout={() => setShowAbout(true)}
+            suggestionsDisabled={isRecording || isTranscribing}
+          />
+        )}
+
+        {/* Falha ao carregar a conversa selecionada: erro inline com retry. Só o toast
+            (~4s) deixava a área em branco sem caminho de recuperação — re-clicar a mesma
+            conversa na sidebar não refaz o fetch (mesmo id -> o efeito não re-executa). */}
+        {loadError && !isTyping && selectedConversationId != null && messages.length === 0 && (
+          <div
+            data-testid="conversation-load-error"
+            className="flex min-h-full flex-col items-center justify-center gap-3 px-6 text-center"
+          >
+            <p className="text-sm text-muted-foreground">Não foi possível carregar esta conversa.</p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => loadConversation(selectedConversationId)}
+            >
+              Tentar novamente
+            </Button>
+          </div>
+        )}
+
         {messages.map((m, idx) => (
           <div key={idx} className={`flex gap-4 ${m.role === 'user' ? 'justify-end' : ''}`}>
             {m.role === 'assistant' && (
@@ -746,14 +911,18 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
             )}
           </div>
         ))}
-        {/* Sentinela: alvo do scroll para o fim da conversa */}
-        <div ref={messagesEndRef} />
+        {/* Sentinela: alvo do scroll para o fim da conversa. Só existe com mensagens —
+            no estado vazio ela ganharia margem do space-y-6 e criaria scroll sob a
+            tela de boas-vindas (que ocupa h-full). */}
+        {messages.length > 0 && <div ref={messagesEndRef} />}
       </div>
 
       {/* Input Area (flutuante) */}
       <div className="relative px-4 pb-4 pt-2">
-        {/* Setinha "ir para a última mensagem" (aparece ao rolar para cima) */}
-        {showScrollToBottom && (
+        {/* Setinha "ir para a última mensagem" (aparece ao rolar para cima). Exige
+            mensagens: sem elas a sentinela não existe (scrollToBottom seria no-op) e o
+            rótulo nem faria sentido — em janelas baixas a welcome também gera scroll. */}
+        {showScrollToBottom && messages.length > 0 && (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -939,7 +1108,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
                   type="button"
                   size="icon"
                   data-testid="chat-send"
-                  onClick={handleSend}
+                  onClick={() => handleSend()}
                   aria-label="Enviar"
                   className="rounded-full bg-accent-blue text-white shadow-md shadow-accent-blue/20 transition-all hover:bg-accent-blue-hover active:scale-95 disabled:opacity-40 disabled:grayscale disabled:shadow-none"
                   disabled={!input.trim() || isTyping}
