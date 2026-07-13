@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, User, Mic, Square, Loader2, Plus, Trash2, Image, FileText, X, Copy, Check, Download, Reply, ArrowDown, Sparkles } from "lucide-react";
+import { Send, User, Mic, Square, Loader2, Plus, Trash2, Image, FileText, X, Copy, Check, Download, Reply, ArrowDown, Sparkles, Printer } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
@@ -371,6 +371,9 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
   // desligado (default) = RAG direto pelo manual (útil para testar precisão/alucinação), sem gerar docs.
   const [agenticMode, setAgenticMode] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  // Exportação de PDF em andamento (desabilita o botão e evita cliques repetidos
+  // gerando múltiplos downloads e várias renderizações no backend).
+  const [isExporting, setIsExporting] = useState(false);
   const [conversationId, setConversationId] = useState<number | null>(null);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -732,6 +735,47 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
     }
   };
 
+  // URL do PDF branded da conversa (gerado no backend por WeasyPrint). download=true
+  // força attachment; inline abre no visualizador (para imprimir).
+  const conversationPdfUrl = (download: boolean) =>
+    `${API_BASE_URL}/history/${conversationId}/export.pdf?user_id=${encodeURIComponent(userId ?? "guest")}` +
+    (download ? "&download=true" : "");
+
+  // Imprimir: abre o PDF em nova aba; o usuário imprime pelo visualizador (evita que o
+  // navegador injete cabeçalho/rodapé próprios por cima do layout FAI).
+  const handlePrintConversation = () => {
+    if (!conversationId) return;
+    window.open(conversationPdfUrl(false), "_blank", "noopener,noreferrer");
+  };
+
+  // Exportar: baixa o PDF via blob (nome de arquivo previsível, sem aba em branco).
+  const handleExportConversation = async () => {
+    if (!conversationId || isExporting) return;
+    setIsExporting(true);
+    try {
+      const res = await fetch(conversationPdfUrl(true));
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const cd = res.headers.get("content-disposition") || "";
+      const m = cd.match(/filename="?([^"]+)"?/i);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = m ? m[1] : `conversa-${conversationId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      // Revoga só no próximo tick: revogar de imediato pode abortar o download em
+      // alguns navegadores.
+      setTimeout(() => URL.revokeObjectURL(url), 0);
+    } catch (e) {
+      console.error("Erro ao exportar PDF", e);
+      toast.error("Não foi possível exportar o PDF. Tente novamente.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   // Lixeira do input: limpa a conversa da tela e volta para uma nova, SEM apagar nada
   // do histórico (a conversa salva continua acessível pela barra lateral). Reseta o
   // estado local e avisa o pai (onNewChat) para desselecionar a conversa atual.
@@ -747,6 +791,46 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
 
   return (
     <div className="flex flex-col h-full bg-muted/30">
+      {/* Barra de ações da conversa: exportar/imprimir. Só com conversa salva
+          (conversationId) e mensagens na tela — uma conversa nova ainda sem id não
+          pode ser exportada. Fica MONTADA durante a geração (botões desabilitados)
+          para não piscar / dar salto de layout a cada turno. */}
+      {conversationId && messages.length > 0 && (
+        <div className="flex items-center justify-end gap-2 border-b border-border bg-card/60 px-4 py-1.5 backdrop-blur-sm">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="xs"
+                onClick={handlePrintConversation}
+                disabled={isTyping}
+                className="text-[11px] text-muted-foreground hover:text-accent-blue hover:border-accent-blue/30 disabled:opacity-40"
+              >
+                <Printer /> Imprimir
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Abrir o PDF da conversa para impressão</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="xs"
+                onClick={handleExportConversation}
+                disabled={isTyping || isExporting}
+                className="text-[11px] text-muted-foreground hover:text-accent-blue hover:border-accent-blue/30 disabled:opacity-40"
+              >
+                {isExporting ? <Loader2 className="animate-spin" /> : <Download />}
+                {isExporting ? "Exportando…" : "Exportar PDF"}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Baixar a conversa em PDF (padrão FAI)</TooltipContent>
+          </Tooltip>
+        </div>
+      )}
+
       {/* Messages Area */}
       <div
         ref={messagesContainerRef}

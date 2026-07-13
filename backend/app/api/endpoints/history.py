@@ -1,4 +1,7 @@
-from fastapi import APIRouter, HTTPException, Depends
+import re
+import unicodedata
+from datetime import datetime
+from fastapi import APIRouter, HTTPException, Depends, Response
 from typing import List
 from app.core.config import settings
 from app.schemas.history_schema import Conversation, ConversationCreate, ConversationRename, Message
@@ -6,6 +9,14 @@ from src.chatbot_fai_docs.repository import get_repo_from_url
 from typing import Optional
 
 router = APIRouter()
+
+
+def _pdf_slug(title: str, conversation_id: int) -> str:
+    """Nome de arquivo ASCII seguro p/ o Content-Disposition (sem acento/espaço)."""
+    base = unicodedata.normalize("NFKD", title or "").encode("ascii", "ignore").decode("ascii")
+    base = re.sub(r"[^A-Za-z0-9]+", "-", base).strip("-").lower()
+    base = base[:60].strip("-")
+    return f"conversa-{base}" if base else f"conversa-{conversation_id}"
 
 def get_repo():
     # Persistencia do historico independe do motor RAG: usa Postgres se DATABASE_URL
@@ -62,6 +73,54 @@ async def rename_conversation(
     if not ok:
         raise HTTPException(status_code=404, detail="Conversa não encontrada.")
     return {"status": "success", "id": conversation_id, "title": title}
+
+@router.get("/{conversation_id}/export.pdf")
+async def export_conversation_pdf(
+    conversation_id: int,
+    user_id: str = "guest",
+    download: bool = False,
+    repo = Depends(get_repo),
+):
+    """Exporta a conversa como PDF branded (FAI). Escopo pelo user_id (só o dono).
+    download=true força attachment; senão inline (abre no visualizador p/ imprimir)."""
+    try:
+        conv = next((c for c in repo.list_conversations(user_id) if c.id == conversation_id), None)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    if conv is None:
+        raise HTTPException(status_code=404, detail="Conversa não encontrada.")
+
+    messages = repo.get_messages(conversation_id, user_id)
+    if not messages:
+        raise HTTPException(status_code=404, detail="Conversa sem mensagens para exportar.")
+
+    # Teto defensivo: WeasyPrint é CPU/memória-intensivo. Conversa gigante -> erro claro
+    # em vez de segurar o servidor (o offload abaixo evita travar o event loop, mas o
+    # teto limita o pior caso de tamanho).
+    total_chars = sum(len(getattr(m, "content", "") or "") for m in messages)
+    if len(messages) > 1000 or total_chars > 800_000:
+        raise HTTPException(status_code=413, detail="Conversa muito longa para exportar em PDF.")
+
+    from src.chatbot_fai_docs.conversation_pdf import build_conversation_pdf
+    from starlette.concurrency import run_in_threadpool
+    try:
+        # Offload para thread: write_pdf() é síncrono e bloquearia o event loop async
+        # (nenhuma outra requisição seria atendida durante a renderização).
+        pdf_bytes = await run_in_threadpool(
+            build_conversation_pdf,
+            conv.title, messages, conversation_id=conversation_id, exported_at=datetime.now(),
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao gerar o PDF: {e}")
+
+    slug = _pdf_slug(conv.title, conversation_id)
+    disposition = "attachment" if download else "inline"
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'{disposition}; filename="{slug}.pdf"'},
+    )
+
 
 @router.delete("/{conversation_id}")
 async def delete_conversation(conversation_id: int, user_id: str = "guest", repo = Depends(get_repo)):

@@ -44,3 +44,7 @@ openpyxl>=3.1
 # exige libs de sistema (libpango/libcairo/libgdk-pixbuf) instaladas no Dockerfile.
 weasyprint>=60
 markdown>=3.5
+# nh3: sanitiza o HTML gerado pelo markdown da RESPOSTA (conteudo do modelo) antes de
+# ir para o WeasyPrint. Sem isso, um <style>/style= na resposta injetaria layout no PDF
+# (esconder cabecalho/aviso, overlay) — ver conversation_pdf._render_answer_html.
+nh3>=0.2
