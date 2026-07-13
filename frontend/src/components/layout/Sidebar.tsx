@@ -328,9 +328,9 @@ export default function Sidebar({
                                 e.stopPropagation();
                                 startRename(conv.id, conv.title);
                               }}
-                              // focus:opacity-100 revela no foco por teclado (senão o anel de
-                              // foco fica em opacity-0 -> falha de WCAG 2.4.7 Focus Visible).
-                              className="text-gray-500 hover:text-accent-blue hover:bg-transparent opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all"
+                              // SEMPRE visível (discreto, realça no hover): so-no-hover deixava
+                              // o ícone invisível até passar o mouse e inacessível no toque.
+                              className="text-gray-400 hover:text-accent-blue hover:bg-transparent transition-colors"
                               title="Renomear conversa"
                               aria-label={`Renomear conversa: ${conv.title}`}
                             >
@@ -344,7 +344,7 @@ export default function Sidebar({
                                 e.stopPropagation();
                                 onDeleteConversation(conv.id);
                               }}
-                              className="text-gray-500 hover:text-accent-orange hover:bg-transparent opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all"
+                              className="text-gray-400 hover:text-accent-orange hover:bg-transparent transition-colors"
                               title="Excluir conversa"
                               aria-label={`Excluir conversa: ${conv.title}`}
                             >
