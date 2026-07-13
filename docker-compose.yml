@@ -6,7 +6,11 @@
 #  - lightrag: 127.0.0.1:9621 (APENAS local — sem autenticacao, nao expor)
 services:
   lightrag:
-    image: ghcr.io/hkuds/lightrag:latest
+    # Imagem FIXADA por digest (era :latest): o patch de prompt abaixo (volumes) sobrepoe um
+    # arquivo INTERNO da imagem, entao um update silencioso de :latest poderia divergir do
+    # patch. Ao atualizar de proposito: re-extrair /app/lightrag/prompt.py, reaplicar o patch
+    # (ver comentario no topo de lightrag/patch/prompt.py) e trocar o digest aqui.
+    image: ghcr.io/hkuds/lightrag@sha256:49eacfa99dda7bdd819880c8acd18b011e57f8b00d8d9ded453005043347a597
     container_name: fai_lightrag
     network_mode: host
     environment:
@@ -19,27 +23,40 @@ services:
       LIGHTRAG_API_KEY: ${LIGHTRAG_API_KEY:?defina LIGHTRAG_API_KEY no .env}
       WORKING_DIR: /app/data/rag_storage
       INPUT_DIR: /app/data/inputs
-      # LLM e embeddings 100% locais via Ollama do host
+      # ── LLM de SINTESE: alternavel Ollama local (padrao/ATIVO) <-> OpenAI (testes) ──
+      # Trocar p/ OpenAI (testes): comente o bloco "OLLAMA local (ATIVO)" e descomente o
+      # "OPENAI (ROLLBACK)" logo abaixo; depois: docker compose up -d --force-recreate lightrag.
+      # Embeddings NAO mudam (bge-m3 local) -> nao precisa reindexar em nenhum dos lados.
+      #
+      # === OLLAMA local (ATIVO) — gpt-oss:20b (MoE 20.9B/MXFP4) via PROXY-SHIM :11435 ===
+      # O shim injeta think="high" (THINK_LEVEL) e remove o `thinking` da resposta. (gpt-oss
+      # substituiu gemma4:26b, que tinha loop de repeticao degenerada upstream.) Embeddings
+      # sempre direto no :11434. Temperatura da sintese via OLLAMA_LLM_TEMPERATURE (abaixo).
       LLM_BINDING: ollama
-      # Sintese do RAG. gpt-oss:20b (MoE 20.9B/MXFP4, estavel e ja validado 9/9 pela
-      # rota real do chatbot) substitui gemma4:26b: a familia Gemma 4 MoE-26B/31B tem
-      # bug upstream de loop de repeticao degenerada (saturacao de logit no softcap,
-      # imune a repeat_penalty) reproduzido em Ollama/vLLM/llama.cpp -> instavel para
-      # sintese. gpt-oss tem KV cache baratissimo (~2.6 GB) e melhor co-residencia.
+      # === HISTORICO do A/B de sintese (candidatos testados vao DIRETO no :11434, sem shim) ===
+      # qwen3:32b-nothink (2026-07-01): REPROVADO — ~80-220s/resposta (denso 32B) e 0 fontes +
+      #   abstencao no caso "reforma" (gap lexical). Bateria em backend/eval/consistency_probe.py.
+      # gemma4:12b (2026-07-02): passou a bateria reforma/negativa (fontes ok, sem loop de
+      #   repeticao — o bug e da familia MoE 26B/31B), mas ~54-71s vs ~30-40s do gpt-oss.
+      # P/ retestar um candidato: LLM_MODEL=<modelo> + LLM_BINDING_HOST=http://127.0.0.1:11434.
       LLM_MODEL: gpt-oss:latest
-      # O host do LLM aponta para o PROXY-SHIM (:11435), nao para o Ollama direto (:11434).
-      # O shim injeta think="high" no gpt-oss (raciocinio profundo; o binding ollama do
-      # LightRAG nao envia esse campo) e remove o `thinking` da resposta. Rollback: voltar
-      # para http://127.0.0.1:11434 e restart. Embeddings continuam direto no :11434.
       LLM_BINDING_HOST: http://127.0.0.1:11435
+      #
+      # === OPENAI (ROLLBACK p/ testes — descomente as 5 linhas abaixo) ===
+      # gpt-4.1-mini via API OpenAI (vai DIRETO, nao usa o shim :11435). Requer OPENAI_API_KEY no .env.
+      # LLM_BINDING: openai
+      # LLM_MODEL: gpt-4.1-mini
+      # LLM_BINDING_HOST: https://api.openai.com/v1
+      # LLM_BINDING_API_KEY: ${OPENAI_API_KEY:?defina OPENAI_API_KEY no .env (necessario enquanto o bloco OpenAI estiver ativo)}
+      # OPENAI_LLM_TEMPERATURE: "0.0"
       # Temperatura da sintese. ANTES nao era setada -> caia no DEFAULT_TEMPERATURE=1.0
       # do LightRAG (pior caso para fundamentacao estrita: incentiva divagacao e
       # citacao inconsistente). Fixada baixa (0.1) via binding_options do LightRAG
       # (lightrag/llm/binding_options.py injeta como options.temperature no Ollama).
       # O QueryRequest da API NAO expoe temperature; so da pra fixar por env do servidor.
-      # 0.1 -> 0.0 (greedy): a recuperacao e deterministica (probe 8/8 identico), mas a
-      # SINTESE oscilava entre resposta completa e abstencao para a MESMA pergunta. Greedy
-      # reduz o sampling p/ consistencia. Em teste.
+      # 0.1 -> 0.0 (greedy) p/ consistencia: a SINTESE oscilava entre resposta completa e
+      # abstencao p/ a MESMA pergunta; greedy reduz o sampling. (0.5 foi testado p/ mais
+      # variabilidade e revertido p/ 0.0 — a consistencia e prioridade aqui.)
       OLLAMA_LLM_TEMPERATURE: "0.0"
       # Janela total (entrada+saida) por requisicao, alocada por slot paralelo do
       # Ollama (KV cache na VRAM). 65536 da folga de geracao para um modelo de
@@ -120,6 +137,12 @@ services:
     volumes:
       - ./lightrag/data/rag_storage:/app/data/rag_storage
       - ./lightrag/data/inputs:/app/data/inputs
+      # PATCH do template de sintese (rag_response): o protocolo nativo de citacao da lib
+      # ("### References"/"[n] Titulo") conflitava com o nosso ("> Fonte: [arquivo, pag N]")
+      # e a negativa seca ("not enough information") conflitava com o Protocolo de Negativa.
+      # O modelo recebia DOIS formatos e ora seguia um, ora outro -> painel de fontes vazio.
+      # Detalhes e instrucoes de regeneracao no topo do proprio arquivo.
+      - ./lightrag/patch/prompt.py:/app/lightrag/prompt.py:ro
     depends_on:
       # Espera o ADAPTADOR ficar HEALTHY (o /health dele so passa quando o TEI na GPU
       # responde), p/ nunca pegar o reranker meio-carregado apos restart/reboot.
@@ -191,10 +214,12 @@ services:
     network_mode: host
     environment:
       OLLAMA_UPSTREAM: http://127.0.0.1:11434
-      # A/B de consistencia: testando 'medium' vs 'high'. Racicionio mais curto = menos
-      # pontos de ramificacao na decisao responder-vs-abster -> hipotese de sintese mais
-      # reproduzivel (probe consistency_probe.py mede o flip). Rollback: voltar p/ high.
-      THINK_LEVEL: medium
+      # A/B de consistencia: 'medium' vs 'high'. Racicionio mais curto = menos pontos de
+      # ramificacao na decisao responder-vs-abster -> hipotese de sintese mais reproduzivel
+      # (probe consistency_probe.py mede o flip). 'high' faz o gpt-oss raciocinar mais antes
+      # de responder -> tende a seguir melhor regras sutis (ex.: regra 1.3, nao inventar
+      # escopo), ao custo de latencia/consistencia. Rollback: voltar p/ medium.
+      THINK_LEVEL: high
       THINK_MODELS: gpt-oss
       STRIP_THINKING: "true"
     healthcheck:
