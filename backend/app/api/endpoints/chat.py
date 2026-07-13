@@ -14,9 +14,17 @@ from src.chatbot_fai_docs.lightrag_resolver import resolve_lightrag_url
 from src.chatbot_fai_docs.smalltalk_gate import is_smalltalk
 from src.chatbot_fai_docs.storage_service import StorageService
 from src.chatbot_fai_docs.document_resolver import resolve_document_request
-from src.chatbot_fai_docs.response_cache import ResponseCache, make_key
+from src.chatbot_fai_docs.response_cache import ResponseCache, make_key, prompts_fingerprint
+from pathlib import Path
 
 router = APIRouter()
+
+# Arquivos de prompt cujo CONTEUDO entra na chave do cache (editar prompt -> cache novo).
+# parents[3] = raiz do backend (/app no container): app/api/endpoints/chat.py -> backend/.
+_PROMPT_FILES = [
+    Path(__file__).resolve().parents[3] / "src" / "IA" / "Prompt.md",
+    Path(__file__).resolve().parents[3] / "src" / "IA" / "Prompt_Skills.md",
+]
 
 # Cache de resposta do processo (LRU+TTL). Singleton: vive entre requisicoes, zera no
 # restart do backend. Ver response_cache.py para a politica (so 1o turno, so fundamentada).
@@ -219,16 +227,22 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
             lightrag_api_key=settings.LIGHTRAG_API_KEY,
             rerank_url=settings.RERANK_URL,
             rerank_fallback_enabled=settings.RERANK_FALLBACK_ENABLED,
+            supabase_fallback_enabled=settings.SUPABASE_FALLBACK_ENABLED,
         )
 
         # Carregar historico anterior da conversa (turnos previos) para dar contexto ao LightRAG.
         # A pergunta atual NAO entra aqui; ela vai separada no parametro `query`.
         try:
             prior = repo.get_messages(conversation_id, request.user_id) if conversation_id else []
-            conversation_history = [
+            _hist = [
                 {"role": m.role, "content": m.content}
                 for m in prior if m.role in ("user", "assistant")
-            ][-(settings.HISTORY_TURNS * 2):]
+            ]
+            # HISTORY_TURNS<=0 -> SEM historico (cada pergunta independente). Guard explicito:
+            # sem ele, _hist[-(0*2):] == _hist[0:] devolveria a conversa INTEIRA (slice [-0:]).
+            conversation_history = (
+                _hist[-(settings.HISTORY_TURNS * 2):] if settings.HISTORY_TURNS > 0 else []
+            )
         except Exception as e:
             print(f"Erro ao carregar historico: {e}")
             conversation_history = []
@@ -261,7 +275,8 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
         if (settings.RESPONSE_CACHE_ENABLED and not conversation_history
                 and not request.quoted and not _maybe_download_request(request.question)):
             cache_key = make_key(request.question, request.mode, agent_on,
-                                 manual_names, settings.RESPONSE_CACHE_VERSION)
+                                 manual_names, settings.RESPONSE_CACHE_VERSION,
+                                 prompts_fp=prompts_fingerprint(_PROMPT_FILES))
             cached = _response_cache.get(cache_key)
             if cached:
                 # ACERTO: reproduz a resposta fundamentada ja gerada (byte-a-byte), em chunks
@@ -399,6 +414,13 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
                         ctype, content = item
                         if ctype == "usage":
                             last_usage = content
+                            continue
+                        if ctype == "thought":
+                            # Raciocinio interno NUNCA vai ao usuario (o consumer do agente ja
+                            # suprime; aqui vazava como conteudo). Alem de expor cadeia interna
+                            # (as vezes em ingles), mascarava o falso-vazio do painel de fontes:
+                            # texto engolido pelo canal 'thought' aparecia ao usuario, mas nao
+                            # existia para o parser de citacoes.
                             continue
                         chunk_content = content
                     else:

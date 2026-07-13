@@ -28,6 +28,9 @@ class AppConfig:
     # enable_rerank=False (chunks pela ordem do embedding, que casa sinonimos que o
     # cross-encoder perde). Preenchido pelo endpoint a partir de RERANK_FALLBACK_ENABLED.
     rerank_fallback_enabled: bool = False
+    # Fallback de resiliencia: se o LightRAG falhar, responde pela base vetorial Supabase
+    # (pgvector) + Ollama. Preenchido pelo endpoint a partir de SUPABASE_FALLBACK_ENABLED.
+    supabase_fallback_enabled: bool = False
 
     @classmethod
     def from_env(cls, *, docs_dir: Path | None = None) -> "AppConfig":

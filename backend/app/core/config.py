@@ -47,6 +47,12 @@ class Settings(BaseSettings):
     # com enable_rerank=False: os chunks voltam pela ordem do EMBEDDING (bge-m3), que
     # recupera esses sinonimos. Desligue com RERANK_FALLBACK_ENABLED=false.
     RERANK_FALLBACK_ENABLED: bool = True
+    # Fallback de RESILIENCIA: quando o LightRAG falha (fora do ar/timeout/erro/vazio),
+    # responde pela base vetorial Supabase/pgvector (RagService legado) + sintese Ollama
+    # local. Modo DEGRADADO, acionado SO em falha do motor principal (uma negativa legitima
+    # do LightRAG NAO aciona). Ver src/chatbot_fai_docs/supabase_fallback.py. Desligue com
+    # SUPABASE_FALLBACK_ENABLED=false. Requer DATABASE_URL com a tabela document_chunks populada.
+    SUPABASE_FALLBACK_ENABLED: bool = True
     # Default RAG engine to use when multiple are available: 'LightRAG' or 'Supabase'
     DEFAULT_RAG_ENGINE: str = "LightRAG"
     # Numero de turnos (pares user/assistant) do historico enviados ao LightRAG como contexto
@@ -70,9 +76,11 @@ class Settings(BaseSettings):
     RESPONSE_CACHE_ENABLED: bool = True
     RESPONSE_CACHE_TTL_S: int = 86400          # 24h: estavel dentro do dia
     RESPONSE_CACHE_MAX_ENTRIES: int = 2000
-    # Suba este valor (qualquer string nova) para ESTOURAR o cache na mao apos reindexar
-    # o manual (mesmo nome de arquivo, conteudo novo) ou mudar o Prompt.md.
-    RESPONSE_CACHE_VERSION: str = "1"
+    # Suba este valor (qualquer string nova) para ESTOURAR o cache na mao apos REINDEXAR
+    # um manual (mesmo nome de arquivo, conteudo novo). Mudancas no Prompt.md NAO precisam
+    # mais de bump: o conteudo dos prompts entra na chave via prompts_fingerprint()
+    # (response_cache.py) e invalida automaticamente.
+    RESPONSE_CACHE_VERSION: str = "2"
 
     MAX_TOOL_STEPS: int = 5            # teto de iteracoes do laco (guarda anti-loop)
     TOOL_TIMEOUT_S: int = 60           # timeout por execucao de skill

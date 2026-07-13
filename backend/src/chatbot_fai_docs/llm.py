@@ -84,7 +84,14 @@ class ChatClient:
             f"{prompt_with_vars}\n\n"
             "Contexto recuperado dos documentos:\n"
             f"{context}\n\n"
-            "Ao responder, cite o nome do arquivo e a pagina quando usar informacoes do contexto."
+            # NOTA para o fluxo de CONTINGENCIA (Supabase/pgvector): aqui os trechos NAO
+            # trazem os marcadores [PÁGINA N] citados na regra de citacao do prompt — a
+            # pagina vem no cabecalho 'Pagina: N' de cada trecho. Sem esta nota, a regra
+            # do prompt seria mecanicamente falsa neste fluxo.
+            "NOTA DE SISTEMA (fluxo de contingencia): os trechos acima NAO contem marcadores "
+            "[PÁGINA N]; a pagina de cada trecho esta no cabecalho 'Pagina: N'. Ao usar "
+            "informacoes do contexto, use esse numero na linha final de fonte: "
+            "'> Fonte: [arquivo.pdf, pág. N]'."
         )
 
         user_prompt = f"Pergunta do usuario:\n{question}"

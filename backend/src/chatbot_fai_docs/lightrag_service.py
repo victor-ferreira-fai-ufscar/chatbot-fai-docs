@@ -1,8 +1,11 @@
 import json
+import logging
 import re
 import requests
 from pathlib import Path
 from typing import Generator, Tuple, Any
+
+logger = logging.getLogger(__name__)
 
 # Detecta o inicio de uma secao de "References"/"Referencias" adicionada pelo servidor LightRAG,
 # para corta-la do texto final (cobre titulos "### References", "**References**" e "References:").
@@ -15,10 +18,14 @@ FALLBACK_RE = re.compile(
     r"(?i)(no relevant context found|sorry,?\s*i'?m not able to provide an answer|\[no-context\])"
 )
 # Negativa amigavel em portugues (alinhada ao protocolo de negativa do Prompt.md).
+# TODO: quando houver contato direto dos Supervisores de Projetos, listar cada um
+# ("Supervisor de Projetos Específicos: ..." / "Supervisor de Projetos Gerais: ...")
+# aqui e na regra 2.2 do Prompt.md, no lugar do telefone/e-mail geral.
 NO_CONTEXT_MSG = (
-    "Não encontrei essa informação nos manuais disponíveis no momento. Você pode reformular a "
-    "pergunta ou, se o assunto for da FAI•UFSCar, entrar em contato pelo telefone (16) 3351-9000 "
-    "ou pelo e-mail fai@fai.ufscar.br, e falar com o gestor do seu projeto, que poderá ajudar."
+    "Não encontrei essa informação nos manuais disponíveis no momento. Para melhor atender a "
+    "essa demanda, sugerimos entrar em contato com o Gestor do seu Projeto. Caso ainda não "
+    "tenha um gestor designado, procure o Supervisor de Projetos Específicos ou o Supervisor "
+    "de Projetos Gerais pelo telefone (16) 3351-9000 ou e-mail fai@fai.ufscar.br."
 )
 
 from src.chatbot_fai_docs.config import AppConfig
@@ -185,6 +192,13 @@ def _cited_pages_for(file_path: str, cited_map: dict) -> list:
     return []
 
 
+# Entradas da secao "References" NATIVA do LightRAG ("- [1] Manual X.pdf"), que o
+# REF_SECTION_RE corta do texto exibido. Nao traz pagina, mas e sinal claro de resposta
+# FUNDAMENTADA (o modelo atribuiu fontes) -> habilita o reparo deterministico do painel,
+# em vez de destruir a evidencia junto com a secao.
+_NATIVE_REF_RE = re.compile(r"(?m)^\s*[-*]\s*\[\d{1,2}\]\s+(\S[^\n]*)$")
+
+
 def _resolve_pages(retrieved: set, cited: list) -> list:
     """Paginas a exibir, dirigidas pela CITACAO do modelo (validada), nunca pelo
     conjunto recuperado cru. Se o modelo citou paginas: mostra as que se confirmam
@@ -224,7 +238,10 @@ class LightRagService:
         self.config = config
 
     def _build_user_prompt(self, available_docs: list | None = None) -> str:
-        prompt_path = Path("src/IA/Prompt.md")
+        # Path via __file__ (mesmo padrao do llm.py): o relativo anterior dependia do CWD
+        # e, rodando fora do container a partir da raiz do repo, carregava silenciosamente
+        # uma copia obsoleta de src/IA (sem as regras anti-alucinacao).
+        prompt_path = Path(__file__).resolve().parent.parent / "IA" / "Prompt.md"
         if prompt_path.exists():
             base_prompt = prompt_path.read_text(encoding="utf-8").strip()
             date_str, time_str = get_current_date_time_pt_br()
@@ -457,17 +474,28 @@ class LightRagService:
                     chunk = data["response"]
 
                     if "<think>" in chunk:
-                        in_thought = True
+                        # Thinking legitimo so ABRE o stream (vem antes de qualquer texto de
+                        # resposta). Um "<think>" no MEIO da resposta e eco espurio do modelo:
+                        # trata-lo como abertura engolia o RESTO da resposta no canal 'thought'
+                        # (que o chat.py legado exibia mesmo assim) -> o texto VISIVEL tinha a
+                        # linha "> Fonte:" mas o seen_text (parser de citacao) nao -> cited_map
+                        # vazio -> painel de fontes vazio (falso-vazio; casos R07/NL1). Aqui
+                        # so muda de canal se ainda nao houve resposta; o token e sempre removido.
+                        if not seen_text.strip() and not in_thought:
+                            in_thought = True
                         chunk = chunk.replace("<think>", "")
 
                     if "</think>" in chunk:
-                        parts = chunk.split("</think>")
-                        if parts[0] or in_thought:
-                            yield ("thought", parts[0])
-                        in_thought = False
-                        if len(parts) > 1 and parts[1]:
-                            yield from feed_answer(parts[1])
-                        continue
+                        if in_thought:
+                            parts = chunk.split("</think>")
+                            if parts[0]:
+                                yield ("thought", parts[0])
+                            in_thought = False
+                            if len(parts) > 1 and parts[1]:
+                                yield from feed_answer(parts[1])
+                            continue
+                        # "</think>" sem thinking aberto: token espurio, so remover.
+                        chunk = chunk.replace("</think>", "")
 
                     if in_thought:
                         yield ("thought", chunk)
@@ -539,6 +567,67 @@ class LightRagService:
                     if file_path not in files_with_page:
                         source_lines.append(f"- {file_path}")
 
+            # REDE DE SEGURANCA (reparo deterministico do painel): o modelo SINALIZOU
+            # fundamentacao (citacao "> Fonte:" parseavel OU secao "References" nativa do
+            # LightRAG), mas o caminho normal nao produziu NENHUMA linha — falso-vazio
+            # (ex.: evento 'references' ausente no stream, nome citado com variacao,
+            # pagina citada fora do conjunto validado). Reconstroi o painel a partir dos
+            # CHUNKS pos-rerank: primeiro as paginas que o MODELO citou (validadas nos
+            # chunks); senao as TOP paginas por score, limitadas — NUNCA o conjunto
+            # inteiro (mantem a decisao de nao despejar o recuperado). Sem sinal de
+            # fundamentacao (negativa/smalltalk), NAO ha reparo: nada de fonte fantasma.
+            repair_used = False
+            native_refs = _NATIVE_REF_RE.findall(seen_text)
+            # Sinais de fundamentacao, do mais ao menos preciso: citacao com pagina
+            # (cited_map), secao References nativa, ou linha "> Fonte:" MESMO SEM pagina
+            # (_FONTE_LINE_RE) — este ultimo e o caso comum de falso-vazio (o modelo cita
+            # o arquivo mas esquece a pagina; sem isto o reparo nao disparava).
+            grounding_signal = bool(cited_map or native_refs or _FONTE_LINE_RE.search(_norm(seen_text)))
+            if not source_lines and grounding_signal:
+                chunks = prefetched_chunks if prefetched_chunks is not None else self._fetch_context_chunks(payload, headers)
+                pg_best: dict = {}
+                if chunks:
+                    scores = [] if rerank_off else self._rerank_scores(payload.get("query", ""), [c for _, c in chunks])
+                    for i, (_ref, content) in enumerate(chunks):
+                        s = scores[i] if i < len(scores) else 0.0
+                        for p in _marker_pages(content):
+                            if p > 0:
+                                pg_best[p] = max(pg_best.get(p, 0.0), s)
+                # Nome do arquivo: preferir o que o MODELO citou (se e manual real, no case
+                # canonico do disco); senao a referencia do stream; senao o unico manual local.
+                fname = next((fn for fn in cited_map if _is_real_manual(fn)), None)
+                if fname and known_manuals:
+                    fname = next((f.name for f in list_pdf_files(self.config.docs_dir)
+                                  if f.name.lower() == fname), fname)
+                if not fname and collected_refs:
+                    fname = Path(collected_refs[0][0]).name
+                if not fname and len(known_manuals) == 1:
+                    _real = list_pdf_files(self.config.docs_dir)
+                    fname = _real[0].name if _real else None
+                if fname and pg_best:
+                    REPAIR_TOP, REPAIR_MIN = 4, 0.10
+                    cited_pages = [p for pp in cited_map.values() for p in pp]
+                    pages = [p for p in cited_pages if p in pg_best][:REPAIR_TOP]
+                    if not pages:
+                        ranked = sorted(pg_best.items(), key=lambda kv: -kv[1])
+                        pages = [p for p, s in ranked if s >= REPAIR_MIN][:REPAIR_TOP] or [p for p, _s in ranked[:2]]
+                    for p in sorted(set(pages)):
+                        sc = None if rerank_off else pg_best.get(p)
+                        source_lines.append(_format_source_line_scored(fname, p, sc if sc else None))
+                    repair_used = bool(source_lines)
+
+            # INSTRUMENTACAO (diagnostico do falso-vazio): 1 linha por request com o estado
+            # de cada portao da montagem do painel. Nao loga conteudo da resposta. Usa print
+            # (padrao do codebase p/ logs operacionais) porque o uvicorn nao configura este
+            # logger e o INFO nao chegaria ao stdout do container.
+            print(
+                f"[fontes] cited_map={len(cited_map)} refs_stream={len(collected_refs)} "
+                f"native_refs={len(native_refs)} prefetch={prefetched_chunks is not None} "
+                f"rerank_off={rerank_off} reparo={repair_used} linhas={len(source_lines)} "
+                f"in_thought={in_thought} cut={cut} seen_tail={seen_text[-70:]!r}",
+                flush=True,
+            )
+
         # O retorno é o gerador em si e uma list de source_lines (sendo popularizada pelo gerador por reflexão)
         return stream_generator(), [], source_lines
 
@@ -548,6 +637,7 @@ class LightRagService:
         mode: str,
         conversation_history: list | None = None,
         history_turns: int = 5,
+        available_docs: list | None = None,
     ) -> Tuple[str, list]:
         """Variante NAO-stream para uso como ferramenta de agente (skill
         consultar_base_conhecimento): consome o gerador de answer_question_stream
@@ -562,6 +652,7 @@ class LightRagService:
             mode,
             conversation_history=conversation_history,
             history_turns=history_turns,
+            available_docs=available_docs,
         )
         parts = [content for kind, content in gen if kind == "answer"]
         return "".join(parts).strip(), source_lines

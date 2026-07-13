@@ -51,10 +51,36 @@ def manuals_version(manual_names) -> str:
     return hashlib.sha256(" ".join(names).encode("utf-8")).hexdigest()[:12]
 
 
-def make_key(question: str, mode: str, agent_on: bool, manual_names, cache_version: str) -> str:
+_PROMPT_FP_CACHE: dict = {}
+
+
+def prompts_fingerprint(paths) -> str:
+    """Hash curto do CONTEUDO dos arquivos de prompt (Prompt.md, Prompt_Skills.md),
+    memoizado por mtime (custo ~zero por request). Entra na chave do cache: editar o
+    prompt invalida o cache AUTOMATICAMENTE. Antes, a invalidacao dependia de bump
+    manual de RESPONSE_CACHE_VERSION e era facil esquecer (respostas do prompt antigo
+    eram servidas por ate 24h). A versao manual permanece p/ reindexacoes de documento."""
+    parts = []
+    for p in paths or []:
+        try:
+            st = p.stat()
+            hit = _PROMPT_FP_CACHE.get(str(p))
+            if hit and hit[0] == st.st_mtime_ns:
+                parts.append(hit[1])
+                continue
+            h = hashlib.sha256(p.read_bytes()).hexdigest()[:12]
+            _PROMPT_FP_CACHE[str(p)] = (st.st_mtime_ns, h)
+            parts.append(h)
+        except OSError:
+            parts.append("ausente")
+    return "-".join(parts)
+
+
+def make_key(question: str, mode: str, agent_on: bool, manual_names, cache_version: str,
+             prompts_fp: str = "") -> str:
     payload = [normalize_question(question), (mode or "").lower(),
                "agent" if agent_on else "legacy", manuals_version(manual_names),
-               str(cache_version or "")]
+               str(cache_version or ""), str(prompts_fp or "")]
     return hashlib.sha256(json.dumps(payload, ensure_ascii=False).encode("utf-8")).hexdigest()
 
 
