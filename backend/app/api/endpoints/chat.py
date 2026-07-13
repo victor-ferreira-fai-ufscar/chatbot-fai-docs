@@ -55,11 +55,15 @@ def _finalize_and_persist(repo, request, conversation_id, quoted_meta,
     try:
         if not conversation_id:
             chat_client = ChatClient()
+            # Título SEMPRE por modelo LOCAL (Ollama), independente de OPENAI_API_KEY.
+            # É uma chamada barata e frequente (uma por conversa nova): não deve gastar
+            # cota da OpenAI nem migrar sozinha para a nuvem quando a chave for adicionada
+            # para OUTRO fim (rollback da síntese / agente). Modelo via OLLAMA_MODEL.
             title_settings = ChatSettings(
-                provider="Ollama local" if not settings.OPENAI_API_KEY else "OpenAI API",
-                api_key="ollama" if not settings.OPENAI_API_KEY else settings.OPENAI_API_KEY,
-                model=settings.OLLAMA_MODEL if not settings.OPENAI_API_KEY else "gpt-4o-mini",
-                base_url=settings.OLLAMA_BASE_URL if not settings.OPENAI_API_KEY else None,
+                provider="Ollama local",
+                api_key="ollama",
+                model=settings.OLLAMA_MODEL,
+                base_url=settings.OLLAMA_BASE_URL,
             )
             try:
                 suggested_title = chat_client.generate_title(request.question, title_settings)
