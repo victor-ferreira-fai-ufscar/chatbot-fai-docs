@@ -307,9 +307,11 @@ function WelcomeScreen({
       <div className="max-w-md space-y-1.5">
         <h2 className="text-xl font-bold text-foreground">Olá! Eu sou a Lina 👋</h2>
         <p className="text-sm leading-relaxed text-muted-foreground">
-          Sou a assistente virtual da FAI-UFSCar e estou aqui para ajudar você com
-          dúvidas sobre manuais, procedimentos e documentos institucionais,
-          indicando as fontes sempre que possível. Como posso ajudar hoje?
+          Sou a assistente virtual da FAI-UFSCar e tiro suas dúvidas sobre o
+          <span className="font-medium text-foreground"> Manual do Coordenador </span>
+          e a
+          <span className="font-medium text-foreground"> Área de Coordenadores</span>.
+          Como posso ajudar hoje?
         </p>
       </div>
 
