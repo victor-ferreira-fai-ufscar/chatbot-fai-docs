@@ -1,0 +1,723 @@
+<style>
+:root{--ink:#17211f;--paper:#f6f8f7;--card:#fff;--line:#e2e7e5;--muted:#5f6b68;--accent:#0d6b66;
+--good:#1f7a4d;--goodbg:#e7f2eb;--bad:#b23a2e;--badbg:#f7e9e7;--warn:#8a5d10;--warnbg:#f4ecda;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+--sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.55;-webkit-font-smoothing:antialiased;font-size:15px}
+.wrap{max-width:1120px;margin:0 auto;padding:48px 24px 96px}
+header.top{border-bottom:2px solid var(--ink);padding-bottom:22px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
+h1{font-size:31px;line-height:1.12;margin:0 0 12px;text-wrap:balance;letter-spacing:-.01em}
+.lead{color:var(--muted);max-width:68ch;margin:0}
+.meta{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:16px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.meta b{color:var(--ink);font-weight:600}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-top:26px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}
+.tile-label{font-size:12px;color:var(--muted);margin-bottom:12px;min-height:2.6em}
+.tile-vals{display:flex;align-items:baseline;gap:10px;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.tv-antes{font-size:18px;color:var(--muted)}.tv-dep{font-size:26px;font-weight:600}.tv-sep{font-size:17px}
+.up,.tv-dep.up{color:var(--good)}.down,.tv-dep.down{color:var(--bad)}.flat{color:var(--muted)}.tv-dep.flat{color:var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin:24px 0 4px;font-family:var(--mono);font-size:11.5px;color:var(--muted);align-items:center}
+.legend .badge{cursor:default}
+section{margin-top:46px}
+.sec-label{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin:0 0 4px}
+h2{font-size:20px;margin:0 0 4px;letter-spacing:-.01em}
+.sec-note{color:var(--muted);font-size:13.5px;margin:0 0 20px;max-width:74ch}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:16px;overflow:hidden}
+.card-head{padding:16px 18px 12px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.qid{font-family:var(--mono);font-size:12px;font-weight:600;color:#fff;background:var(--accent);padding:2px 8px;border-radius:5px}
+.exp{font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:var(--muted);border:1px solid var(--line);padding:2px 7px;border-radius:5px}
+.card-head h3{font-size:15.5px;font-weight:600;margin:0;flex:1 1 100%;line-height:1.35}
+.compare{display:grid;grid-template-columns:1fr 1fr}
+.side{padding:14px 16px 16px}
+.side:first-child{border-right:1px solid var(--line);background:#fbfcfc}
+.side-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.side-title{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.time{font-family:var(--mono);font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums;margin-left:auto}
+.badge{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.03em;padding:2px 8px;border-radius:20px}
+.b-fontes{background:var(--goodbg);color:var(--good)}
+.b-dirige{background:var(--warnbg);color:var(--warn)}
+.b-sem-fonte{background:var(--badbg);color:var(--bad)}
+.chip{font-family:var(--mono);font-size:10.5px;padding:2px 7px;border-radius:20px;border:1px solid var(--line);color:var(--muted)}
+.chip-on{background:var(--goodbg);color:var(--good);border-color:transparent}
+.chip-off{background:#eef0ef;color:var(--muted);border-color:transparent}
+.chip-bad{background:var(--badbg);color:var(--bad);border-color:transparent}
+.pages{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.pages span{font-family:var(--mono);font-size:10.5px;color:var(--accent);background:var(--paper);border:1px solid var(--line);padding:1px 6px;border-radius:4px;font-variant-numeric:tabular-nums}
+.card-note{margin:0 16px 14px;padding:10px 12px;background:var(--warnbg);border-left:3px solid var(--warn);border-radius:0 6px 6px 0;font-size:12.5px;line-height:1.5;color:#5a4410}
+.side-flags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.answer{font-size:13px;line-height:1.5;color:#28312f;white-space:pre-wrap;max-height:280px;overflow-y:auto;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.answer::-webkit-scrollbar{width:9px}.answer::-webkit-scrollbar-thumb{background:#cdd5d2;border-radius:6px}
+footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);max-width:76ch}
+footer b{color:var(--ink)}footer code{font-family:var(--mono);font-size:11.5px;background:#eef0ef;padding:1px 5px;border-radius:4px}
+footer ul{padding-left:20px;margin:10px 0}footer li{margin:5px 0}
+@media(max-width:720px){.compare{grid-template-columns:1fr}.side:first-child{border-right:none;border-bottom:1px solid var(--line)}}
+</style>
+<div class="wrap">
+<header class="top">
+  <p class="eyebrow">Chatbot Lina · FAI•UFSCar · QA de fundamentação</p>
+  <h1>Reescrita do prompt e guardrails anti-alucinação: antes → depois</h1>
+  <p class="lead">Respostas geradas pela rota real do chatbot para 20 perguntas de coordenadores, antes e depois da reforma do <code>Prompt.md</code>, do patch no template do LightRAG e da correção do canal de raciocínio que zerava o painel de fontes. Cada cartão mostra a resposta integral dos dois lados.</p>
+  <div class="meta"><span>síntese <b>gpt-oss:20b</b> (think=high)</span><span>rota <b>/api/v1/chat/stream</b></span><span>temperatura <b>0.0</b></span><span><b>02/07/2026</b></span></div>
+</header>
+
+<div class="tiles"><div class="tile"><div class="tile-label">Fundamentada sem citação — a falha central</div>
+      <div class="tile-vals"><span class="tv-antes">4/20</span><span class="tv-sep up">↘</span><span class="tv-dep up">1/20</span></div></div><div class="tile"><div class="tile-label">Respostas com painel de fontes</div>
+      <div class="tile-vals"><span class="tv-antes">9/20</span><span class="tv-sep up">↗</span><span class="tv-dep up">13/20</span></div></div><div class="tile"><div class="tile-label">Sigla inventada (PIDICT / RTI / Coex)</div>
+      <div class="tile-vals"><span class="tv-antes">0</span><span class="tv-sep flat">→</span><span class="tv-dep flat">0</span></div></div><div class="tile"><div class="tile-label">Jargão interno vazado (“recuperado”…)</div>
+      <div class="tile-vals"><span class="tv-antes">0</span><span class="tv-sep flat">→</span><span class="tv-dep flat">0</span></div></div></div>
+<div class="legend">
+  <span class="badge b-fontes">com fontes</span> fundamentada, painel exibido &nbsp;
+  <span class="badge b-dirige">direciona</span> abstém e direciona (0 fonte é correto) &nbsp;
+  <span class="badge b-sem-fonte">sem citação</span> usa o manual mas não cita — a falha
+</div>
+
+<section>
+  <p class="sec-label">Bateria 1 · com gabarito</p>
+  <h2>Prof. Ricardo Toshio Fujihara — 8 perguntas</h2>
+  <p class="sec-note">Todas usam a sigla “RTI”, que o manual não define — teste direto da regra anti-expansão de sigla e do padrão de fronteira (regra 1.5: “o manual não deixa explícito…” seguido do conteúdo relacionado, com fonte). O chip “esperado” vem das respostas de referência do próprio documento.</p>
+  <article class="card">
+      <div class="card-head"><span class="qid">R01</span><span class="exp">esperado: ABST</span><h3>Como é definida a alíquota de retribuição destinada aos departamentos?</h3></div>
+      <div class="compare"><div class="side">
+      <div class="side-head"><span class="side-title">Antes</span><span class="badge b-dirige">direciona</span>
+        <span class="time">30.7s</span><span class="chip chip-off">painel 0</span></div>
+      <div class="answer">O manual disponível não detalha a definição da alíquota de retribuição destinada aos departamentos.
+
+Para obter informações específicas sobre este tema, recomendo que você entre em contato com o **Gestor do seu Projeto**, que é o interlocutor oficial que acompanha o seu caso específico. Você também pode entrar em contato com a Fundação pelos canais oficiais:
+*   **Telefone:** (16) 3351-9000
+*   **E-mail:** fai@fai.ufscar.br
+
+Caso precise acompanhar o status de solicitações ou acessar documentos do projeto, essas funcionalidades estão disponíveis na **Área de Coordenadores**, a plataforma online da FAI.</div></div><div class="side">
+      <div class="side-head"><span class="side-title">Depois</span><span class="badge b-dirige">direciona</span>
+        <span class="time">23.9s</span><span class="chip chip-off">painel 0</span></div>
+      <div class="answer">O manual disponível não detalha como é definida a alíquota de retribuição destinada aos departamentos.
+
+Para obter essa informação específica, recomendo falar com o **Gestor do seu Projeto**, que é o interlocutor oficial que acompanha o seu caso; você também pode entrar em contato com a Fundação pelos telefones **(16) 3351-9000** ou pelo e-mail **fai@fai.ufscar.br**.</div></div></div></article><article class="card">
+      <div class="card-head"><span class="qid">R09</span><span class="exp">esperado: ABST</span><h3>Qual é o fundamento legal e o procedimento administrativo para a destinação de recursos de projetos RTI via GRU e sua utilização pela Administração Superior da UFSCar?</h3></div>
+      <div class="compare"><div class="side">
+      <div class="side-head"><span class="side-title">Antes</span><span class="badge b-dirige">direciona</span>
+        <span class="time">36.2s</span><span class="chip chip-off">painel 0</span></div>
+      <div class="answer">O manual disponível não detalha o procedimento específico para a destinação de recursos de projetos RTI via GRU nem as regras para sua utilização pela Administração Superior da UFSCar.
+
+Para obter orientações sobre este tema, recomendo que você entre em contato com o **Gestor do seu Projeto** na FAI-UFSCar, que é o interlocutor oficial responsável por acompanhar o caso específico e fornecer as diretrizes adequadas ao seu projeto.
+
+Caso precise de suporte adicional, você também pode entrar em contato com a Fundação pelos canais oficiais:
+*   **Telefone:** (16) 3351-9000
+*   **E-mail:** fai@fai.ufscar.br
+
+Para acompanhamento de status, pendências ou acesso a documentos do projeto, você pode utilizar a **Área de Coordenadores**, que é a plataforma online da FAI-UFSCar para esses fins.</div></div><div class="side">
+      <div class="side-head"><span class="side-title">Depois</span><span class="badge b-dirige">direciona</span>
+        <span class="time">23.9s</span><span class="chip chip-off">painel 0</span></div>
+      <div class="answer">O manual disponível não detalha o fundamento legal e o procedimento administrativo específico para a destinação de recursos de projetos RTI via GRU, nem sobre a utilização desses recursos pela Administração Superior da UFSCar.
+
+Para obter informações precisas sobre este tema, recomendo falar com o **Gestor do seu Projeto**, que é o interlocutor oficial que acompanha o caso específico do coordenador. Você também pode entrar em contato com a Fundação através do telefone **(16) 3351-9000** ou pelo e-mail **fai@fai.ufscar.br**.</div></div></div></article><article class="card">
+      <div class="card-head"><span class="qid">R13</span><span class="exp">esperado: ABST</span><h3>É possível a transferência de recursos entre projetos de extensão e projetos RTI?</h3></div>
+      <div class="compare"><div class="side">
+      <div class="side-head"><span class="side-title">Antes</span><span class="badge b-dirige">direciona</span>
+        <span class="time">26.4s</span><span class="chip chip-off">painel 0</span></div>
+      <div class="answer">O manual não deixa explícito se a transferência de recursos entre projetos diferentes (como de um projeto de extensão para um projeto RTI) é permitida.
+
+O que o manual informa sobre o tema é:
+
+*   **Remanejamento Interno**: O remanejamento de saldos entre rubricas orçamentárias é permitido, desde que previsto no edital, limitado a 20% da rubrica, autorizado pelo órgão financiador e formalizado junto à FAI-UFSCar. Este procedimento aplica-se dentro do mesmo projeto.
+*   **Transferência entre Projetos**: Para realizar qualquer transferência entre projetos distintos, o coordenador deve:
+    1. Verificar no edital ou contrato se a transferência interprojeto está autorizada;
+    2. Solicitar aprovação do gestor de projeto da FAI e do órgão financiador;
+    3. Formalizar a mudança por meio de termo aditivo ou documento equivalente, registrando origem, destino e valor transferido.
+
+Caso você precise confirmar essa possibilidade para um caso específico, recomendo falar com o **Gestor do seu Projeto**, seu interlocutor oficial que acompanha o seu caso; você também pode ligar para **(16) 3351-9000** ou escrever para **fai@fai.ufscar.br**. O acompanhamento de status e pendências fica disponível na **Área de Coordenadores**.
+
+&gt; Fonte: [Manual dos Coordenadores.pdf, pág. 24]</div></div><div class="side">
+      <div class="side-head"><span class="side-title">Depois</span><span class="badge b-fontes">com fontes</span>
+        <span class="time">30.5s</span><span class="chip chip-on">painel 1</span></div>
+      <div class="pages"><span>pág. 59 · 81%</span></div><div class="answer">O manual não deixa explícito se é permitido remanejar recursos entre projetos de extensão e projetos RTI ou transferir saldos entre projetos diferentes.
+
+O que o manual traz sobre remanejamento de saldos é que ele pode ocorrer dentro das rubricas orçamentárias do mesmo projeto, limitado a 20% da rubrica, desde que autorizado pelo órgão financiador e formalizado junto à FAI•UFSCar.
+
+Para confirmar se há possibilidade de transferir recursos entre projetos diferentes ou especificamente entre projetos de extensão e RTI, recomendo falar com o **Gestor do seu Projeto**, que é o interlocutor oficial que acompanha o seu caso; você também pode entrar em contato com a Fundação pelo telefone **(16) 3351-9000** ou pelo e-mail **fai@fai.ufscar.br**.
+
+&gt; Fonte: [Manual dos Coordenadores.pdf, pág. 59]</div></div></div></article><article class="card">
+      <div class="card-head"><span class="qid">R15</span><span class="exp">esperado: ABST</span><h3>Após o encerramento de um projeto RTI, os recursos não utilizados podem ser incorporados a outro projeto RTI ou devem seguir procedimento específico de devolução ou reprogramação?</h3></div>
+      <div class="compare"><div class="side">
+      <div class="side-head"><span class="side-title">Antes</span><span class="badge b-fontes">com fontes</span>
+        <span class="time">24.5s</span><span class="chip chip-on">painel 2</span></div>
+      <div class="pages"><span>pág. 59 · 64%</span><span>pág. 60 · 64%</span></div><div class="answer">O manual não deixa explícito se os recursos não utilizados de um projeto RTI podem ser transferidos para outro projeto após o encerramento. O que o documento estabelece sobre a movimentação de recursos é o seguinte:
+
+*   **Remanejamento Interno**: É permitido o remanejamento de recursos entre rubricas orçamentárias, mas este deve ocorrer **dentro do mesmo projeto**. Esse procedimento é limitado a 20% da rubrica, deve ser autorizado pelo órgão financiador e formalizado junto à FAI-UFSCar.
+*   **Devolução de Saldos**: Ao encerrar um projeto, o coordenador deve zelar pela devolução dos saldos não utilizados, caso haja essa exigência.
+
+Como o manual restringe o remanejamento ao âmbito do próprio projeto e não trata da transferência entre projetos distintos após o encerramento, recomendo que você consulte o **Gestor do seu Projeto**, que é o interlocutor oficial que acompanha o seu caso específico, para verificar se há alguma autorização especial ou procedimento de aditivo que permita essa movimentação.
+
+Você também pode entrar em contato com a Fundação pelos canais oficiais:
+*   **Telefone**: (16) 3351-9000
+*   **E-mail**: fai@fai.ufscar.br
+
+Para acompanhamento de status, pendências e acesso a documentos do projeto, você pode utilizar a **Área de Coordenadores**.
+
+&gt; Fonte: [Manual dos Coordenadores.pdf, págs. 59, 60]</div></div><div class="side">
+      <div class="side-head"><span class="side-title">Depois</span><span class="badge b-fontes">com fontes</span>
+        <span class="time">44.5s</span><span class="chip chip-on">painel 2</span></div>
+      <div class="pages"><span>pág. 59 · 70%</span><span>pág. 60 · 70%</span></div><div class="answer">O manual não deixa explícito se os saldos remanescentes de um projeto RTI podem ser transferidos para outro projeto após o encerramento. O que o manual estabelece sobre temas relacionados são as seguintes diretrizes:
+
+*   **Saldo Não Utilizado:** A Fundação deve garantir a devolução dos saldos não utilizados quando isso for exigido pelo contrato ou regulamento do financiador.
+*   **Remanejamento de Saldos:** É permitida a transferência de recursos entre rubricas orçamentárias, desde que esteja previsto no edital, seja limitado a 20% da rubrica e seja autorizado pelo órgão financiador e formalizado junto à FAI•UFSCar.
+*   **Reprogramação (Alterações Contratuais):** Alterações como prorrogação de prazo, mudança de objeto ou valor devem ser solicitadas com antecedência e justificativa, sendo formalizadas por meio de termo aditivo. Em algumas situações, requer aprovação prévia do financiador.
+
+Como o manual não menciona especificamente as regras para projetos RTI, recomendo que você entre em contato com o **Gestor do seu Projeto**, que é o interlocutor oficial que acompanha o seu caso, ou entre em contato com a Fundação pelos canais:
+*   **Telefone:** (16) 3351-9000
+*   **E-mail:** fai@fai.ufscar.br
+
+&gt; Fonte: [Manual dos Coordenadores.pdf, págs. 59, 60]</div></div></div></article><article class="card">
+      <div class="card-head"><span class="qid">R03</span><span class="exp">esperado: ANS</span><h3>Após o aporte dos recursos em conta da FAI vinculada a um projeto RTI, a Administração Superior da UFSCar pode solicitar sua utilização para fins distintos daqueles originalmente aprovados?</h3></div>
+      <div class="compare"><div class="side">
+      <div class="side-head"><span class="side-title">Antes</span><span class="badge b-dirige">direciona</span>
+        <span class="time">31.8s</span><span class="chip chip-off">painel 0</span></div>
+      <div class="answer">O manual disponível não detalha se a Administração Superior da UFSCar pode solicitar o uso de recursos de um projeto RTI para fins distintos daqueles originalmente aprovados após o aporte em conta na FAI.
+
+Para esclarecer essa possibilidade específica e entender as condições ou restrições envolvidas, recomendo que você entre em contato com o **Gestor do seu Projeto**, que é o interlocutor oficial da Fundação que acompanha o seu caso específico. Você também pode obter orientações adicionais entrando em contato com a FAI pelo telefone **(16) 3351-9000** ou pelo e-mail **fai@fai.ufscar.br**.</div></div><div class="side">
+      <div class="side-head"><span class="side-title">Depois</span><span class="badge b-fontes">com fontes</span>
+        <span class="time">31.4s</span><span class="chip chip-on">painel 2</span></div>
+      <div class="pages"><span>pág. 59 · 80%</span><span>pág. 60 · 80%</span></div><div class="answer">O manual não deixa explícito se projetos RTI permitem o uso de recursos para fins distintos daqueles originalmente aprovados pela Administração Superior da UFSCar.
+
+O que o manual traz de relacionado ao tema é:
+
+*   **Remanejamento de saldos entre rubricas orçamentárias**: é permitido em alguns casos, desde que previsto no edital, restrito ao limite de 20% da rubrica, autorizado pelo órgão financiador e formalizado junto à FAI•UFSCar.
+*   **Encerramento do projeto**: o coordenador deve zelar pela devolução de saldos não utilizados, se exigido, e confirmar o encerramento no sistema do financiador e da FAI.
+
+Para confirmar a possibilidade específica para projetos RTI ou sobre desvios de finalidade, recomendo falar com o **Gestor do seu Projeto**, que é o interlocutor oficial que acompanha o seu caso; você também pode entrar em contato com a Fundação pelo telefone **(16) 3351-9000** ou pelo e-mail **fai@fai.ufscar.br**.
+
+&gt; Fonte: [Manual dos Coordenadores.pdf, págs. 59, 60]</div></div></div></article><article class="card">
+      <div class="card-head"><span class="qid">R07</span><span class="exp">esperado: ANS</span><h3>Quais são os dispositivos legais e normativos que regulamentam a aplicação e a gestão dos recursos de projetos RTI?</h3></div>
+      <div class="compare"><div class="side">
+      <div class="side-head"><span class="side-title">Antes</span><span class="badge b-sem-fonte">sem citação</span>
+        <span class="time">51.9s</span><span class="chip chip-off">painel 0</span></div>
+      <div class="answer">Para a correta aplicação e gestão dos recursos nos projetos de Pesquisa, Tecnologia e Inovação (RTI), o Manual dos Coordenadores indica que a atuação da FAI-UFSCar está fundamentada em um conjunto de dispositivos legais e normativos.
+
+Os principais marcos regulatórios citados são:
+
+**Normas Federais:**
+*   **Constituição Federal**: Define os princípios gerais da administração pública e a autonomia das instituições.
+*   **Código Civil**: Determina a natureza jurídica da Fundação e as obrigações contratuais.
+*   **Lei nº 8.958/1994**: Regula as relações entre universidades federais e fundações de apoio, autorizando a execução de projetos.
+*   **Decreto nº 7.423/2010**: Regulamenta a Lei nº 8.958/1994, detalhando os procedimentos para a atuação das fundações.
+*   **Decreto nº 8.241/2014**: Dispõe sobre a aquisição de bens e a contratação de obras e serviços pelas fundações de apoio com recursos públicos.
+*   **Lei nº 13.243/2016 (Marco Legal de Ciência, Tecnologia e Inovação – C,T&amp;I)**: Estabelece facilidades para compras, contratações e gestão de projetos de inovação.
+*   **Decreto nº 9.283/2018**: Regulamenta o Marco Legal, detalhando os procedimentos para a aplicação das facilidades mencionadas.
+*   **Lei nº 14.133/2021 (Nova Lei de Licitações e Contratos)**: Aplicada subsidiariamente aos recursos públicos.
+*   **Portarias e Instruções Normativas do MEC e MCTI**: Estabelecem as diretrizes operacionais, critérios de credenciamento e acompanhamento.
+
+**Regulamentações Internas:**
+Além das normas federais, o manual destaca normativas internas específicas da FAI-UFSCar:
+*   **Resolução Interna CD/FAI nº 12/21**: Estabelece os trâmites para processos com recursos privados (válida até 26/01/2026).
+*   **Resolução Interna CD/FAI nº 13/26**: Define as regras para novos processos a partir de 26/01/2026.
+
+Essas normas garantem que os recursos sejam aplicados de forma legal, transparente e em conformidade com as diretrizes do financiador e da instituição parceira.
+
+&gt; Fonte: [Manual dos Coordenadores.pdf]</div></div><div class="side">
+      <div class="side-head"><span class="side-title">Depois</span><span class="badge b-fontes">com fontes</span>
+        <span class="time">34.3s</span><span class="chip chip-on">painel 3</span></div>
+      <div class="pages"><span>pág. 9 · 24%</span><span>pág. 10 · 24%</span><span>pág. 11 · 24%</span></div><div class="answer">O manual não deixa explícito dispositivos específicos para projetos **RTI**. No entanto, os projetos da FAI•UFSCar são regidos por diversos dispositivos legais e normativos que se aplicam a todos os projetos:
+
+**Legislação federal**
+*   Constituição Federal;
+*   Código Civil;
+*   Lei nº 8.958/1994 (regras de relacionamento entre instituições federais de ensino superior e fundações de apoio);
+*   Decreto nº 7.423/2010 (regulamenta a lei 8.958/94);
+*   Decreto nº 8.241/2014 (aquisição de bens e contratação de obras e serviços pelas fundações de apoio);
+*   Lei nº 13.243/2016 – Marco Legal de Ciência, Tecnologia e Inovação (C,T&amp;I);
+*   Decreto nº 9.283/2018 – Regulamento do Marco Legal;
+*   Lei nº 14.133/2021 – Nova Lei de Licitações e Contratos.
+
+**Regulamentações da FAI•UFSCar**
+*   Resolução Interna CD/FAI nº 12/21 (para recursos privados);
+*   Resolução Interna CD/FAI nº 13/26 (aplicável a novos processos a partir de 26/01/2026).
+
+**Normas internas das instituições apoiadas**
+*   UFSCar, Embrapa, IFSP e EBSERH – regulamentos internos que tratam da tramitação de projetos, autorização e restrição para execução de atividades com fundações de apoio e obrigações dos coordenadores.
+
+**Regras específicas dos financiadores**
+Cada órgão financiador ou parceiro (FINEP, FAPESP, Embrapii, etc.) estabelece regras próprias para a execução dos projetos e aplicação dos recursos, que devem ser rigorosamente observadas.
+
+Para confirmar se há alguma norma específica adicional para o seu projeto RTI, recomendo falar com o **Gestor do seu Projeto**, seu interlocutor oficial que acompanha o caso específico. Você também pode entrar em contato com a Fundação pelo telefone **(16) 3351-9000** ou pelo e-mail **fai@fai.ufscar.br**.
+
+&gt; Fonte: [Manual dos Coordenadores.pdf, págs. 9, 10, 11]</div></div></div></article><article class="card">
+      <div class="card-head"><span class="qid">R11</span><span class="exp">esperado: ANS</span><h3>Quais são os dispositivos legais que amparam a contratação de pessoal sob o regime da CLT no âmbito de projetos de extensão?</h3></div>
+      <div class="compare"><div class="side">
+      <div class="side-head"><span class="side-title">Antes</span><span class="badge b-sem-fonte">sem citação</span>
+        <span class="time">36.6s</span><span class="chip chip-off">painel 0</span></div>
+      <div class="answer">O manual indica que a contratação de pessoal sob o regime da Consolidação das Leis do Trabalho (CLT) em projetos de extensão é amparada pelos seguintes dispositivos legais:
+
+*   **Consolidação das Leis do Trabalho (CLT)**: É o arcabouço jurídico que regula os contratos de trabalho, direitos e obrigações dos empregados.
+*   **Lei nº 8.958/1994**: Estabelece a relação entre Instituições Federais de Ensino Superior (IFES) e fundações de apoio, fornecendo a base legal para a contratação de pessoal pela Fundação em projetos financiados com recursos públicos.
+*   **Decreto nº 8.241/2014**: Regula a aquisição de bens e serviços pelas fundações de apoio, incluindo a contratação de pessoal como parte do processo de prestação de serviços.
+
+Esses dispositivos garantem que as contratações estejam alinhadas com a legislação trabalhista vigente e com as normas específicas que regem a atuação da FAI-UFSCar em projetos financiados publicamente.
+
+&gt; Fonte: [Manual dos Coordenadores.pdf, pág. 14]</div></div><div class="side">
+      <div class="side-head"><span class="side-title">Depois</span><span class="badge b-fontes">com fontes</span>
+        <span class="time">38.0s</span><span class="chip chip-on">painel 1</span></div>
+      <div class="pages"><span>pág. 43 · 89%</span></div><div class="answer">O manual não deixa explícito quais dispositivos legais específicos (como números de leis ou decretos) fundamentam a contratação de pessoal sob o regime da CLT em projetos de extensão.
+
+O que o manual estabelece sobre o tema é:
+*   A contratação deve obedecer à **legislação trabalhista vigente** e aos critérios definidos pelo financiador e pela Fundação;
+*   O regime CLT é regido pela **Consolidação das Leis do Trabalho (CLT)**;
+*   Para projetos de extensão, aplicam-se as mesmas regras gerais: observar a origem dos recursos, respeitar os acordos coletivos e garantir a adequação técnica e orçamentária.
+
+Caso necessite de orientações específicas para o seu projeto, recomendo falar com o **Gestor do seu Projeto**, seu interlocutor oficial que acompanha o seu caso; você também pode entrar em contato com a Fundação pelo telefone **(16) 3351-9000** ou pelo e-mail **fai@fai.ufscar.br**.
+
+&gt; Fonte: [Manual dos Coordenadores.pdf, pág. 43]</div></div></div></article><article class="card">
+      <div class="card-head"><span class="qid">R12</span><span class="exp">esperado: ANS</span><h3>Existe uma regulamentação que estabeleça os cargos e funções que podem ser contratados para atuação em projetos de extensão?</h3></div>
+      <div class="compare"><div class="side">
+      <div class="side-head"><span class="side-title">Antes</span><span class="badge b-fontes">com fontes</span>
+        <span class="time">25.2s</span><span class="chip chip-on">painel 3</span></div>
+      <div class="pages"><span>pág. 43 · 43%</span><span>pág. 45 · 43%</span><span>pág. 46 · 28%</span></div><div class="answer">O manual da FAI-UFSCar detalha as modalidades de contratação e os perfis que podem atuar em projetos, conforme descrito abaixo:
+
+**Modalidades de Contratação e Funções:**
+
+*   **Estagiários**: São estudantes que participam de atividades práticas relacionadas à sua formação acadêmica. A contratação segue a Lei nº 11.788/2008 e exige convênio com a instituição de ensino, além de documentos como Ficha de Contratação de Estágio, Termo de Compromisso de Estágio (TCE) e Plano de Atividades.
+*   **Bolsistas**: São beneficiários de bolsas de pesquisa ou extensão que não geram vínculo empregatício. A concessão segue as normas do órgão financiador e exige termo de concessão e comprovação de matrícula ou titulação.
+*   **Profissionais Autônomos**: Prestadores de serviços independentes para atividades específicas do projeto. Esta contratação é regulada por leis como a CLT, Decreto-Lei nº 5.452/1943 e outras normas municipais, exigindo nota fiscal ou recibo de prestação direta de serviço.
+*   **Empregados sob regime CLT**: Profissionais contratados com vínculo trabalhista formal (carteira assinada) e benefícios previstos pela Consolidação das Leis do Trabalho.
+
+&gt; Fonte: [Manual dos Coordenadores.pdf, págs. 43, 45, 46, 47, 48]</div></div><div class="side">
+      <div class="side-head"><span class="side-title">Depois</span><span class="badge b-fontes">com fontes</span>
+        <span class="time">37.6s</span><span class="chip chip-on">painel 3</span></div>
+      <div class="pages"><span>pág. 43 · 29%</span><span>pág. 44 · 29%</span><span>pág. 45 · 29%</span></div><div class="answer">Para a contratação de cargos e funções em projetos de extensão, a FAI•UFSCar segue os procedimentos gerais estabelecidos para todos os tipos de projeto.
+
+Abaixo estão as principais regras e etapas detalhadas no manual:
+
+### 1. Identificação da Necessidade
+Deve-se definir claramente o cargo ou função (como técnico de pesquisa, assistente administrativo, bolsista ou estagiário), descrevendo a atividade, carga horária, remuneração e benefícios.
+
+### 2. Elaboração da Ficha de Contratação
+O coordenador deve preencher a **Ficha de Contratação** com todas as informações necessárias (nome do profissional, cargo, descrição das atividades, salário, jornada, benefícios e data prevista de início). Este documento deve ser encaminhado ao **Gestor de Projetos** para análise preliminar.
+
+### 3. Análise e Aprovação
+O gestor verifica a compatibilidade com o orçamento e as exigências legais (público ou privado). Após aprovado, a ficha é enviada ao Departamento de Gestão de Pessoas com antecedência mínima de **10 dias úteis** antes da data prevista para admissão.
+
+### 4. Procedimentos por Modalidade de Recurso
+As regras variam conforme a origem do recurso:
+*   **Recursos Públicos:** É obrigatória a realização de um **Processo Seletivo Simplificado** (edital público com critérios objetivos), exceto em casos legalmente inexigíveis.
+*   **Recursos Privados:** A contratação ocorre por livre escolha e indicação do coordenador, desde que respeitada a legislação trabalhista e vedada a contratação que configure nepotismo ou conflito de interesses.
+
+### 5. Regulação para Estágio e Bolsa
+*   **Estagiário:** Deve obedecer à Lei nº 11.788/2008; o contrato é formalizado via ficha de contratação com aprovação do gestor.
+*   **Bolsista:** Não gera vínculo empregatício. A concessão ocorre mediante termo de bolsa, que deve ser registrado na **Área de Coordenadores**. A bolsa deve estar vinculada a um projeto de pesquisa, ensino ou extensão.
+
+### 6. Papéis Envolvidos
+*   **Coordenador do Projeto:** Responsável por elaborar e submeter a ficha de contratação.
+*   **Gestor de Projetos (da Fundação):** Analisa a solicitação, garante o cumprimento das normas e encaminha ao departamento de gestão de pessoas.
+*   **Departamento de Gestão de Pessoas:** Autoriza o início das tratativas para admissão ou abertura de edital.
+
+&gt; Fonte: [Manual dos Coordenadores.pdf, págs. 43, 44, 45]</div></div></div></article>
+</section>
+
+<section>
+  <p class="sec-label">Bateria 2 · operacional</p>
+  <h2>Maria Stela Scalabrim &amp; Nilva Lopes — 12 perguntas</h2>
+  <p class="sec-note">Perguntas de fluxo (“como fazer”, “por quê”). Sem gabarito formal; o que importa é: painel presente quando a resposta usa o manual, abstenção dirigida quando não usa, e nenhuma sigla inventada (PIDICT/Coex) nem jargão interno do sistema.</p>
+  <article class="card">
+      <div class="card-head"><span class="qid">MS1</span><h3>Como solicitar uma planilha orçamentária do Projeto?</h3></div>
+      <div class="compare"><div class="side">
+      <div class="side-head"><span class="side-title">Antes</span><span class="badge b-fontes">com fontes</span>
+        <span class="time">37.0s</span><span class="chip chip-on">painel 3</span></div>
+      <div class="pages"><span>pág. 65 · 15%</span><span>pág. 66 · 15%</span><span>pág. 68 · 7%</span></div><div class="answer">Para solicitar a planilha orçamentária do seu projeto ou obter informações detalhadas sobre o orçamento, você deve seguir as orientações abaixo:
+
+**1. Contato com a Coordenação**
+O coordenador do projeto é o responsável direto por elaborar e manter o Plano de Trabalho e a Planilha Orçamentária. Ele possui o documento que detalha todas as rubricas, custos diretos e indiretos (BDI). Você deve solicitar essa cópia diretamente ao **coordenador**.
+
+**2. Conteúdo da Planilha**
+A planilha orçamentária faz parte do Plano de Trabalho e deve conter informações essenciais como:
+*   Descrição das atividades;
+*   Cronograma;
+*   Rubricas orçamentárias (custos diretos);
+*   BDI (Benefícios e Despesas Indiretas), que compõem a taxa de custos indiretos.
+
+**3. Alterações e Ajustes**
+*   **Inclusão ou ajuste de valores:** Caso precise incluir novos itens ou ajustar valores, você deve anexar uma **cotação preliminar** ao formulário de solicitação de compras (SC).
+*   **Alterações significativas:** Para mudanças importantes no valor total ou no escopo do projeto, é necessário preencher um **Aditivo Contratual**, com a devida justificativa e aprovação prévia do financiador.
+
+**4. Suporte da Fundação**
+Caso tenha dúvidas sobre o orçamento ou precise solicitar ajustes formais que não estejam claros no plano atual, entre em contato com o **Gestor do seu Projeto**. Ele é o interlocutor oficial da FAI-UFSCar para acompanhar o seu caso específico. 
+
+Você também pode entrar em contato com a Fundação pelos canais gerais:
+*   **Telefone:** (16) 3351-9000
+*   **E-mail:** fai@fai.ufscar.br
+
+Para acompanhamento de status, pendências e acesso a documentos do projeto, você também pode utilizar a **Área de Coordenadores** (plataforma online da FAI).
+
+&gt; Fonte: [Manual dos Coordenadores.pdf, págs. 65, 66, 68]</div></div><div class="side">
+      <div class="side-head"><span class="side-title">Depois</span><span class="badge b-dirige">direciona</span>
+        <span class="time">69.0s</span><span class="chip chip-off">painel 0</span></div>
+      <div class="answer">O manual disponível não detalha o procedimento específico para solicitar uma planilha orçamentária do projeto.
+
+Para obter essa informação ou solicitar o documento, recomendo falar com o **Gestor do seu Projeto**, que é o interlocutor oficial que acompanha o seu caso; você também pode entrar em contato com a Fundação através do telefone **(16) 3351-9000** ou pelo e-mail **fai@fai.ufscar.br**.</div></div></div><div class="card-note">Caso de fronteira (flip). O manual mal cobre “solicitar planilha orçamentária” (o termo aparece 1 vez, sobre BDI de obras, relevância ~15%). Em 3 de 4 execuções o “depois” responde com fontes; a captura registrou a execução que abstém, que também é defensável. A resposta “antes” parecia mais rica, mas inventava o procedimento (“solicite ao coordenador”, “anexe cotação à SC”) costurando trechos fracos — é o que a ancoragem estrita agora restringe.</div></article><article class="card">
+      <div class="card-head"><span class="qid">MS2</span><h3>Como criar uma solicitação de compras e quais informações serão necessárias?</h3></div>
+      <div class="compare"><div class="side">
+      <div class="side-head"><span class="side-title">Antes</span><span class="badge b-fontes">com fontes</span>
+        <span class="time">29.0s</span><span class="chip chip-on">painel 5</span></div>
+      <div class="pages"><span>pág. 28 · 97%</span><span>pág. 29 · 97%</span><span>pág. 30 · 97%</span><span>pág. 31 · 66%</span><span>pág. 32 · 66%</span></div><div class="answer">Para realizar uma solicitação de compras na FAI-UFSCar, o procedimento depende do tipo de aquisição que você pretende realizar. Abaixo, detalho os passos e as informações necessárias com base no manual:
+
+### Tipos de Aquisição
+*   **Compra Fácil**: Destinada a itens já pré-contratados pela Fundação (conforme lista disponível no formulário). Para este caso, **não é necessário anexar orçamento**.
+*   **Aquisição Complexa**: Aplicável quando o item ou serviço não consta na lista da Compra Fácil. Nestes casos, é obrigatório elaborar um **Termo de Referência (TR)**, que deve descrever detalhadamente o objeto, escopo, requisitos técnicos e critérios de aceitação.
+
+### Elaboração da Solicitação de Compra (SC)
+Para formalizar o pedido, você deve preencher o formulário de **Solicitação de Compra (SC)**. Caso a aquisição seja classificada como complexa, o Termo de Referência (TR) deve ser anexado ao SC.
+
+### Informações Obrigatórias no Formulário
+Ao preencher a solicitação, certifique-se de incluir os seguintes dados:
+*   **Dados do Responsável**: Nome, CPF/CNPJ e contato para esclarecimentos.
+*   **Objetivo/Justificativa**: Descrição clara da necessidade da compra ou contratação e sua relação direta com o projeto.
+*   **Informações de Entrega**: Endereço completo (rua, CEP, departamento ou laboratório) e os dados do responsável pelo recebimento (caso seja uma pessoa diferente do solicitante).
+*   **Documentos Complementares**: Se aplicável, anexe cartas de exclusividade, catálogos técnicos ou qualquer material que auxilie na compreensão da solicitação.
+
+### Requisitos Adicionais e Regras Importantes
+*   **Orçamentos**: Para itens fora da lista &quot;Compra Fácil&quot;, é obrigatório anexar ao menos **01 orçamento** ou cotação preliminar ao SC.
+*   **Produtos Controlados**: Caso o item seja um produto controlado, você deve confirmar se ele está autorizado nas licenças da FAI-UFSCar e na instituição apoiada, respeitando os limites de quantidade permitidos pela licença.
+*   **Limites de Valor (Modalidades)**: 
+    *   **Compra Direta**: Aplicável para valores até R$ 100.000,00 (obras/serviços de engenharia) ou até R$ 40.000,00 (outros serviços/compras).
+    *   **Seleção Pública**: Para valores que excedam os limites da Compra Direta.
+
+### Como e Onde Enviar
+Todos os pedidos (incluindo compras, importações, financeiro, pessoal e viagens) devem ser enviados exclusivamente por meio da **Área de Coordenadores**. Por meio desta plataforma, você poderá acompanhar em tempo real o status do pedido e eventuais correções solicitadas.
+
+Se precisar de auxílio com o processo ou tiver dúvidas sobre o status da sua solicitação, recomendo entrar em contato com o **Gestor do seu Projeto**, que é o seu interlocutor oficial na FAI-UFSCar. Você também pode contatar a Fundação pelo telefone **(16) 3351-9000** ou pelo e-mail **fai@fai.ufscar.br**.
+
+&gt; Fonte: [Manual dos Coordenadores.pdf, págs. 28, 29, 30, 31, 32]</div></div><div class="side">
+      <div class="side-head"><span class="side-title">Depois</span><span class="badge b-fontes">com fontes</span>
+        <span class="time">29.3s</span><span class="chip chip-on">painel 4</span></div>
+      <div class="pages"><span>pág. 23 · 18%</span><span>pág. 28 · 97%</span><span>pág. 30 · 97%</span><span>pág. 31 · 66%</span></div><div class="answer">Para criar uma solicitação de compras na FAI•UFSCar, você deve seguir o procedimento detalhado no manual disponível:
+
+### Procedimento para Solicitação de Compras
+1.  **Acesso à Plataforma**: Todos os pedidos devem ser realizados exclusivamente por meio da plataforma **Área de Coordenadores**.
+2.  **Tipo de Pedido**: Para compras e importações, deve-se utilizar a **Solicitação de Compra (SC)** acompanhada do **Termo de Referência (TR)**, que é o documento oficial para essa demanda.
+3.  **Compra Fácil (Modalidade Ágil)**: Caso a aquisição seja de itens já previamente contratados, você pode utilizar a modalidade **Compra Fácil**. Nesta opção, não é necessário anexar orçamento; basta indicar o produto da lista e a quantidade desejada.
+
+### Informações Necessárias para a Solicitação de Compra (SC)
+Para preencher a SC, as seguintes informações são necessárias:
+*   **Responsável**: Dados da pessoa que está realizando a solicitação.
+*   **Objetivo/Justificativa**: Descrição da necessidade e como ela se relaciona com o projeto.
+*   **Dados de Entrega**: Endereço completo (incluindo CEP), nome do departamento ou laboratório, etc.
+*   **Documentos Complementares**: Propostas de referência ou documentos como catálogos técnicos e cartas de exclusividade.
+
+### Informações para o Termo de Referência (TR)
+Para aquisições mais complexas, o TR deve conter:
+*   Descrição detalhada do objeto (produto ou serviço).
+*   Escopo e cronograma (especialmente importante para serviços de engenharia).
+*   Documentação técnica (projeto base, croqui ou memorial descritivo para serviços de engenharia).
+*   Requisitos técnicos ou de qualificação desejados.
+*   Qualquer outra informação que ajude a compreender o serviço ou produto.
+
+**Observação Importante**: Antes de incluir itens na SC, verifique se os produtos estão autorizados nas licenças da FAI•UFSCar e nas autorizações das instituições apoiadas, especialmente no caso de **produtos controlados**.
+
+Se você tiver dúvidas sobre o preenchimento de algum campo específico ou sobre a situação do seu projeto, recomendo falar com o **Gestor do seu Projeto**, seu interlocutor oficial. Você também pode entrar em contato com a Fundação pelo telefone **(16) 3351-9000** ou pelo e-mail **fai@fai.ufscar.br**.
+
+&gt; Fonte: [Manual dos Coordenadores.pdf, págs. 23, 28, 30, 31]</div></div></div></article><article class="card">
+      <div class="card-head"><span class="qid">MS3</span><h3>Como solicitar adiantamento de viagem e qual o prazo para a prestação de contas?</h3></div>
+      <div class="compare"><div class="side">
+      <div class="side-head"><span class="side-title">Antes</span><span class="badge b-fontes">com fontes</span>
+        <span class="time">27.0s</span><span class="chip chip-on">painel 2</span></div>
+      <div class="pages"><span>pág. 41 · 80%</span><span>pág. 42 · 80%</span></div><div class="answer">Para solicitar o adiantamento de viagem e realizar a prestação de contas, você deve seguir as orientações detalhadas no Manual de Coordenadores:
+
+**Solicitação de Adiantamento de Viagem**
+O processo para obter recursos antecipados para viagens segue estas etapas:
+
+*   **Verificação Inicial**: A viagem deve estar prevista no plano de trabalho do projeto e ser permitida pela FAI-UFSCar. O coordenador é o responsável por garantir que a despesa esteja dentro dos limites orçamentários e das regras específicas do projeto.
+*   **Solicitação Formal**: O coordenador deve solicitar diárias, passagens ou adiantamento de recursos através da plataforma **Área de Coordenadores**. A solicitação deve conter: destino, datas, objetivo da viagem, estimativa de custos e justificativa.
+*   **Aprovação e Destino do Recurso**: Uma vez aprovada, a FAI-UFSCar pode conceder o adiantamento exclusivamente para despesas com hospedagem, alimentação e transportes. O recurso é destinado apenas a pessoas formalmente vinculadas ao projeto (como docentes, estagiários, bolsistas ou colaboradores CLT).
+*   **Recebimento**: Após a aprovação, o valor será creditado na conta bancária indicada pelo solicitante.
+
+**Prestação de Contas**
+Após a realização da viagem, o processo de prestação de contas é fundamental para a regularidade do projeto:
+
+*   **Prazo**: O manual não estabelece uma data fixa; o prazo deve seguir a resolução vigente ou as orientações específicas do seu gestor de projeto.
+*   **Documentação**: A prestação de contas deve incluir notas fiscais, comprovantes de pagamento e um relatório detalhado das despesas.
+*   **Consequências**: É importante notar que a falta de prestação de contas impede novas solicitações de adiantamento e pode exigir a devolução do valor já recebido.
+
+Caso você não tenha solicitado um adiantamento prévio, as despesas realizadas podem ser reembolsadas, desde que autorizadas pelo projeto e comprovadas com documentos fiscais válidos.
+
+Se precisar de mais detalhes sobre prazos específicos ou tiver dúvidas sobre o status da sua solicitação, recomendo falar com o **Gestor do seu Projeto**, seu interlocutor oficial na FAI-UFSCar. Você também pode entrar em contato com a Fundação pelo telefone **(16) 3351-9000** ou pelo e-mail **fai@fai.ufscar.br**. O acompanhamento de status e pendências das solicitações fica disponível na **Área de Coordenadores** (https://sistemas.fai.ufscar.br/).
+
+&gt; Fonte: [Manual dos Coordenadores.pdf, págs. 41-42]</div></div><div class="side">
+      <div class="side-head"><span class="side-title">Depois</span><span class="badge b-fontes">com fontes</span>
+        <span class="time">37.8s</span><span class="chip chip-on">painel 2</span></div>
+      <div class="pages"><span>pág. 41 · 79%</span><span>pág. 66 · 65%</span></div><div class="answer">Para solicitar o adiantamento de viagem, você deve seguir estas etapas conforme o manual:
+
+1.  **Verificação de Elegibilidade**: A viagem precisa estar prevista e autorizada no plano de trabalho do seu projeto.
+2.  **Solicitação via Sistema**: Você deve preencher o formulário de *Solicitação de Viagem* (ou equivalente) na plataforma **Área de Coordenadores**. O formulário deve conter:
+    *   Itinerário completo;
+    *   Estimativa de custos (hospedagem, alimentação e transporte);
+    *   Dados do viajante (CPF/CNPJ e cargo).
+3.  **Aprovação**: A solicitação será analisada pelo gestor do projeto na plataforma. O adiantamento só é liberado após essa aprovação.
+4.  **Recebimento**: O valor concedido cobre apenas despesas de hospedagem, alimentação e transportes. É fundamental guardar todos os comprovantes (notas fiscais e recibos) para a prestação de contas.
+
+Quanto ao **prazo para a prestação de contas**, o manual estabelece que:
+*   A prestação deve ser realizada dentro dos prazos definidos pela **resolução vigente** que rege as viagens do projeto. O cumprimento desse prazo é rigoroso, pois atrasos podem impedir novas solicitações e exigir a devolução de valores não utilizados.
+*   Para projetos com prestações parciais e finais, os prazos também seguem a resolução vigente em cada fase correspondente.
+*   No encerramento do projeto, a entrega do relatório técnico e da prestação de contas financeira (parcial e final) é obrigatória antes da confirmação do encerramento no sistema.
+
+O manual não especifica o número exato de dias para o prazo, pois este depende da resolução vigente do seu projeto específico. Para confirmar os prazos exatos aplicáveis ao seu caso, recomendo falar com o **Gestor do seu Projeto**.
+
+&gt; Fonte: [Manual dos Coordenadores.pdf, págs. 41, 66]</div></div></div></article><article class="card">
+      <div class="card-head"><span class="qid">MS4</span><h3>Como efetuar um termo de bolsa Pidict?</h3></div>
+      <div class="compare"><div class="side">
+      <div class="side-head"><span class="side-title">Antes</span><span class="badge b-fontes">com fontes</span>
+        <span class="time">23.1s</span><span class="chip chip-on">painel 3</span></div>
+      <div class="pages"><span>pág. 44 · 28%</span><span>pág. 45 · 28%</span><span>pág. 46 · 28%</span></div><div class="answer">Para realizar o termo de bolsa PIDICT, você deve seguir os procedimentos detalhados no Manual dos Coordenadores. O processo envolve a elaboração do documento, a vinculação ao projeto e a submissão via sistema:
+
+**1. Elaboração do Termo de Concessão de Bolsa**
+O coordenador responsável deve redigir o termo seguindo a estrutura padrão, garantindo que constem as seguintes informações:
+*   **Identificação da bolsa**: Especificar que se trata de uma bolsa PIDICT;
+*   **Dados do bolsista**: Nome completo, CPF/CNPJ e o curso ou programa vinculado;
+*   **Plano de atividades**: Inclusão do plano quando for aplicável ao caso;
+*   **Valor e duração**: Detalhamento do valor da bolsa e do período de vigência.
+
+**2. Vinculação ao Projeto**
+A bolsa deve estar obrigatoriamente vinculada a um projeto de pesquisa, ensino ou extensão que já tenha sido aprovado pela Fundação. O termo deve conter o número do projeto e uma descrição resumida do mesmo.
+
+**3. Documentação Complementar**
+Dependendo do perfil do bolsista, são necessários documentos adicionais:
+*   **Para estudantes**: Atestado de matrícula atualizado emitido pelo sistema oficial da instituição de ensino;
+*   **Para pós-doutorandos**: Declaração emitida pela Coordenadoria de Informação em Pesquisa (CIP/ProPQ) confirmando a vigência e regularidade do registro no programa;
+*   **Para titulação**: Diploma ou certificado reconhecido pelo MEC, conforme exigido.
+
+**4. Prestação de Contas**
+O termo deve prever a prestação de contas ao final da bolsa, com a apresentação de toda a documentação comprobatória dos recursos utilizados (notas fiscais, recibos, etc.).
+
+**5. Disponibilização e Submissão**
+O Termo de Bolsa está disponível para uso na **Área de Coordenadores** da Fundação. Após o preenchimento completo, o coordenador deve submeter o documento por meio do sistema, seguindo as instruções específicas para &quot;Concessão de Bolsas&quot;.
+
+Se você tiver dúvidas sobre o preenchimento ou sobre o status de uma solicitação específica, recomendo entrar em contato com o **Gestor do seu Projeto**, que é o interlocutor oficial que acompanha o seu caso. Você também pode obter suporte geral da Fundação pelo telefone **(16) 3351-9000** ou pelo e-mail **fai@fai.ufscar.br**. O acompanhamento de status e pendências, bem como o acesso aos documentos do projeto, é realizado diretamente na **Área de Coordenadores** (https://sistemas.fai.ufscar.br/).
+
+&gt; Fonte: [Manual dos Coordenadores.pdf, págs. 44, 45, 46]</div></div><div class="side">
+      <div class="side-head"><span class="side-title">Depois</span><span class="badge b-fontes">com fontes</span>
+        <span class="time">24.7s</span><span class="chip chip-on">painel 1</span></div>
+      <div class="pages"><span>pág. 46 · 22%</span></div><div class="answer">Para efetuar um termo de bolsa no âmbito de projetos PIDICT, o manual estabelece as seguintes orientações:
+
+**Termo de Bolsa – PIDICT**
+
+*   **Formalização**: O documento deve ser elaborado como **termo de concessão de bolsa**.
+*   **Conteúdo obrigatório**:
+    *   Plano de atividades (quando aplicável);
+    *   Prestação de contas;
+    *   Vínculo do bolsista ao projeto de pesquisa, ensino ou extensão.
+*   **Processo seletivo**: Caso o recurso seja público, é necessário realizar um processo seletivo para selecionar os bolsistas que integrarão a equipe.
+*   **Disponibilidade**: O modelo de termo de concessão de bolsa está disponível na **Área de Coordenadores**.
+
+O manual não deixa explícito se há procedimentos específicos para o **termo de compromisso** em projetos PIDICT (o manual define o Termo de Compromisso apenas como documento para autorizar compra direta de itens nacionais). 
+
+Para obter orientações detalhadas sobre o termo de compromisso ou outros detalhes específicos do seu projeto, recomendo falar com o **Gestor do seu Projeto**, seu interlocutor oficial; você também pode entrar em contato com a Fundação pelo telefone **(16) 3351-9000** ou pelo e-mail **fai@fai.ufscar.br**.
+
+&gt; Fonte: [Manual dos Coordenadores.pdf, pág. 46]</div></div></div></article><article class="card">
+      <div class="card-head"><span class="qid">MS5</span><h3>Como ter acesso ao site da FAI?</h3></div>
+      <div class="compare"><div class="side">
+      <div class="side-head"><span class="side-title">Antes</span><span class="badge b-dirige">direciona</span>
+        <span class="time">6.8s</span><span class="chip chip-off">painel 0</span></div>
+      <div class="answer">O acesso à plataforma oficial da FAI-UFSCar para gestão de projetos e autoatendimento é realizado por meio da **Área de Coordenadores**.
+
+Você pode acessar o portal pelo link: https://sistemas.fai.ufscar.br/
+
+Nesta plataforma, os coordenadores podem realizar ações como o envio de pedidos (compras, importação, financeiro, pessoal e viagens), além de acompanhar o status e as pendências das solicitações e acessar os documentos do projeto.</div></div><div class="side">
+      <div class="side-head"><span class="side-title">Depois</span><span class="badge b-dirige">direciona</span>
+        <span class="time">48.2s</span><span class="chip chip-off">painel 0</span></div>
+      <div class="answer">Olá! Sou a Lina, assistente virtual da FAI•UFSCar. Como posso ajudar?
+
+Para acessar o portal de autoatendimento e gestão de projetos (onde é possível realizar solicitações, acompanhar status, pendências ou acessar documentos), você deve utilizar a **Área de Coordenadores** pelo link: https://sistemas.fai.ufscar.br/.
+
+Caso tenha dúvidas específicas sobre o seu projeto, recomendo falar com o **Gestor do seu Projeto**, que é o interlocutor oficial para acompanhar o seu caso. Você também pode entrar em contato com a Fundação pelos canais gerais:
+- Telefone: (16) 3351-9000
+- E-mail: fai@fai.ufscar.br</div></div></div></article><article class="card">
+      <div class="card-head"><span class="qid">NL1</span><h3>Qual o primeiro passo para cadastrar um projeto?</h3></div>
+      <div class="compare"><div class="side">
+      <div class="side-head"><span class="side-title">Antes</span><span class="badge b-sem-fonte">sem citação</span>
+        <span class="time">22.3s</span><span class="chip chip-off">painel 0</span></div>
+      <div class="answer">O primeiro passo para cadastrar um projeto na FAI-UFSCar é a abertura do processo no **Sistema Eletrônico de Informações (SEI)**, que deve ser encaminhado à **Secretaria de Gestão do Espaço Físico (SeGEF)**.
+
+Após essa etapa inicial, seguem os procedimentos para a elaboração do plano de trabalho e o fornecimento dos demais documentos necessários para a formalização do projeto.
+
+&gt; Fonte: [Manual dos Coordenadores.pdf, pág. 1]</div></div><div class="side">
+      <div class="side-head"><span class="side-title">Depois</span><span class="badge b-sem-fonte">sem citação</span>
+        <span class="time">18.0s</span><span class="chip chip-off">painel 0</span></div>
+      <div class="answer">O primeiro passo para cadastrar um projeto envolve as seguintes etapas iniciais:
+
+1. **Elaboração do documento inicial**: Deve ser elaborado um documento descrevendo a obra ou o serviço de engenharia que será realizado.
+2. **Abertura no SEI (Sistema Eletrônico de Informações)**: O documento criado deve ser submetido ao sistema SEI para iniciar oficialmente o processo de tramitação do projeto.
+3. **Encaminhamento à SeGEF**: Após a abertura no SEI, o pedido deve ser enviado à Secretaria de Gestão do Espaço Físico (SeGEF) para aprovação e continuidade do fluxo institucional.
+
+&gt; Fonte: [Manual dos Coordenadores.pdf, pág. 12]</div></div></div></article><article class="card">
+      <div class="card-head"><span class="qid">NL2</span><h3>Os contratos podem ser firmados com empresas estrangeiras?</h3></div>
+      <div class="compare"><div class="side">
+      <div class="side-head"><span class="side-title">Antes</span><span class="badge b-fontes">com fontes</span>
+        <span class="time">38.8s</span><span class="chip chip-on">painel 3</span></div>
+      <div class="pages"><span>pág. 37 · 58%</span><span>pág. 38 · 56%</span><span>pág. 39 · 56%</span></div><div class="answer">Sim, é possível realizar contratações com empresas estrangeiras ou importar bens e serviços de fornecedores fora do Brasil, mas o processo deve seguir procedimentos específicos detalhados no manual da FAI-UFSCar para garantir a conformidade institucional.
+
+Para esse tipo de operação, os principais pontos são:
+
+**1. Preparação e Documentação Inicial**
+*   **Proforma:** É necessário elaborar uma Proforma que contenha os dados do importador (FAI-UFSCar), os dados do exportador (e seu representante no Brasil, se houver), as condições de negociação, itens detalhados (quantidade, preço, peso, país de origem, NCM) e as condições gerais (garantia, pagamento e o Incoterm).
+*   **Solicitação de Compra (SC):** No formulário de SC, deve-se informar a moeda da compra conforme a Proforma e incluir a taxa de câmbio. O sistema realizará o cálculo automático do valor em reais, incluindo despesas como frete e armazenagem.
+
+**2. Submissão via Plataforma**
+*   A **Solicitação de Compra (SC)** acompanhada do **Termo de Referência (TR)** deve ser enviada por meio da **Área de Coordenadores**. 
+*   Para serviços que não envolvem a compra física de bens, basta enviar a solicitação à FAI; para compras e importações, o envio do conjunto SC/TR é obrigatório.
+
+**3. Prazos e Logística**
+*   Após a aprovação da proposta, o fornecedor deve indicar a data prevista para o envio ao Brasil. 
+*   O prazo médio estimado para toda a tramitação logística, incluindo procedimentos aduaneiros e entrega final, é de aproximadamente **20 dias**.
+
+**4. Recebimento e Pagamento**
+*   Para que o pagamento seja liberado, o coordenador deve apresentar:
+    *   Nota fiscal válida (ou fatura/invoice) em nome da FAI;
+    *   Termo de recebimento;
+    *   Aprovação do coordenador.
+
+**Observação sobre a &quot;Compra Fácil&quot;**
+Caso o item já conste na lista pré-aprovada, ele pode ser adquirido via modalidade **&quot;Compra Fácil&quot;**, que simplifica o processo por dispensar a anexação de um orçamento base.
+
+&gt; Fonte: [Manual dos Coordenadores.pdf, págs. 37, 38, 39]</div></div><div class="side">
+      <div class="side-head"><span class="side-title">Depois</span><span class="badge b-fontes">com fontes</span>
+        <span class="time">24.4s</span><span class="chip chip-on">painel 1</span></div>
+      <div class="pages"><span>pág. 67 · 6%</span></div><div class="answer">Sim, é possível realizar a contratação de fornecedores localizados fora do Brasil (parcerias internacionais), mas a FAI•UFSCar segue um procedimento específico para esses casos, conforme detalhado no Manual dos Coordenadores:
+
+**Procedimento de compra/contratação internacional:**
+*   O processo é realizado pela Fundação para a aquisição de bens ou serviços de fornecedores estrangeiros.
+*   É obrigatório apresentar uma **proforma** que contenha: moeda da transação, valores, condições de pagamento e demais detalhes do item ou serviço a ser contratado.
+*   Deve-se indicar o **Incoterm** (International Commercial Terms) escolhido, pois ele define as responsabilidades logísticas da remessa no contexto da importação.
+
+**Fluxo na prática:**
+1.  O coordenador do projeto deve gerar um Pedido de Compra (SC) ou Termo de Referência (TR) na **Área de Coordenadores** da FAI.
+2.  A documentação necessária (**proforma e Incoterm**) deve acompanhar o pedido para aprovação interna.
+3.  Após a aprovação, a FAI conduz a importação ou contratação seguindo as regras internas e os requisitos do financiador.
+
+O manual não detalha cláusulas contratuais específicas (como garantias ou penalidades) nem condições de pagamento além das informações contidas na proforma e no Incoterm. Para orientações sobre termos contratuais mais específicos ou exigências de parceiros internacionais, recomenda-se consultar as normas do próprio parceiro ou as regras do órgão financiador responsável pelo projeto. Caso precise de auxílio com esses detalhes, recomendo falar com o **Gestor do seu Projeto**, seu interlocutor oficial que acompanha o caso específico.
+
+&gt; Fonte: [Manual dos Coordenadores.pdf, pág. 67]</div></div></div></article><article class="card">
+      <div class="card-head"><span class="qid">NL3</span><h3>Como é calculado o percentual da UFSCar, do departamento, ProEx e da fundação?</h3></div>
+      <div class="compare"><div class="side">
+      <div class="side-head"><span class="side-title">Antes</span><span class="badge b-dirige">direciona</span>
+        <span class="time">22.6s</span><span class="chip chip-off">painel 0</span></div>
+      <div class="answer">O manual disponível não detalha o cálculo específico dos percentuais de distribuição de recursos entre a UFSCar, o departamento e o ProEx.
+
+Para obter essa informação detalhada sobre a composição de custos ou repasses do seu projeto, recomendo entrar em contato com o **Gestor do seu Projeto**, que é o interlocutor oficial responsável por acompanhar o seu caso específico junto à FAI-UFSCar.
+
+Caso precise de suporte adicional, você também pode contatar a Fundação pelos canais oficiais:
+*   **Telefone:** (16) 3351-9000
+*   **E-mail:** fai@fai.ufscar.br
+
+Para acompanhamento de status de solicitações, pedidos ou para acessar documentos do seu projeto, você pode utilizar a **Área de Coordenadores** através do link: [https://sistemas.fai.ufscar.br/](https://sistemas.fai.ufscar.br/)</div></div><div class="side">
+      <div class="side-head"><span class="side-title">Depois</span><span class="badge b-dirige">direciona</span>
+        <span class="time">24.5s</span><span class="chip chip-off">painel 0</span></div>
+      <div class="answer">O manual disponível não detalha como são calculados os percentuais da UFSCar, do departamento, ProEx e da fundação.
+
+Para obter essa informação específica, recomendo falar com o **Gestor do seu Projeto**, que é o interlocutor oficial que acompanha o seu caso; você também pode entrar em contato com a Fundação pelos canais oficiais: telefone **(16) 3351-9000** ou e-mail **fai@fai.ufscar.br**.</div></div></div></article><article class="card">
+      <div class="card-head"><span class="qid">NL4</span><h3>Por que o gerenciamento de projeto privado e público é diferente?</h3></div>
+      <div class="compare"><div class="side">
+      <div class="side-head"><span class="side-title">Antes</span><span class="badge b-sem-fonte">sem citação</span>
+        <span class="time">13.4s</span><span class="chip chip-off">painel 0</span></div>
+      <div class="answer">Este assunto não faz parte do meu escopo de atuação como assistente virtual da FAI-UFSCar, que é focado em fornecer orientações baseadas nos manuais e procedimentos internos da Fundação. Posso ajudar com dúvidas sobre gestão de projetos dentro do contexto da FAI-UFSCar, conforme os documentos disponíveis.</div></div><div class="side">
+      <div class="side-head"><span class="side-title">Depois</span><span class="badge b-fontes">com fontes</span>
+        <span class="time">62.2s</span><span class="chip chip-on">painel 5</span></div>
+      <div class="pages"><span>pág. 24 · 19%</span><span>pág. 67 · 20%</span><span>pág. 68 · 20%</span><span>pág. 70 · 7%</span><span>pág. 71 · 7%</span></div><div class="answer">O gerenciamento de projetos públicos e privados na FAI•UFSCar apresenta diferenças fundamentadas em legislações específicas, formas de pagamento e regras de adiantamento.
+
+As principais distinções são:
+
+**Legislação Aplicável**
+*   **Projetos Públicos:** São regidos pelo Decreto nº 8.241/2014 (que trata da aquisição de bens e contratação de obras e serviços por fundações de apoio) e, subsidiariamente, pela Lei nº 14.133/2021 (Nova Lei de Licitações e Contratos).
+*   **Projetos Privados:** O manual não cita uma lei específica para este tipo de projeto; os procedimentos seguem as regras internas da FAI.
+
+**Formas de Pagamento e Adiantamento**
+*   **Projetos Públicos:** É permitido apenas o ressarcimento a pessoas físicas (como no caso de reembolso de viagens). Não há autorização para realizar adiantamentos a pessoas jurídicas.
+*   **Projetos Privados:** É utilizado o formulário Solicitação de Pagamento (SP) e existe a possibilidade de realizar adiantamentos para pessoas jurídicas.
+
+**Pontos em Comum (Sem distinção entre público e privado)**
+Apesar das diferenças acima, existem regras que se aplicam a **ambos** os tipos de projeto:
+*   **Notas Fiscais (Invoices):** Devem ser emitidas em nome da Fundação, seguir as regras da FAI e do financiador, serem enviadas dentro do mês de emissão (ou até o 5º dia útil do mês seguinte) e identificar claramente o projeto.
+*   **Cupons Fiscais:** Devem conter o CNPJ da FAI ou deixar em branco o campo CPF/CNPJ; cupons com nome ou CPF de pessoa física não são aceitos.
+*   **Suprimento de Fundos:** É proibido, em ambos os casos, utilizar suprimento de fundos para contratação de pessoas físicas, prestação de serviços, aquisição de material permanente ou despesas pessoais.
+*   **Reembolso de Despesas Diretas:** Geralmente não é autorizado, exceto se permitido pelo financiador e previsto no plano de trabalho, com documentação fiscal em nome da FAI.
+*   **Remanejamento de Saldos:** É possível em ambos os casos, desde que autorizado pelo órgão financiador e formalizado junto à FAI•UFSCar.
+*   **Segregação Bancária:** A contabilidade exige a separação entre contas bancárias públicas e privadas para refletir a origem dos recursos.
+
+&gt; Fonte: [Manual dos Coordenadores.pdf, págs. 24, 67, 68, 70, 71]</div></div></div></article><article class="card">
+      <div class="card-head"><span class="qid">NL5</span><h3>Quando é permitido fazer uma contratação (P.J) de forma direta, e por quê?</h3></div>
+      <div class="compare"><div class="side">
+      <div class="side-head"><span class="side-title">Antes</span><span class="badge b-fontes">com fontes</span>
+        <span class="time">22.9s</span><span class="chip chip-on">painel 3</span></div>
+      <div class="pages"><span>pág. 28 · 8%</span><span>pág. 29 · 8%</span><span>pág. 30 · 8%</span></div><div class="answer">A contratação direta com pessoa jurídica (PJ) é tratada como uma modalidade de aquisição que simplifica o processo de compra por meio de contratos pré-estabelecidos, conforme descrito no procedimento **Compra Fácil**.
+
+No entanto, o manual não detalha explicitamente as condições sob as quais essa modalidade dispensa a necessidade de licitação ou outros procedimentos de seleção pública.
+
+Para esclarecer dúvidas específicas sobre a aplicação da contratação direta em seu projeto e verificar se há exceções ou requisitos adicionais (como limites de valor ou necessidade de Termo de Referência), recomendo consultar o **Gestor do seu Projeto**, que é o interlocutor oficial que acompanha o seu caso específico. Caso precise de apoio adicional, você também pode entrar em contato com a Fundação pelo telefone **(16) 3351-9000** ou pelo e-mail **fai@fai.ufscar.br**.
+
+&gt; Fonte: [Manual dos Coordenadores.pdf, págs. 28, 29, 30]</div></div><div class="side">
+      <div class="side-head"><span class="side-title">Depois</span><span class="badge b-fontes">com fontes</span>
+        <span class="time">32.5s</span><span class="chip chip-on">painel 3</span></div>
+      <div class="pages"><span>pág. 65 · 33%</span><span>pág. 68 · 34%</span><span>pág. 71 · 8%</span></div><div class="answer">A contratação direta de uma pessoa jurídica (PJ) pela FAI•UFSCar pode ocorrer em duas modalidades principais, dependendo da natureza e do valor do objeto:
+
+**Modalidades de Contratação Direta:**
+
+*   **Compra Direta**: É permitida quando há uma pesquisa de preços acompanhada de uma **justificativa técnica**. Esta justificativa é obrigatória e deve demonstrar a necessidade do bem ou serviço, além de comparar os preços e justificar a escolha do fornecedor.
+    *   **Limites para Compra Direta**:
+        *   Até R$ 100.000,00 para obras;
+        *   Até R$ 40.000,00 para outros serviços ou compras com recursos públicos.
+*   **Compra Fácil**: Esta modalidade permite a contratação de itens que já possuem um contrato pré-estabelecido e aprovado nos procedimentos de compras da FAI. Ao selecionar um produto desta lista, não é necessário anexar um orçamento base na solicitação de compras (SC).
+
+**Documentação Adicional:**
+Em casos onde a aquisição seja considerada mais complexa, o solicitante deve anexar um **Termo de Referência**, que detalha as especificações técnicas, o cronograma e os requisitos necessários.
+
+&gt; Fonte: [Manual dos Coordenadores.pdf, págs. 65, 68, 71]</div></div></div></article><article class="card">
+      <div class="card-head"><span class="qid">NL6</span><h3>Por que é preciso colocar todos os bolsistas do projeto para pagamento na mesma resolução Coex?</h3></div>
+      <div class="compare"><div class="side">
+      <div class="side-head"><span class="side-title">Antes</span><span class="badge b-dirige">direciona</span>
+        <span class="time">29.5s</span><span class="chip chip-off">painel 0</span></div>
+      <div class="answer">O manual não detalha o motivo específico pelo qual todos os bolsistas do projeto devem constar na mesma Resolução Coex para fins de pagamento.
+
+Para esclarecer essa dúvida técnica ou entender as implicações dessa norma, recomendo que você entre em contato com o **Gestor do seu Projeto**, que é o interlocutor oficial que acompanha o seu caso específico. Você também pode obter suporte geral da Fundação pelos canais abaixo:
+
+*   **Telefone:** (16) 3351-9000
+*   **E-mail:** fai@fai.ufscar.br
+
+Lembre-se que o acompanhamento de status, pendências e o acesso a documentos do projeto podem ser realizados diretamente pela **Área de Coordenadores** (plataforma online da FAI).</div></div><div class="side">
+      <div class="side-head"><span class="side-title">Depois</span><span class="badge b-dirige">direciona</span>
+        <span class="time">25.9s</span><span class="chip chip-off">painel 0</span></div>
+      <div class="answer">O manual disponível não deixa explícito se todos os bolsistas do projeto devem estar na mesma resolução Coex para pagamento.
+
+Para esclarecer essa dúvida específica, recomendo falar com o **Gestor do seu Projeto**, que é o interlocutor oficial que acompanha o seu caso; você também pode entrar em contato com a Fundação pelos canais gerais: telefone **(16) 3351-9000** ou e-mail **fai@fai.ufscar.br**.</div></div></div></article><article class="card">
+      <div class="card-head"><span class="qid">NL7</span><h3>Por que todo bolsista de projeto público precisa passar por processo seletivo?</h3></div>
+      <div class="compare"><div class="side">
+      <div class="side-head"><span class="side-title">Antes</span><span class="badge b-fontes">com fontes</span>
+        <span class="time">60.9s</span><span class="chip chip-on">painel 1</span></div>
+      <div class="pages"><span>pág. 43 · 46%</span></div><div class="answer">O processo seletivo é obrigatório para bolsistas em projetos com recursos públicos devido à necessidade de garantir **transparência**, **imparcialidade** e **conformidade legal** no processo de contratação.
+
+A realização de um Processo Seletivo Simplificado (que consiste em um edital público com critérios objetivos de seleção e julgamento) assegura que todos os candidatos sejam avaliados sob critérios claros, evitando favorecimentos ou conflitos de interesse.
+
+É importante destacar que essa exigência específica para o processo seletivo simplificado aplica-se a projetos financiados com **recursos públicos**. Em casos de projetos financiados exclusivamente por recursos privados, o coordenador pode indicar diretamente o bolsista, desde que sejam respeitadas as normas internas e a legislação trabalhista vigente.
+
+&gt; Fonte: [Manual dos Coordenadores.pdf, pág. 43]</div></div><div class="side">
+      <div class="side-head"><span class="side-title">Depois</span><span class="badge b-fontes">com fontes</span>
+        <span class="time">25.2s</span><span class="chip chip-on">painel 2</span></div>
+      <div class="pages"><span>pág. 43 · 34%</span><span>pág. 46 · 56%</span></div><div class="answer">O manual da FAI•UFSCar estabelece que a realização de um processo seletivo simplificado (por meio de edital público) é obrigatória para a seleção de bolsistas em projetos financiados com recursos de origem pública.
+
+Essa exigência tem como objetivos:
+*   **Transparência e Objetividade:** Garantir que os critérios de seleção sejam claros e objetivos;
+*   **Conformidade:** Assegurar o cumprimento das regras estabelecidas pelos órgãos financiadores;
+*   **Justiça:** Garantir que a escolha dos bolsistas ocorra de forma justa.
+
+O manual ressalta que esse processo é obrigatório, salvo em casos específicos de inexigibilidade legal.
+
+&gt; Fonte: [Manual dos Coordenadores.pdf, págs. 43, 46]</div></div></div></article>
+</section>
+
+<footer>
+  <b>Leitura honesta dos números.</b> O ganho central é a queda de <b>4 → 1</b> respostas “fundamentada sem citação”: casos em que a resposta usava o conteúdo do manual mas o painel de fontes vinha vazio (R07, R11, R13 do Ricardo; NL4 da 2ª bateria). Isso era o bug do canal <code>&lt;think&gt;</code> engolindo o texto antes do parser de citações — agora corrigido.
+  <ul>
+    <li><b>Ricardo:</b> as perguntas de fronteira com “RTI” (R13, R15, R03, R07, R11) passaram a responder com o conteúdo relacionado <b>e</b> citar a página, em vez de abster sem fonte. R01 e R09 seguem como abstenção dirigida — correto, o manual realmente não trata de alíquota de departamento nem de GRU.</li>
+    <li><b>MS1 não é regressão</b> (corrigido após investigação): é caso de fronteira com variância. O manual mal cobre “solicitar planilha orçamentária” (termo aparece 1 vez, sobre BDI de obras, relevância ~15%); em 3 de 4 execuções o “depois” responde com fontes. A resposta “antes” parecia mais completa, mas inventava o procedimento — precisamente o que a ancoragem estrita agora contém.</li>
+    <li><b>Ponto que resiste (NL1):</b> “primeiro passo para cadastrar um projeto” responde com o fluxo SEI→SeGEF mas às vezes <b>sem</b> a linha de fonte, deixando o painel vazio. É o caso em que o modelo não escreve a citação; o reparo determinístico não dispara por não haver sinal de fundamentação para validar.</li>
+    <li><b>Zero</b> siglas inventadas e <b>zero</b> jargão RAG vazado nas 20 respostas do “depois”.</li>
+  </ul>
+  Metodologia: cada cartão é <b>uma execução</b> por pergunta (não a média); em perguntas de fronteira a decisão responder-vs-abster ainda pode variar entre execuções (o cache de resposta estabiliza isso em produção). Baselines “antes” com o prompt anterior; “depois” no build final (prompt reescrito + patch do template LightRAG + correção do canal <code>&lt;think&gt;</code>). O modelo de síntese é o <b>gpt-oss:20b com think=high</b> (raciocínio profundo antes de responder), via shim; os tempos incluem essa fase de raciocínio.
+</footer>
+</div>
