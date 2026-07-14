@@ -227,6 +227,7 @@ class AgentService:
         max_steps: int = 5,
         instructions_mode: str = "preamble",
         system_prompt_builder: Callable[[AgentContext], str] | None = None,
+        grounding_checker: Callable[[str, AgentContext], "str | None"] | None = None,
     ):
         self.model = model
         self.registry = registry
@@ -235,6 +236,12 @@ class AgentService:
         # O system prompt real (persona Lina + Protocolo de Skills) e montado na
         # integracao do endpoint (Fase 8.7); aqui ele e injetavel p/ testabilidade.
         self._build_system_prompt = system_prompt_builder or (lambda ctx: "")
+        # Guard de GROUNDING (injetavel, como o system_prompt_builder): recebe a
+        # resposta final candidata + ctx e devolve uma instrucao corretiva quando a
+        # resposta e substantiva mas NAO esta ancorada (sem fonte inline e sem fonte
+        # coletada por skill) — padrao medido na bateria multi-manual: 100% dos
+        # cenarios multi-documento falharam assim. None = resposta ok / guard off.
+        self._grounding_checker = grounding_checker
 
     def run_stream(
         self, question: str, conversation_history: list[dict], ctx: AgentContext
@@ -248,6 +255,7 @@ class AgentService:
 
         schemas = self.registry.schemas
         instructed: set[str] = set()  # skills cujas instrucoes ja foram injetadas (disclosure)
+        grounding_retried = False     # o guard de grounding devolve ao modelo NO MAXIMO 1 vez
 
         for _step in range(self.max_steps):
             answer_buf = ""
@@ -267,7 +275,22 @@ class AgentService:
                 # bufferizado) para garantir que o raciocinio interno (formato
                 # "harmony") nunca vaze ao usuario; depois funde as citacoes de
                 # fonte do mesmo arquivo numa unica linha (paginas agrupadas).
-                yield ("answer", consolidate_sources(sanitize_harmony(answer_buf)))
+                final = consolidate_sources(sanitize_harmony(answer_buf))
+                # Guard de grounding: resposta substantiva sem NENHUMA fonte nao sai
+                # na primeira — devolve ao modelo UMA vez com a instrucao corretiva
+                # (consultar a base / emitir o token de negativa / reafirmar se for
+                # social). A 2a resposta e aceita como vier. So funciona porque o
+                # texto final e BUFFERIZADO (nada vazou ao stream ainda).
+                if not grounding_retried and self._grounding_checker:
+                    corrective = self._grounding_checker(final, ctx)
+                    if corrective:
+                        grounding_retried = True
+                        print("[agente] guard de grounding: resposta substantiva sem fonte -> retry corretivo")
+                        yield ("tool_status", "verificando_fontes")
+                        messages.append({"role": "assistant", "content": answer_buf})
+                        messages.append({"role": "user", "content": corrective})
+                        continue
+                yield ("answer", final)
                 return
 
             # registra a intencao do assistente e executa cada skill

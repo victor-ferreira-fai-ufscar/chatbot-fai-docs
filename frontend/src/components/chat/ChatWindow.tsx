@@ -361,6 +361,27 @@ function ReplyButton({ onClick }: { onClick: () => void }) {
   );
 }
 
+// Rótulo humano por skill em execução (evento `tool_status` do backend = nome da skill).
+// Só aparece enquanto a skill roda; fora disso, o indicador é a animação de "digitando".
+const SKILL_STATUS_LABELS: Record<string, string> = {
+  consultar_base_conhecimento: "Consultando o manual…",
+  gerar_planilha: "Gerando planilha…",
+  gerar_documento_pdf: "Gerando PDF…",
+  entregar_documento: "Preparando documento…",
+};
+
+// Animação de três pontinhos ("...") — indicador padrão de "pensando", enquanto NENHUMA
+// skill está rodando (antes/entre chamadas de ferramenta e no início da geração).
+function TypingDots() {
+  return (
+    <span className="not-prose inline-flex items-center gap-1" aria-label="digitando">
+      <span className="size-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:-0.3s]" />
+      <span className="size-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:-0.15s]" />
+      <span className="size-1.5 rounded-full bg-muted-foreground/60 animate-bounce" />
+    </span>
+  );
+}
+
 export default function ChatWindow({ config, userId, selectedConversationId, onConversationCreated, onActiveSources, onGenerating, onNewChat }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -369,8 +390,10 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
   const [showAbout, setShowAbout] = useState(false);
   // "Modo agêntico": ligado = tool calling + Skills (pode gerar planilha/PDF/DOCX);
   // desligado (default) = RAG direto pelo manual (útil para testar precisão/alucinação), sem gerar docs.
-  const [agenticMode, setAgenticMode] = useState(false);
+  const [agenticMode, setAgenticMode] = useState(true);
   const [isTyping, setIsTyping] = useState(false);
+  // Skill em execução no turno atual (evento `tool_status`); null = sem skill (digitando).
+  const [toolStatus, setToolStatus] = useState<string | null>(null);
   // Exportação de PDF em andamento (desabilita o botão e evita cliques repetidos
   // gerando múltiplos downloads e várias renderizações no backend).
   const [isExporting, setIsExporting] = useState(false);
@@ -501,6 +524,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
 
     // Prepare assistant placeholder message
     setMessages(prev => [...prev, { role: "assistant", content: "" }]);
+    setToolStatus(null); // zera o indicador de skill do turno anterior
 
     // Abortado pelo useEffect se o usuário trocar de conversa no meio do stream.
     const ac = new AbortController();
@@ -558,6 +582,11 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
             try {
               const data = JSON.parse(line.slice(6));
 
+              // `tool_status` (nome da skill) chega antes/entre chunks: dirige o indicador
+              // de "Consultando o manual…" vs. os três pontinhos de "digitando".
+              if (data.tool_status) {
+                setToolStatus(data.tool_status);
+              }
               if (data.error) {
                 lastMessageContent = `Erro: ${data.error}`;
               } else if (data.content) {
@@ -594,6 +623,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
               if (data.done && onActiveSources) {
                 onActiveSources(data.sources || [], lastMessageContent);
               }
+              if (data.done) setToolStatus(null); // limpa o indicador de skill ao encerrar
 
             } catch (e) {
               console.error("Erro ao parsear chunk JSON", e);
@@ -929,9 +959,13 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
                     )
                   ) : (isTyping && idx === messages.length - 1 ? (
-                    <span className="not-prose inline-flex items-center gap-2 text-sm text-muted-foreground">
-                      <Spinner className="size-4 text-accent-blue" /> Consultando o manual…
-                    </span>
+                    toolStatus ? (
+                      <span className="not-prose inline-flex items-center gap-2 text-sm text-muted-foreground">
+                        <Spinner className="size-4 text-accent-blue" /> {SKILL_STATUS_LABELS[toolStatus] ?? "Processando…"}
+                      </span>
+                    ) : (
+                      <TypingDots />
+                    )
                   ) : null)}
                 </div>
               </div>

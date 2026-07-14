@@ -9,7 +9,7 @@ from app.schemas.chat_schema import ChatRequest
 from src.chatbot_fai_docs import AppConfig, RagService
 from src.chatbot_fai_docs.llm import ChatSettings, ChatClient
 from src.chatbot_fai_docs.repository import get_repo_from_url
-from src.chatbot_fai_docs.lightrag_service import LightRagService
+from src.chatbot_fai_docs.lightrag_service import LightRagService, NO_CONTEXT_MSG
 from src.chatbot_fai_docs.lightrag_resolver import resolve_lightrag_url
 from src.chatbot_fai_docs.smalltalk_gate import is_smalltalk
 from src.chatbot_fai_docs.storage_service import StorageService
@@ -18,6 +18,56 @@ from src.chatbot_fai_docs.response_cache import ResponseCache, make_key, prompts
 from pathlib import Path
 
 router = APIRouter()
+
+# Token-sentinela de negativa: o modelo o emite SOZINHO (regra 2.1 do Prompt.md) quando o
+# manual nao responde ao nucleo da pergunta. O gate abaixo o troca DETERMINISTICAMENTE pela
+# frase fixa (NO_CONTEXT_MSG), sem preambulo e sem fontes. Assim a negativa sai sempre
+# identica, em vez de depender de o modelo reproduzir a frase palavra por palavra.
+NEGATIVA_SENTINEL = "SENTINELA_SEM_RESPOSTA_NO_MANUAL"
+
+
+class _SentinelGate:
+    """Intercepta o token-sentinela de negativa em QUALQUER posicao do stream.
+
+    Numa negativa o modelo DEVERIA emitir so o token (regra 2.1), mas as vezes antepoe um
+    preambulo ("O manual nao detalha...") ANTES do token. A versao anterior so olhava o
+    INICIO da resposta, entao um token vindo DEPOIS do preambulo vazava CRU para o usuario.
+    Aqui procuramos o token em qualquer posicao: seguramos os ultimos len(token)-1 chars do
+    buffer (para apanha-lo mesmo partido entre chunks) e, ao encontra-lo, emitimos so o que
+    veio ANTES, descartamos o token e marcamos `tripped`. O chamador, ao ver `tripped`,
+    troca a resposta por NO_CONTEXT_MSG. Assim o token cru NUNCA chega ao usuario.
+    """
+
+    def __init__(self):
+        self._buf = ""
+        self.tripped = False
+
+    def feed(self, text: str) -> str:
+        if self.tripped:
+            return ""
+        self._buf += text or ""
+        idx = self._buf.find(NEGATIVA_SENTINEL)
+        if idx != -1:
+            self.tripped = True
+            out, self._buf = self._buf[:idx], ""
+            return out
+        # Segura os ultimos len(token)-1 chars: o token pode estar partido entre chunks.
+        keep = len(NEGATIVA_SENTINEL) - 1
+        if len(self._buf) > keep:
+            out, self._buf = self._buf[:-keep], self._buf[-keep:]
+            return out
+        return ""
+
+    def flush(self) -> str:
+        if self.tripped:
+            return ""
+        idx = self._buf.find(NEGATIVA_SENTINEL)
+        if idx != -1:
+            self.tripped = True
+            out, self._buf = self._buf[:idx], ""
+            return out
+        out, self._buf = self._buf, ""
+        return out
 
 # Arquivos de prompt cujo CONTEUDO entra na chave do cache (editar prompt -> cache novo).
 # parents[3] = raiz do backend (/app no container): app/api/endpoints/chat.py -> backend/.
@@ -130,12 +180,16 @@ def _bucket_manual_names(storage=None) -> list:
         return []
 
 
-def _run_agent(config, question: str, conversation_history: list):
+def _run_agent(config, question: str, agent_history: list, skill_history: list):
     """Monta o AgentService (laco de tool calling + Skills) e devolve
     (gerador_de_tuplas, AgentContext). O ctx e populado DURANTE a iteracao do
     gerador (sources/downloads coletados a cada skill), entao leia ctx.sources /
     ctx.downloads APOS consumir o gerador. Imports do agente sao preguicosos para
-    que o fluxo legado (AGENT_ENABLED=False) nunca os carregue."""
+    que o fluxo legado (AGENT_ENABLED=False) nunca os carregue.
+
+    Split de historico: o AGENTE raciocina sobre `agent_history` (conversa PLENA),
+    mas a RECUPERACAO (skill consultar_base_conhecimento -> LightRAG) recebe so
+    `skill_history` (ultimos HISTORY_TURNS) via ctx.conversation_history."""
     from src.chatbot_fai_docs.agent import AgentService, ToolRegistry, AgentContext
     from src.IA.Models import OllamaModel, OpenAIModel, GeminiModel
 
@@ -178,11 +232,44 @@ def _run_agent(config, question: str, conversation_history: list):
         storage=storage,
         temp_storage=temp_storage,
         llm_settings=llm_settings,
-        conversation_history=conversation_history,
+        # RECUPERACAO (skill -> LightRAG) ve so os ultimos HISTORY_TURNS turnos.
+        conversation_history=skill_history,
         history_turns=settings.HISTORY_TURNS,
         signed_url_ttl=settings.SIGNED_URL_TTL,
         available_docs=manual_names,
     )
+    def _grounding_checker(final_text: str, actx) -> "str | None":
+        """Detecta resposta substantiva SEM nenhuma ancora (padrao da bateria multi-manual:
+        passos genericos sintetizados do proprio prompt, sem consultar os manuais).
+        Retorna a instrucao corretiva p/ o retry unico do laco, ou None (resposta ok)."""
+        if not settings.AGENT_GROUNDING_RETRY_ENABLED:
+            return None
+        t = (final_text or "").strip()
+        if len(t) < settings.AGENT_GROUNDING_MIN_CHARS:
+            return None                      # curta: social/confirmacao — nao punir
+        if NEGATIVA_SENTINEL in t:
+            return None                      # negativa sinalizada: fluxo proprio (gate)
+        if actx.sources or actx.downloads:
+            return None                      # skill ancorou (fontes) ou entregou (download) NESTE turno
+        # Citacao inline SEM nenhuma fonte de skill no turno: legitima apenas em
+        # FOLLOW-UP (o trecho pode ter vindo do historico da conversa) e COM pagina.
+        # Em 1o turno nenhum trecho foi visto -> citacao e fabricada por definicao
+        # (medido no re-teste: PRO-04 citou sem consultar; SIS-04 inventou pagina).
+        if agent_history and re.search(r">\s*Fonte:.*p[áa]gs?\.?\s*\d", t, re.I):
+            return None
+        return (
+            "ATENCAO (verificacao automatica): sua resposta anterior e substantiva, mas NAO esta "
+            "ancorada em nenhuma fonte — nenhuma consulta aos manuais retornou trechos e nao ha "
+            "linha '> Fonte:'. NAO envie assim. Escolha UMA opcao e refaca: "
+            "(1) se a pergunta envolve conteudo dos manuais (processos da FAI ou uso da Area de "
+            "Coordenadores), chame consultar_base_conhecimento AGORA (reescreva a consulta com as "
+            "palavras-chave da pergunta) e reescreva a resposta usando APENAS o que ela retornar, "
+            "citando manual e pagina (regra 4); "
+            f"(2) se os manuais nao cobrirem o nucleo da pergunta, responda EXATAMENTE '{NEGATIVA_SENTINEL}', sozinho; "
+            "(3) apenas se a pergunta for puramente social/sobre voce (sem conteudo de manual), "
+            "reescreva a resposta normalmente."
+        )
+
     chat_client = ChatClient()
     agent = AgentService(
         model,
@@ -190,8 +277,10 @@ def _run_agent(config, question: str, conversation_history: list):
         max_steps=settings.MAX_TOOL_STEPS,
         instructions_mode=settings.SKILL_INSTRUCTIONS_MODE,
         system_prompt_builder=lambda c: chat_client.build_agent_system_prompt(c.available_docs),
+        grounding_checker=_grounding_checker,
     )
-    return agent.run_stream(question, conversation_history, ctx), ctx
+    # O AGENTE raciocina sobre o historico PLENO (agent_history), nao o truncado.
+    return agent.run_stream(question, agent_history, ctx), ctx
 
 
 def get_repo():
@@ -242,14 +331,22 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
                 {"role": m.role, "content": m.content}
                 for m in prior if m.role in ("user", "assistant")
             ]
-            # HISTORY_TURNS<=0 -> SEM historico (cada pergunta independente). Guard explicito:
-            # sem ele, _hist[-(0*2):] == _hist[0:] devolveria a conversa INTEIRA (slice [-0:]).
+            # RECUPERACAO (skill LightRAG + fluxo legado): so os ultimos HISTORY_TURNS turnos.
+            # HISTORY_TURNS<=0 -> SEM historico. Guard explicito: sem ele, _hist[-(0*2):] ==
+            # _hist[0:] devolveria a conversa INTEIRA (slice [-0:]).
             conversation_history = (
                 _hist[-(settings.HISTORY_TURNS * 2):] if settings.HISTORY_TURNS > 0 else []
+            )
+            # AGENTE: memoria conversacional PLENA (raciocina sobre a conversa inteira),
+            # capada em AGENT_HISTORY_MAX_TURNS por seguranca de contexto.
+            full_history = (
+                _hist[-(settings.AGENT_HISTORY_MAX_TURNS * 2):]
+                if settings.AGENT_HISTORY_MAX_TURNS > 0 else []
             )
         except Exception as e:
             print(f"Erro ao carregar historico: {e}")
             conversation_history = []
+            full_history = []
 
         # Lista de manuais reais (objetos do bucket) — alimenta {{LISTA_MANUAIS}} no prompt
         # e o nome canonico das citacoes. Uma unica consulta, reutilizada nos dois usos.
@@ -276,7 +373,7 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
         # nesses casos a resposta independe de estado da conversa, entao a MESMA pergunta
         # deve dar a MESMA resposta. cache_key=None desliga leitura E escrita para este turno.
         cache_key = None
-        if (settings.RESPONSE_CACHE_ENABLED and not conversation_history
+        if (settings.RESPONSE_CACHE_ENABLED and not full_history and not conversation_history
                 and not request.quoted and not _maybe_download_request(request.question)):
             cache_key = make_key(request.question, request.mode, agent_on,
                                  manual_names, settings.RESPONSE_CACHE_VERSION,
@@ -300,7 +397,7 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
         agent_ctx = None
         try:
             if agent_on:
-                answer, agent_ctx = _run_agent(config, effective_question, conversation_history)
+                answer, agent_ctx = _run_agent(config, effective_question, full_history, conversation_history)
             else:
                 # Gate conversacional: turnos puramente sociais (oi, obrigado, "quem e voce?")
                 # respondem direto pelo modelo auxiliar, SEM acionar o LightRAG (economiza o
@@ -351,7 +448,7 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
         # Casa pelo número-base, então mantém leis que o manual referencia. Ver legal_guard.py.
         from src.chatbot_fai_docs.legal_guard import LegalRefGuard, manual_law_numbers
         from src.chatbot_fai_docs.pdf_pages import _extract_pages as _law_pages
-        from src.chatbot_fai_docs.source_citation import canonical_manual_name, normalize_source_citations, canonicalize_source_line
+        from src.chatbot_fai_docs.source_citation import canonical_manual_name, normalize_source_citations, canonicalize_source_line, _match_cited
         _law_storage = None
         if settings.SUPABASE_URL and settings.SERVICE_ROLE_KEY:
             try:
@@ -368,9 +465,42 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
         # o normalizador remove o nome e mantem so a pagina. Ver source_citation.py.
         _canon = canonical_manual_name(manual_names)
         _canon_display = _canon.replace("_", " ") if _canon else None
+        # Nomes de exibicao de TODOS os manuais reais (bucket sanitizado -> espacos). Com
+        # >1 manual, a normalizacao resolve o nome POR CITACAO (o citado e a dica), senao
+        # um canonico unico colapsaria TODA citacao inline no primeiro manual do bucket,
+        # misatribuindo a fonte no corpo (ex.: resposta do Manual dos Coordenadores citando
+        # o Manual do Sistema). Ver source_citation.normalize_source_citations(known_names=...).
+        _display_names = [n.replace("_", " ") for n in (manual_names or []) if n]
+
+        _CARD_PAGES_RE = re.compile(r"^\s*-\s*(.+?)\s*\((p[áa]g[^)]*)\)", re.I)
+        def _retrieved_pages_map() -> dict:
+            """{nome_display -> set de paginas RECUPERADAS neste turno}, a partir dos cards
+            de fonte que as skills coletaram (agent_ctx.sources, ex.: '- Manual X.pdf
+            (pág. 40 · 99%)'). Chaves normalizadas p/ os nomes de exibicao do bucket via
+            _match_cited (cobre acento/underscore do source do fallback). Avaliado em tempo
+            de CHAMADA: quando a resposta final streama, as skills ja rodaram e o ctx esta
+            populado. Fluxo legado (agent_ctx=None) -> mapa vazio -> validacao inerte."""
+            out: dict = {}
+            for ln in (agent_ctx.sources if agent_ctx else []):
+                m = _CARD_PAGES_RE.match(ln or "")
+                if not m:
+                    continue
+                key = _match_cited(m.group(1), _display_names)
+                if not key:
+                    continue
+                for n in re.findall(r"\d+", m.group(2)):
+                    out.setdefault(key, set()).add(int(n))
+            return out
+
         def _fix_cites(text: str) -> str:
             # Indexacao page-aware com marcador [PÁGINA N] no INICIO da pagina -> o modelo
             # ja cita a pagina correta; sem necessidade de deslocar (page_shift=0).
+            if len(_display_names) > 1:
+                # Multi-doc: alem de resolver o nome POR CITACAO, valida cada par
+                # (manual, paginas) contra o que a recuperacao devolveu neste turno
+                # (mata etiqueta trocada tipo PRO-04 e paginas fabricadas).
+                return normalize_source_citations(text, _canon_display, known_names=_display_names,
+                                                  retrieved_pages=_retrieved_pages_map() or None)
             return normalize_source_citations(text, _canon_display)
 
         # A CONSUMICAO do gerador e onde o streaming do LightRAG realmente acontece
@@ -380,6 +510,10 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
         # o usuario via a resposta truncar sem aviso (o "problema de conexao" percebido).
         # Capturamos aqui para emitir uma mensagem clara e ainda finalizar/persistir o
         # que ja foi gerado.
+        # Gate de negativa: intercepta o token-sentinela emitido pelo modelo (regra 2.1) e,
+        # se disparar, a resposta INTEIRA vira NO_CONTEXT_MSG (sem fontes). Fica DEPOIS do
+        # guard/_fix_cites (opera no texto ja visivel ao usuario) e cobre os tres branches.
+        gate = _SentinelGate()
         try:
             if agent_on:
                 # Consumer dedicado do agente: mapeia as tuplas do laco para eventos SSE.
@@ -389,26 +523,37 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
                     if kind == "usage":
                         last_usage = payload
                     elif kind == "answer":
-                        cleaned = _fix_cites(guard.feed(payload))
+                        cleaned = gate.feed(_fix_cites(guard.feed(payload)))
                         if cleaned:
                             full_answer += cleaned
                             yield f"data: {json.dumps({'content': cleaned})}\n\n"
                     elif kind == "tool_status":
                         yield f"data: {json.dumps({'tool_status': payload})}\n\n"
                     # 'thought' suprimido de proposito (nao vai ao usuario)
-                tail = _fix_cites(guard.flush())
+                tail = gate.feed(_fix_cites(guard.flush())) + gate.flush()
                 if tail:
                     full_answer += tail
                     yield f"data: {json.dumps({'content': tail})}\n\n"
-                source_lines = agent_ctx.sources if agent_ctx else []
-                # Downloads produzidos por skills (entregar_documento/gerar_*) -> links inline
-                # em Markdown, no MESMO formato do fluxo legado (sem mudar o frontend).
-                for nome, url in (agent_ctx.downloads if agent_ctx else []):
-                    link_md = f"\n\n📎 [Baixar **{nome}**]({url})"
-                    full_answer += link_md
-                    yield f"data: {json.dumps({'content': link_md})}\n\n"
+                if gate.tripped:
+                    # Negativa sinalizada: descarta tudo e emite a frase fixa, sem fontes.
+                    full_answer = NO_CONTEXT_MSG
+                    source_lines = []
+                    yield f"data: {json.dumps({'content': NO_CONTEXT_MSG})}\n\n"
+                else:
+                    source_lines = agent_ctx.sources if agent_ctx else []
+                    # Downloads produzidos por skills (entregar_documento/gerar_*) -> links inline
+                    # em Markdown, no MESMO formato do fluxo legado (sem mudar o frontend).
+                    for nome, url in (agent_ctx.downloads if agent_ctx else []):
+                        link_md = f"\n\n📎 [Baixar **{nome}**]({url})"
+                        full_answer += link_md
+                        yield f"data: {json.dumps({'content': link_md})}\n\n"
             elif isinstance(answer, str):
-                full_answer = _fix_cites(guard.feed(answer) + guard.flush())
+                gated = gate.feed(_fix_cites(guard.feed(answer) + guard.flush())) + gate.flush()
+                if gate.tripped:
+                    full_answer = NO_CONTEXT_MSG
+                    source_lines = []
+                else:
+                    full_answer = gated
                 yield f"data: {json.dumps({'content': full_answer, 'sources': source_lines})}\n\n"
             else:
                 # Gerador de streaming
@@ -430,14 +575,18 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
                     else:
                         chunk_content = item
 
-                    cleaned = _fix_cites(guard.feed(chunk_content))
+                    cleaned = gate.feed(_fix_cites(guard.feed(chunk_content)))
                     if cleaned:
                         full_answer += cleaned
                         yield f"data: {json.dumps({'content': cleaned})}\n\n"
-                tail = _fix_cites(guard.flush())
+                tail = gate.feed(_fix_cites(guard.flush())) + gate.flush()
                 if tail:
                     full_answer += tail
                     yield f"data: {json.dumps({'content': tail})}\n\n"
+                if gate.tripped:
+                    full_answer = NO_CONTEXT_MSG
+                    source_lines = []
+                    yield f"data: {json.dumps({'content': NO_CONTEXT_MSG})}\n\n"
         except Exception as e:
             # Log completo no servidor (tipo + mensagem) para diagnostico; ao usuario,
             # so um aviso amigavel. Segue o fluxo (entrega de doc + persistencia) com o

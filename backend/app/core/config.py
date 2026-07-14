@@ -55,8 +55,14 @@ class Settings(BaseSettings):
     SUPABASE_FALLBACK_ENABLED: bool = True
     # Default RAG engine to use when multiple are available: 'LightRAG' or 'Supabase'
     DEFAULT_RAG_ENGINE: str = "LightRAG"
-    # Numero de turnos (pares user/assistant) do historico enviados ao LightRAG como contexto
+    # Numero de turnos (pares user/assistant) do historico enviados a RECUPERACAO
+    # (LightRAG / skill consultar_base_conhecimento / fluxo legado) como contexto de busca.
     HISTORY_TURNS: int = 5
+    # Turnos MAXIMOS de historico que o AGENTE enxerga (memoria conversacional plena):
+    # o agente raciocina sobre a conversa INTEIRA, enquanto a RECUPERACAO ve so os
+    # ultimos HISTORY_TURNS. Teto de seguranca p/ nao estourar o contexto do modelo em
+    # conversas longas. 0 = agente sem historico.
+    AGENT_HISTORY_MAX_TURNS: int = 40
     # Gate conversacional: quando True, mensagens puramente sociais (saudacao,
     # agradecimento, despedida, pergunta sobre quem e a Lina) respondem direto pelo
     # modelo auxiliar, SEM acionar a busca no LightRAG (economiza ~13s nesses turnos).
@@ -81,6 +87,14 @@ class Settings(BaseSettings):
     # mais de bump: o conteudo dos prompts entra na chave via prompts_fingerprint()
     # (response_cache.py) e invalida automaticamente.
     RESPONSE_CACHE_VERSION: str = "2"
+
+    # Guard de GROUNDING do agente: resposta substantiva (>= MIN_CHARS) sem NENHUMA
+    # fonte (nem citacao inline, nem fonte de skill, nem download) volta ao modelo UMA
+    # vez com instrucao corretiva (consultar a base / token de negativa / reafirmar se
+    # social). Mata o padrao da bateria multi-manual (passos genericos sem grounding).
+    # Rollback instantaneo: AGENT_GROUNDING_RETRY_ENABLED=false no .env.
+    AGENT_GROUNDING_RETRY_ENABLED: bool = True
+    AGENT_GROUNDING_MIN_CHARS: int = 350
 
     MAX_TOOL_STEPS: int = 5            # teto de iteracoes do laco (guarda anti-loop)
     TOOL_TIMEOUT_S: int = 60           # timeout por execucao de skill
