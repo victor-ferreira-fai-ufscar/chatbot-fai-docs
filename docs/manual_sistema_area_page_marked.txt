@@ -1,0 +1,980 @@
+[PÁGINA 1] MANUAL ÁREA DE COORDENADORES Versão 3.00 (nov/2021) A Área de Coordenadores (sistemas.fai.ufscar.br) é uma ferramenta criada pela FAI • UFSCar com o objetivo de disponibilizar as informações mais relevantes referentes a Programa, Departamento ou Projeto aos seus Coordenadores,
+[PÁGINA 1] Auxiliares e Membros do Grupo de Trabalho.
+[PÁGINA 1] Ela está integrada à plataforma FAI WEB que consiste em um conjunto maior de sistemas que visam eliminar redundância de dados e tornar mais ágil o desenvolvimento e manutenção de novas aplicações.
+[PÁGINA 1] Esperamos que este documento possa orientá-los e suprir as principais dúvidas de navegação na nova Área de Coordenadores.
+[PÁGINA 1] Em caso de dúvidas e/ou sugestões entre em contato pelo e-mail suporte@fai.ufscar.br .
+[PÁGINA 1] Atenciosamente, Equipe TIC - FAI • UFSCar.
+[PÁGINA 1] Sumário Objetivo .............................................................................................................................................................................
+[PÁGINA 1] 3 Acessando a Área de Coordenadores................................................................................................................................
+[PÁGINA 1] 4 Login e Senha ................................................................................................................................................................
+[PÁGINA 1] 4 Tela Inicial .........................................................................................................................................................................
+[PÁGINA 1] 6 Área de Exibição dos Dados ..........................................................................................................................................
+[PÁGINA 1] 6 Dados do Projeto ..........................................................................................................................................................
+[PÁGINA 1] 7 Gerenciar Acesso...........................................................................................................................................................
+[PÁGINA 1] 7 Finanças ............................................................................................................................................................................
+[PÁGINA 1] 8 Balancete do Projeto (nível 1) .......................................................................................................................................
+[PÁGINA 1] 8 Extrato da Conta Corrente (nível 1) ..............................................................................................................................
+[PÁGINA 1] 9 Recursos Humanos ..........................................................................................................................................................
+[PÁGINA 1] 10 Provisão .......................................................................................................................................................................
+[PÁGINA 1] 10 Custos Totais ...............................................................................................................................................................
+[PÁGINA 1] 10 Bolsistas ......................................................................................................................................................................
+[PÁGINA 1] 11 Faturamento ...................................................................................................................................................................
+[PÁGINA 1] 14 Cliente Cadastrado x Cliente Novo ..............................................................................................................................
+[PÁGINA 1] 15 Contato do Cliente ......................................................................................................................................................
+[PÁGINA 1] 15 Emissão de Pedido de Venda ......................................................................................................................................
+[PÁGINA 1] 16 Relatórios ........................................................................................................................................................................
+[PÁGINA 1] 19 Custo Operacional por Período (COP, Ressarcimento e Retribuição) .........................................................................
+[PÁGINA 1] 19 Relação Clientes do Projeto ........................................................................................................................................
+[PÁGINA 1] 20 Relação Fornecedores do Projeto ...............................................................................................................................
+[PÁGINA 1] 21 Tarifa de Boleto por Período .......................................................................................................................................
+[PÁGINA 1] 22 Cursos ..............................................................................................................................................................................
+[PÁGINA 1] 23 Lista de Recebimentos por Participantes ....................................................................................................................
+[PÁGINA 1] 23 Lista de Títulos ............................................................................................................................................................
+[PÁGINA 1] 24 Fluxo de Recebimentos Mês/Ano ...............................................................................................................................
+[PÁGINA 1] 24 Formulários .....................................................................................................................................................................
+[PÁGINA 1] 25 Formulários Eletrônicos – Acompanhamento .............................................................................................................
+[PÁGINA 1] 25 Formulários Eletrônicos – Acompanhamento SC (Solicitação de Compra) .................................................................
+[PÁGINA 1] 27 Formulários Eletrônicos – Adiantamento de Recursos ...............................................................................................
+[PÁGINA 1] 28 FAI • UFSCar Manual da Área de Coordenadores – v.3.00 – 24/11/2021 – Equipe TIC pág.
+[PÁGINA 1] 1
+
+[PÁGINA 2] Fornecedor Cadastrado x Fornecedor Novo ...............................................................................................................
+[PÁGINA 2] 29 Adicionar Novo formulário – Visão Geral ...................................................................................................................
+[PÁGINA 2] 30 SP – Solicitação de Pagamento (antiga SN) .................................................................................................................
+[PÁGINA 2] 31 TR – Transferência de Valores .....................................................................................................................................
+[PÁGINA 2] 35 SC – Solicitação de Compra / Termo de Referência ....................................................................................................
+[PÁGINA 2] 36 SC-NF –Solicitação de Compra – Envio da NF .............................................................................................................
+[PÁGINA 2] 38 SF – Solicitação de Suprimento de Fundos .................................................................................................................
+[PÁGINA 2] 38 SF-PC –Suprimento de Fundos - Prestação de Contas ................................................................................................
+[PÁGINA 2] 39 Gerenciando os Acessos ..................................................................................................................................................
+[PÁGINA 2] 40 FAQ ......................................................................................................................................................................
+[PÁGINA 2] 42 FAI • UFSCar Manual da Área de Coordenadores – v.3.00 – 24/11/2021 – Equipe TIC pág.
+[PÁGINA 2] 2
+
+[PÁGINA 3] Objetivo Oferecer uma ferramenta que disponibiliza os dados necessários para o coordenador e seus auxiliares a efetuar o gerenciamento do seu projeto, que contribua para melhorar a performance no processamento das solicitações e a transparência nas informações gerenciadas pela
+[PÁGINA 3] FAI • UFSCar que a Área de Coordenadores, uma vez que ao ser processada pela Fundação é automaticamente disponibilizada para o sistema.
+[PÁGINA 3] Para alcançar esses objetivos contamos com:
+[PÁGINA 3]  Visual mais intuitivo As informações do projeto são apresentadas em Fichas e cada uma delas trás as informações do projeto separadas por Funcionalidades, não sendo necessário navegar por menus.
+[PÁGINA 3]  Navegação simplificada As informações estão disponíveis em poucos ‘cliques’ oferecendo maior agilidade na navegação entre projetos e entre funcionalidades.
+[PÁGINA 3]  Mais detalhes Algumas informações trazem um detalhamento maior da informação.
+[PÁGINA 3] Por exemplo, caso a compra tenha sido efetuada pela FAI • UFSCar, é possível verificar em um pagamento ao fornecedor desde a cotação até a imagem da Nota Fiscal Eletrônica do fornecedor.
+[PÁGINA 3]  Dispositivos Móveis O novo desenho possibilita a navegação em dispositivos móveis, através de navegadores, para as principais funcionalidades.
+[PÁGINA 3]  Formulários eletrônicos (em andamento) Formulários para preenchimento online visando aumentar o nível de acuracidade das informações, maior agilidade no processamento das solicitações e maior transparência ao coordenador, uma vez que poderá acompanhar o andamento das atividades
+[PÁGINA 3] realizadas pela FAI • UFSCar.
+[PÁGINA 3] Todos os formulários serão, em algum momento convertidos para o modelo eletrônico.
+[PÁGINA 3] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 3] 3
+
+[PÁGINA 4] Acessando a Área de Coordenadores Através de um navegador acesse o endereço www.sistemas.fai.ufscar.br e selecione o botão Área de Coordenadores no canto superior à direita conforme a imagem abaixo ou diretamente em https://sistemas.fai.ufscar.br/coordenadores Login e Senha
+[PÁGINA 4] Efetue a identificação do usuário através de e-mail ou CPF e senha.
+[PÁGINA 4] Efetue a verificação ao selecionar “Não sou um robô” (o sistema pode apresentar imagens para verificação).
+[PÁGINA 4] Selecione Enter.
+[PÁGINA 4] Caso seja o primeiro acesso, é necessário alterar a senha provisória enviada para seu e-mail, quando do cadastramento pela Fundação, para uma da sua preferência e efetuar o Aceite da Política de Privacidade.
+[PÁGINA 4] O texto da política está disponível no link da caixa apresentada e no site da FAI.
+[PÁGINA 4] Para recuperar sua senha insira sua identificação (e-mail ou CPF) no campo login e clique em “Esqueci a Senha”.
+[PÁGINA 4] Uma mensagem automática será enviada para o endereço eletrônico (e-mail) cadastrado.
+[PÁGINA 4] A opção Mantenha-me Conectado amplia o tempo para desconectar o usuário e solicitar o login novamente.
+[PÁGINA 4] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 4] 4
+
+[PÁGINA 5] Visão Geral da Página Inicial Após efetuar o login na Área de Coordenadores o sistema exibirá a seguinte página com seus projetos Aprovados:
+[PÁGINA 5] - Menu lateral esquerdo À esquerda da tela temos o menu que dá acesso às funcionalidades disponibilizadas ao seu perfil de acesso, bem como outras de uso comum.
+[PÁGINA 5] - Barra Superior Retrair / Expandir Menu Lateral esquerdo Ao clicar sobre o ícone o menu lateral esquerdo é exibido com o descritivo ou somente os ícones.
+[PÁGINA 5] Identificação do usuário Exibe a saudação e a identificação do usuário que está logado nessa sessão, que por padrão é o primeiro nome do usuário, mas caso deseje alterá-la acesse o Menu lateral esquerdo / Minha Conta / Cadastro / Apelido.
+[PÁGINA 5] Note que não deve alterar seu nome a não ser que seja devido à alteração no seu registro pessoal (Certidão de Casamento, por exemplo).
+[PÁGINA 5] Ao posicionar o mouse sobre o texto o sistema exibe a data em que foi realizado o último acesso.
+[PÁGINA 5] Notificações A notificação é uma das formas da Fundação se comunicar com seus usuários.
+[PÁGINA 5] Através de ferramenta apropriada as mensagens são enviadas para grupos específicos de usuários.
+[PÁGINA 5] Esse ícone também exibe em vermelho a quantidade de notificações pendentes .
+[PÁGINA 5] Ao clicar sobre o ícone Notificações o sistema exibe a lista com as últimas Notificações e elimina a quantidade de notificações pendentes.
+[PÁGINA 5] À frente da notificação é exibida a indicação se a mensagem foi lida ou não .
+[PÁGINA 5] Caso queira consultar outras Notificações clique em “Ver todas”.
+[PÁGINA 5] Ajuda Apresenta o link para acessar esse Manual do Sistema Área de Coordenadores.
+[PÁGINA 5] Sair Encerra o sistema e desconecta o usuário.
+[PÁGINA 5] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 5] 5
+
+[PÁGINA 6] Tela Inicial Área de Exibição dos Dados Na área central de exibição de dados, temos as opções de filtros de Projetos (Todos / Aprovados / Encerrados) e as opções de busca pelo Nº do Projeto ou pelo nome do projeto (qualquer termo que esteja no nome).
+[PÁGINA 6] Ao lado direito dos filtros encontra-se o ícone de alerta de Formulários , quando exibido na cor vermelha indica que há formulários aguardando aprovação, e que é um link para a tela geral de Formulários.
+[PÁGINA 6] Logo abaixo serão exibidas as Fichas de Programa, Departamento e/ou Projeto sob sua coordenação, identificadas pelas cores da barra superior, como ilustrado na imagem abaixo.
+[PÁGINA 6] As Fichas do Projeto apresentam na barra superior:
+[PÁGINA 6]  ícone Favorito :
+[PÁGINA 6] ao selecioná-lo a Ficha deste projeto terá prioridade de exibição em suas consultas, sendo esse projeto exibido no início da lista de fichas de projetos.
+[PÁGINA 6]  Ícone Status :
+[PÁGINA 6] ele apresenta visualmente a situação do projeto.
+[PÁGINA 6] Ao posicionar o mouse sobre será exibido:
+[PÁGINA 6] Encerrado, Suspenso, Cancelado ou Bloqueado Em Análise, Prestação de Contas ou Aguardando:
+[PÁGINA 6] Prestação de Contas, GRU ou Relatório Técnico Aprovado  Nº e Nome Abreviado do Projeto.
+[PÁGINA 6]  Ícone Dados do Projeto :
+[PÁGINA 6] exibe a página Resumo do Projeto, com as informações divididas em abas.
+[PÁGINA 6]  Ícone Apelidar Projeto :
+[PÁGINA 6] pode-se alterar o Nome Abreviado do Projeto por um ‘apelido’ para facilitar sua identificação.
+[PÁGINA 6] As Fichas também apresentam as informações:
+[PÁGINA 6] - Saldo do Projeto no dia e, se for o caso, o ícone que indica a necessidade de Revisão Orçamentária ou que o projeto tem restrição financeira, portanto está Bloqueado para Pagamento.
+[PÁGINA 6] Posicione o mouse sobre o ícone para ver a mensagem.
+[PÁGINA 6] - Data do Encerramento Previsto juntamente com o alerta da quantidade de dias até o fim previsto de forma visual.
+[PÁGINA 6] > 120 dias de 60 a 120 dias < 60 dias > Fim previsto Na sequência são exibidos os ícones que agrupam as informações por funcionalidade.
+[PÁGINA 6] Os ícones sempre serão exibidos independentemente de haver ou não informações relacionadas a eles.
+[PÁGINA 6] Por exemplo:
+[PÁGINA 6] projetos que não são relativos a Cursos ou não tenham Faturamento terão exibidos os ícones destas funcionalidades.
+[PÁGINA 6] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 6] 6
+
+[PÁGINA 7] As fichas de Programa e Departamento possuem somente a funcionalidade Finanças, de forma sumariada, sendo:
+[PÁGINA 7]  Departamento:
+[PÁGINA 7] informações dos projetos que contribuem (Ressarcimento) para o departamento divididos nos blocos Recurso Público e Recurso Privado.
+[PÁGINA 7]  Programa:
+[PÁGINA 7] Centro:
+[PÁGINA 7] informações dos Ressarcimentos obtidos pelos departamentos.
+[PÁGINA 7] Projeto:
+[PÁGINA 7] informações dos Projetos que compõe o Programa.
+[PÁGINA 7] Note que as Fichas de Programa (Centro ou Projeto) e Departamento são exibidas juntamente com os demais projetos sob uma mesma coordenação ou perfil de acesso na ordem:
+[PÁGINA 7] Programa, Departamento, Projeto.
+[PÁGINA 7] A seguir, informações detalhadas do projeto e suas funcionalidades.
+[PÁGINA 7] Dados do Projeto Pode ser acessado pelo ícone que fica na barra superior da Ficha do Projeto.
+[PÁGINA 7] As informações a serem consultadas estão divididas nas abas abaixo.
+[PÁGINA 7] Sugerimos que o usuário explore cada uma delas para detalhes.
+[PÁGINA 7]  Detalhes.
+[PÁGINA 7]  Equipe e envio de Convite para novos Membros ou atualização de dados pelo Membro da Equipe.
+[PÁGINA 7]  Acesso (Auxiliares e Membros do Grupo de Trabalho).
+[PÁGINA 7]  Orçamento Financeiro (*)  Custos Operacionais (*)  Compras Efetuadas (pelo setor de Compras da FAI • UFSCar, ou seja, não constam compras diretas.) (*)  Pagamentos (todos os pagamentos efetuados pelo Projeto, divididos em Pessoa Física e Jurídica.) (*)  Arquivos
+[PÁGINA 7] (relacionados ao projeto, divididos por categorias.
+[PÁGINA 7] Ex.:
+[PÁGINA 7] Contrato, Extrato, Relatórios etc.) (*) (*) abas não disponíveis para o perfil Membro, exceto se atribuída a funcionalidade ‘Finanças’ na aba Acesso.
+[PÁGINA 7] Gerenciar Acesso O sistema possui várias funcionalidades que são controladas através de ‘perfis de acesso’, ou seja, ao efetuar o login no sistema somente são exibidas as informações relativas ao perfil associado ao usuário.
+[PÁGINA 7] Somente o coordenador do projeto ou o aprovador podem atribuir novos perfis aos seus membros de equipe.
+[PÁGINA 7] Para isso, através da aba Acesso (ver Dados do Projeto) deve-se selecionar o ícone Gerenciar que está à frente do nome do Membro.
+[PÁGINA 7] Será exibida a tela abaixo, efetue as modificações e clique em Salvar.
+[PÁGINA 7] Maiores detalhes podem ser encontrados no item Gerenciando os Acessos.
+[PÁGINA 7] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 7] 7
+
+[PÁGINA 8] Finanças Esta funcionalidade apresenta os valores de receita e despesas, realizados e a realizar (empenhado), que foram atribuídos ao Projeto, divididos em:
+[PÁGINA 8]  Balancete do Projeto.
+[PÁGINA 8]  Extrato de Conta Corrente.
+[PÁGINA 8] Esta funcionalidade tem a possibilidade de gerar:
+[PÁGINA 8]  Gráficos:
+[PÁGINA 8] apresenta comparativo entre lançamentos de Crédito e Débito (período, mês/mês, ano/ano).
+[PÁGINA 8]  Excel:
+[PÁGINA 8] exporta os dados para análise do usuário.
+[PÁGINA 8]  Imprimir:
+[PÁGINA 8] gera os dados apresentados na tela para impressão.
+[PÁGINA 8] É possível navegar pelas informações que se desdobram em 2 ou 3 níveis como demonstrado abaixo.
+[PÁGINA 8] Balancete do Projeto (nível 1) Exibe inicialmente o Balancete do Projeto com Todas as contas financeiras (sintéticas e analíticas), com a posição do Saldo do dia Atual e na visão de saldo do projeto, representando o valor disponível para utilização pelo Coordenador.
+[PÁGINA 8] Filtros de Busca Na parte superior da página existe a opção Exibir Filtros que apresenta as seguintes possibilidades:
+[PÁGINA 8]  Posição Financeira Saldo Atual – exibe o saldo do projeto em um dia específico.
+[PÁGINA 8] Informe o dia desejado logo abaixo.
+[PÁGINA 8] Período – exibe o saldo do projeto considerando os lançamentos realizados no período informado abaixo.
+[PÁGINA 8]  Exibição de Contas Filtra as contas que serão exibidas na consulta (Todas / Analíticas (somente) / Sintéticas (somente).
+[PÁGINA 8]  Visão de Saldo O sistema indica a forma como seu saldo é composto para visualização.
+[PÁGINA 8] Posicione o mouse no botão e uma explicação é exibida:
+[PÁGINA 8] Projeto – Liberado – (Empenho + Gasto).
+[PÁGINA 8] Contábil – (Orçado + Liberado) – (Empenho + Gasto).
+[PÁGINA 8] Movimentação da Conta Financeira (nível 2) A partir da descrição das Contas Analíticas, que é um link, é exibida a movimentação da Conta Financeira nos últimos 30 dias, em ordem crescente de data.
+[PÁGINA 8] Na parte superior da página existe a opção Exibir Filtros que possibilita alterar o período a ser pesquisado ou listar todos os movimentos da conta que foi selecionada FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 8] 8
+
+[PÁGINA 9] Detalhes do Lançamento (nível 3) Selecione o ícone Detalhes > (no final da linha) para ver mais informações do lançamento.
+[PÁGINA 9] Contas de Receita o Imagem da Nota Fiscal Eletrônica de Saída (se disponível).
+[PÁGINA 9] o Custos Relacionados (Custo Operacional e Tarifas que incidiram na operação).
+[PÁGINA 9] Contas de Despesa o Imagem da Nota Fiscal Eletrônica de Entrada (se disponível).
+[PÁGINA 9] o Dados da Ordem de Compra (se efetuadas pelo setor de Compras da FAI • UFSCar).
+[PÁGINA 9] o Dados da Cotação.
+[PÁGINA 9] Extrato da Conta Corrente (nível 1) Para acessar o Extrato da Conta Corrente, selecione o botão Extrato C.C.
+[PÁGINA 9] A tela inicial exibe a movimentação, de débitos e créditos, realizada na Conta Corrente referente ao mês atual.
+[PÁGINA 9] Filtros de Busca Na parte superior da página, existe a opção Exibir Filtros, que apresenta as seguintes possibilidades:
+[PÁGINA 9]  Filtros de Movimento Todos – exibe todos os lançamentos do período selecionado (débito e crédito).
+[PÁGINA 9] “C” – Somente os lançamentos de crédito do período selecionado.
+[PÁGINA 9] “D” – somente os lançamentos de débito do período selecionado.
+[PÁGINA 9]  Filtro por Datas Anterior - lançamentos (débito e crédito) realizados referentes ao mês anterior.
+[PÁGINA 9] Atual - lançamentos (débito e crédito) realizados referentes ao mês atual.
+[PÁGINA 9] Período - lançamentos (débito e crédito) realizados referentes ao período informado pelo usuário.
+[PÁGINA 9] Detalhes do Lançamento (nível 2) Selecione o ícone Detalhes > (no final da linha) para ver mais informações do lançamento.
+[PÁGINA 9] Contas de Receita o Imagem da Nota Fiscal Eletrônica de Saída (se disponível).
+[PÁGINA 9] o Custos Relacionados (Custo Operacional e Tarifas que incidiram na operação).
+[PÁGINA 9] Contas de Despesa o Imagem da Nota Fiscal Eletrônica de Entrada (se disponível).
+[PÁGINA 9] o Dados da Ordem de Compra (se efetuadas pelo setor de Compras da FAI • UFSCar).
+[PÁGINA 9] o Dados da Cotação.
+[PÁGINA 9] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 9] 9
+
+[PÁGINA 10] Recursos Humanos Esta funcionalidade apresenta informações referentes ao Custo de Pessoal, ao Gerenciamento de Bolsas e às Bolsas recebidas, se houver.
+[PÁGINA 10] Os Membros do projeto possuem acesso à essa funcionalidade / aba Recebimento Bolsa.
+[PÁGINA 10] Provisão Informações sobre os valores do passivo provisionados para os colaboradores admitidos no regime CLT.
+[PÁGINA 10] Necessário clicar em Exibir Filtros e selecionar uma Competência para exibição.
+[PÁGINA 10] Custos Totais Exibe inicialmente as informações referentes ao Custo de Pessoal do Projeto da última competência disponível.
+[PÁGINA 10] É possível pesquisar e selecionar competências anteriores através de exibir Filtro de Busca.
+[PÁGINA 10] Filtros de Busca As informações estão divididas em 4 blocos em que são apresentados:
+[PÁGINA 10]  Custo Total do Projeto.
+[PÁGINA 10]  Custo Total (CLT) – no canto direito existe a possibilidade de exibição de gráfico para análise.
+[PÁGINA 10]  Custo total (Estagiários) – no canto direito existe a possibilidade de exibição de gráfico para análise.
+[PÁGINA 10]  Evolução do Custo de Pessoal – demonstrativo dos Custos dos últimos meses (no máximo 12).
+[PÁGINA 10] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 10] 10
+
+[PÁGINA 11] Bolsistas Exibe as informações referentes às bolsas oferecidas aos membros do projeto.
+[PÁGINA 11] Nessa tela é possível:
+[PÁGINA 11] - Adicionar novas Propostas de Bolsa, efetuar o gerenciamento dos pagamentos (aprovar, suspender, cancelar) e consultar o histórico de pagamentos por bolsista, conforme tela abaixo:
+[PÁGINA 11] Botão Adicionar Proposta – selecionar o membro da equipe Ao selecioná-lo será exibido novo formulário.
+[PÁGINA 11] Selecione o Membro do Grupo de Trabalho que receberá a Proposta de Bolsa Vinculada ao Projeto.
+[PÁGINA 11] Selecione o membro do grupo de trabalho na lista e, se necessário, role a lista pelo mouse até alcançar o final da lista.
+[PÁGINA 11] Convite para novo Membro da Equipe de Trabalho Um novo convite deve ser enviado quando:
+[PÁGINA 11] - o membro da equipe não estiver cadastrado;
+[PÁGINA 11] - se, após selecionar um membro, o sistema emitir uma mensagem de erro como a abaixo;
+[PÁGINA 11] - os dados apresentados na Proposta estejam desatualizados.
+[PÁGINA 11] Ao clicar no link da palavra AQUI da tela ou da mensagem será exibida o convite com instruções:
+[PÁGINA 11] - Informe um endereço de e-mail válido e uma mensagem com o formulário de cadastro será enviado.
+[PÁGINA 11] - Ao receber o e-mail convite, o convidado deve acessar o link e preencher o formulário de cadastro.
+[PÁGINA 11] Ao clicar em Enviar seus dados serão enviados para a FAI • UFSCar.
+[PÁGINA 11] - A FAI • UFSCar somente efetuará a atualização do grupo de trabalho com a inserção do novo membro após consulta à ProEx.
+[PÁGINA 11] - Clique no botão Enviar Email Convite.
+[PÁGINA 11] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 11] 11
+
+[PÁGINA 12] Botão Adicionar Proposta – informar valores propostos Após selecionar o membro da equipe será exibida a tela abaixo para cadastramento da Proposta de Bolsa.
+[PÁGINA 12] Preencha os campos Dados da Proposta:
+[PÁGINA 12] - Início e Fim da Vigência (o último pagamento deve ocorrer 35 dias antes da data final prevista para o projeto).
+[PÁGINA 12] - Descreva a(s) Atividade/Função a serem realizada pelo bolsista ou selecione na lista se o projeto for Embrapii.
+[PÁGINA 12] - Informe a Carga Horária (horas/mês) - Selecione o Tipo de Bolsa - Informe o Valor da Bolsa ou selecione na lista se a bolsa for do tipo Pidcit.
+[PÁGINA 12] - Clique no botão Salvar Atenção:
+[PÁGINA 12] o A vigência da bolsa é a mesma que a competência, mas o pagamento ocorre na competência seguinte.
+[PÁGINA 12] Exemplo:
+[PÁGINA 12] Fim da Vigência / Competência = 04/2023 significa que o pagamento ocorrerá em 05/2023.
+[PÁGINA 12] o Novas Propostas somente são permitidas para membros do Grupo de Trabalho.
+[PÁGINA 12] o Certifique-se que o Grupo de trabalho esteja atualizado junto à Instituição (ProEx, Projeto etc) Observações:
+[PÁGINA 12] o Ao clicar em Salvar, o sistema:
+[PÁGINA 12] - Envia um e-mail ao membro da equipe referente à Proposta de Bolsa Vinculada ao Projeto;
+[PÁGINA 12] e - Gera automaticamente um formulário que será integrado ao Trâmite da FAI • UFSCar.
+[PÁGINA 12] o Para dar continuidade ao processo o membro deve acessar o link enviado no e-mail, clicar no Botão ‘Aceitar (a Proposta)’ no formulário apresentado e, se solicitado, anexar o comprovante de vínculo com a Instituição.
+[PÁGINA 12] o O formulário é entregue protocolado ao setor de Gestão de Pessoas da FAI • UFSCar que efetuará a análise/validação/integração da Proposta de Vínculo.
+[PÁGINA 12] o O sistema gera o novo Termo de Outorga de Bolsa e o envia por e-mail ao membro.
+[PÁGINA 12] o O membro deve finalizar o processo com a assinatura eletrônica conforme instruções do e-mail.
+[PÁGINA 12] Atenção!
+[PÁGINA 12] Enquanto não houver o Aceite do Termo de Outorga de Bolsa não serão realizados pagamentos ao bolsista, independentemente da aprovação pelo coordenador.
+[PÁGINA 12] Pagamentos Pendentes Neste quadro é exibido um Resumo Financeiro com Saldo do Projeto, Soma dos pagamentos de bolsa pendentes e o valor do Saldo Projetado.
+[PÁGINA 12] E uma tabela com os Pagamentos Pendentes indicando:
+[PÁGINA 12] - Nº da Bolsa - Competência - CPF do bolsista - Nome do bolsista - Data do Vencimento - Valor em R da bolsa - Tipo da bolsa oferecido FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 12] 12
+
+[PÁGINA 13] Ações do Coordenador Para cada pagamento pendente existem os botões com as possíveis ações a serem tomadas.
+[PÁGINA 13] É permitido aprovar pagamentos da competência atual ou anteriores, se inadimplente.
+[PÁGINA 13] Observação:
+[PÁGINA 13] Não são solicitadas ações posteriores, ou seja, ao clicar o pagamento é autorizado automaticamente (clicou -> pagou).
+[PÁGINA 13] o Suspensão temporária do pagamento da competência selecionada.
+[PÁGINA 13] Necessário incluir uma justificativa.
+[PÁGINA 13] É possível efetuar a aprovação posteriormente.
+[PÁGINA 13] o Cancelamento definitivo do pagamento da competência selecionada.
+[PÁGINA 13] Necessário incluir uma justificativa.
+[PÁGINA 13] Não é possível efetuar a aprovação posteriormente.
+[PÁGINA 13] Bolsistas Vinculados ao Projeto Este quadro apresenta inicialmente a lista com os Bolsistas Ativos do projeto, ou seja, os que tem pagamentos pendentes e/ou previstos para ocorrer.
+[PÁGINA 13] Selecione o nome do bolsista para que seja expandido detalhes como:
+[PÁGINA 13] - Visualizar o(s) termo(s) proposto(s) ao bolsista;
+[PÁGINA 13] - Consultar seu Histórico de pagamentos e, o histórico das ações para o pagamento clicando no ícone > ;
+[PÁGINA 13] e - Efetuar o Cancelamento do Termo, o que significa cancelar todos os pagamentos futuros previstos.
+[PÁGINA 13] Note que para essa ação não pode haver pagamento pendente para o bolsista.
+[PÁGINA 13] Se houver, é necessário primeiramente cancelar o(s) pagamento(s) no quadro anterior.
+[PÁGINA 13] No final do quadro é possível efetuar a mesma consulta para os Bolsistas Inativos, ou seja, os pagamentos de bolsa já foram realizados.
+[PÁGINA 13] Para isso expanda a lista clicando sobre o ícone > Bolsistas Inativos.
+[PÁGINA 13]  Recebimento de Bolsa Disponível para o Membro do Grupo de Trabalho apresenta informações e a possibilidade de visualizar o Termo de Bolsa, assim como informações sobre o(s) pagamento(s), incluindo o Histórico > das ações.
+[PÁGINA 13] Dependendo da situação ainda são liberadas as ações Aceitar Vínculo e Encerrar Vínculo com o projeto.
+[PÁGINA 13] Ações do Bolsista:
+[PÁGINA 13] - Cancelar o Pagamento (Atenção à Nota explicativa abaixo!) A FAI • UFSCar pode efetuar somente um pagamento ao bolsista por competência conforme a composição da bolsa constante no Termo de Outorga da Bolsa, independentemente se em sua composição constar um ou mais projetos.
+[PÁGINA 13] É facultado ao bolsista, diante da inadimplência do projeto, efetuar o Cancelamento definitivo do pagamento da competência selecionada, a fim de dar prosseguimento ao recebimento do montante aprovado por outro(s) projeto(s).
+[PÁGINA 13] Cabe ressaltar que essa ação é de caráter definitivo, ou seja, não é possível pleitear posteriormente o recebimento do pagamento cancelado.
+[PÁGINA 13] É necessário incluir uma justificativa.
+[PÁGINA 13] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 13] 13
+
+[PÁGINA 14] Faturamento Nesta funcionalidade é possível efetuar o cadastro de um novo Pedido de Venda (antiga Ordem de Serviço).
+[PÁGINA 14] Na tela inicial são apresentados os Filtros de Seleção, o botão Adicionar [novos pedidos] e as informações referentes aos últimos 30 dias de Faturamento que foram atribuídos ao Projeto ordenadas de forma decrescente divididas em três blocos:
+[PÁGINA 14] Pedido, Nota Fiscal e Título a Receber.
+[PÁGINA 14] Note que os campos Nº do Pedido e Nº da NFE são links que exibem os dados do Pedido com a opção Reenviar Cópia do Pedido por e-mail ou a imagem da NFE/NFS.
+[PÁGINA 14] Na imagem cada pedido está em um momento diferente:
+[PÁGINA 14] Pedido emitido, Nota e título emitido, Título pago.
+[PÁGINA 14] - Pedidos – No número do Pedido podemos ter referência à:
+[PÁGINA 14] Observação:
+[PÁGINA 14]  OS - Ordem de Serviço:
+[PÁGINA 14] emitidas no sistema anterior;
+[PÁGINA 14] ou  PE – Pedido de Venda:
+[PÁGINA 14] emitidos através da Área de Coordenadores.
+[PÁGINA 14]  Sem referência:
+[PÁGINA 14] Notas emitidas sem pedido, por exemplo.
+[PÁGINA 14] - Títulos – Títulos e sua situação – AB (pendente) ou LQ (recebido) e data do pagamento pelo cliente.
+[PÁGINA 14] A NFE/NFS pode ter nenhum (NFE quitada) ou vários Títulos (parcelamento).
+[PÁGINA 14]  Reenviar e-mail A partir da exibição dos dados do Pedido, clique em Reenviar Pedido por E-mail.
+[PÁGINA 14] O e-mail é reenviado para os destinatários originais do Pedido.
+[PÁGINA 14] Filtros de Busca Na parte superior da página existe a opção Exibir Filtros onde é possível estabelecer um período para pesquisa ou ainda realizar a pesquisa para um cliente específico e que apresenta também as seguintes possibilidades:
+[PÁGINA 14]  Filtros por Períodos Determine o período que será pesquisado e escolha qual será o indicador:
+[PÁGINA 14] - Emissão – com base na data de emissão da NFE.
+[PÁGINA 14] - Vencimento – com base na data de vencimento do Título.
+[PÁGINA 14] - Pagamento – com base na data de pagamento do Título.
+[PÁGINA 14] Após a seleção do Filtro de Datas, efetue a seleção por situação do Título:
+[PÁGINA 14] - Recebidas:
+[PÁGINA 14] somente os Títulos já liquidados.
+[PÁGINA 14] - Todas:
+[PÁGINA 14] exibe todas as NFE e seus respectivos Títulos.
+[PÁGINA 14] - Abertas:
+[PÁGINA 14] somente os Títulos Abertos (não liquidados).
+[PÁGINA 14] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 14] 14
+
+[PÁGINA 15] Importante:
+[PÁGINA 15] Ressaltamos que a Área de Coordenadores oferece maior conectividade com o nosso sistema de gerenciamento (Sapiens – Sênior).
+[PÁGINA 15] Isso na prática se traduz em agilidade e liberdade para todos os envolvidos e em contrapartida maior responsabilidade.
+[PÁGINA 15] Isso porque os dados inseridos para emissão do Pedido de Venda são gravados diretamente no Sapiens, sem intermediação (ou redigitação) dos dados.
+[PÁGINA 15] Os maiores diferenciais nesta funcionalidade são as integrações dinâmicas, ou seja:
+[PÁGINA 15] o Os dados fornecidos pelo usuário serão inseridos diretamente no nosso sistema.
+[PÁGINA 15] o O cadastramento (cliente / contato / pedido de venda) é executado de forma automática e imediata.
+[PÁGINA 15] o Não há intervenções (tratativas e/ou verificações) sobre os dados inseridos por parte da FAI • UFSCar.
+[PÁGINA 15] o Os dados inseridos nesta tela serão os apresentados na Nota Fiscal Eletrônica.
+[PÁGINA 15] Para possibilitar um melhor controle no processo e permitir alguma correção, se necessária, o faturamento será realizado duas vezes ao dia , sendo que os Pedidos cadastrados pela manhã serão faturados a tarde e os emitidas a tarde na manhã do dia seguinte.
+[PÁGINA 15] Portanto, antes de inserir os dados, certifique-se de que dispõe de todas as informações necessárias para o correto cadastramento e que está tudo em conformidade com o solicitado para a emissão da Nota Fiscal.
+[PÁGINA 15] Cliente Cadastrado x Cliente Novo  Cliente Cadastrado Caso seu cliente seja encontrado em nosso sistema, seus dados serão exibidos na sequência para que possam ser conferidos.
+[PÁGINA 15] Caso sejam necessárias manutenções, elas devem ser solicitadas ao Setor Financeiro da FAI • UFSCar.
+[PÁGINA 15]  Cliente Novo (não cadastrado) Caso seu cliente não seja encontrado, o sistema apresenta a mensagem abaixo:
+[PÁGINA 15] Certifique-se de que o CNPJ/CPF foi digitado corretamente.
+[PÁGINA 15] Se necessário, cadastre um novo cliente clicando no link AQUI da mensagem.
+[PÁGINA 15] Será exibido o formulário para que sejam inseridos os dados necessários ao seu cadastramento.
+[PÁGINA 15] Importante:
+[PÁGINA 15] antes de cadastrar um novo cliente, certifique-se de que o CNPJ/CPF esteja corretamente preenchido.
+[PÁGINA 15] Ao finalizar o cadastramento, volte para a tela de Faturamento e insira o CNPJ/CPF que acaba de cadastrar e os dados do cliente serão exibidos.
+[PÁGINA 15] Contato do Cliente Os contatos cadastrados para o cliente serão exibidos logo após os dados cadastrais dele.
+[PÁGINA 15] Selecione um contato já existente.
+[PÁGINA 15] Caso sejam necessárias manutenções, elas devem ser solicitadas ao Setor Financeiro da FAI • UFSCar.
+[PÁGINA 15] Caso seu contato não seja encontrado em nosso sistema, basta preencher os campos no formulário que o contato será cadastrado e associado ao cliente.
+[PÁGINA 15] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 15] 15
+
+[PÁGINA 16] Emissão de Pedido de Venda Selecione o botão para inserir um novo Pedido de Vendas.
+[PÁGINA 16] O sistema exibirá um formulário com os campos necessários para a emissão do Pedido de Vendas e sua NFE.
+[PÁGINA 16]  Pesquise pelo seu Cliente através do Nº do CNPJ ou CPF.
+[PÁGINA 16] Tecle “Enter” ou clique no ícone da lupa.
+[PÁGINA 16] Partimos do princípio de que o cliente está cadastrado.
+[PÁGINA 16] Caso seja exibida a mensagem ao lado verifique se digitou o CNPJ corretamente ou consulte o item Cliente Cadastrado x Cliente Novo.
+[PÁGINA 16]  Caso o cliente já possua cadastro na Fundação seus dados serão exibidos como abaixo.
+[PÁGINA 16] Se constatar que há alguma inconsistência contate o setor Financeiro da Fundação para os ajustes necessários.
+[PÁGINA 16]  Selecione um Contato Selecione o contato exibido ou cadastre um novo.
+[PÁGINA 16] Se necessário consulte o item Contato do Cliente.
+[PÁGINA 16] Nota:
+[PÁGINA 16] caso não seja escolhido nem cadastrado um Contato, o sistema utiliza o Contato Padrão cadastrado.
+[PÁGINA 16]  Informações do Pedido – Cabeçalho Neste bloco de dados são solicitados os dados que serão impressos na NFS/NFS.
+[PÁGINA 16] - Solicitante:
+[PÁGINA 16] pessoa responsável pela solicitação do serviço.
+[PÁGINA 16] - Responsável:
+[PÁGINA 16] pessoa responsável pela execução do serviço (por padrão é sugerido o nome do Coordenador do projeto, mas pode ser alterado de acordo com as circunstâncias).
+[PÁGINA 16] - Número Externo:
+[PÁGINA 16] número do pedido fornecido por e para controle do cliente ou do coordenador.
+[PÁGINA 16] - Tipo de Pedido:
+[PÁGINA 16] clique no ícone para que seja exibida a lista de opções de pedidos, selecione uma opção na lista de acordo com a natureza do serviço prestado ou natureza da venda.
+[PÁGINA 16] - Anexar Arquivo:
+[PÁGINA 16] se necessário, é possível anexar um arquivo ao Pedido.
+[PÁGINA 16] Basta selecionar o ícone que será exibido a tela do Gerenciador de Arquivos para seleção do arquivo desejado.
+[PÁGINA 16] Observação sobre o Tipo de Pedido:
+[PÁGINA 16] De acordo com a opção selecionada no bloco anterior no campo Tipo de Pedido o sistema se comportará de forma diferenciada entre Serviço e Produto.
+[PÁGINA 16] Somente projetos específicos podem gerar Pedido de Venda de Produto(s).
+[PÁGINA 16] Caso entenda ser seu caso é necessário contactar o setor Financeiro da Fundação.
+[PÁGINA 16] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 16] 16
+
+[PÁGINA 17]  Informações do Pedido – Item de Serviço Neste bloco são solicitadas informações referentes ao Serviço Prestado.
+[PÁGINA 17] - Descrição do Item:
+[PÁGINA 17] (máximo de 250 caracteres por item ou total de 500 caracteres no Pedido).
+[PÁGINA 17] Atenção:
+[PÁGINA 17] conforme texto explicativo esse limite de caracteres é imposto pelo software emissor da NFS (Nota Fiscal de Serviço) utilizado pela Prefeitura Municipal.
+[PÁGINA 17] - Quantidade:
+[PÁGINA 17] quantidade de serviços realizados.
+[PÁGINA 17] Por exemplo:
+[PÁGINA 17] quantidade de análises.
+[PÁGINA 17] - Valor unitário:
+[PÁGINA 17] valor unitário a ser cobrado por serviço prestado.
+[PÁGINA 17] Com base na Quantidade multiplicada pelo Valor Unitário o sistema calcula o Valor Total do Item e o Valor Total do Pedido em reais (R$).
+[PÁGINA 17] Se necessário incluir novos Itens selecione o botão ou caso queira excluir o último item selecione .
+[PÁGINA 17]  Informações do Pedido – Item de Produto - Transporte Como mencionado anteriormente, o sistema se comporta de forma diferenciada de acordo com o Tipo de Pedido.
+[PÁGINA 17] Para Produto é necessário o preenchimento de dados relativos aos transporte da mercadoria.
+[PÁGINA 17] - Pesquise o Transportador(a) através do Nº do CNPJ ou CPF.
+[PÁGINA 17] Tecle “Enter” ou clique no ícone da lupa.
+[PÁGINA 17] Partimos do princípio de que o transportador(a) está cadastrado.
+[PÁGINA 17] Caso seja exibida a mensagem ao lado verifique se digitou o CNPJ corretamente ou consulte o item Fornecedor Cadastrado x Fornecedor Novo.
+[PÁGINA 17] Caso o transportador(a) já possua cadastro na Fundação seus dados serão exibidos.
+[PÁGINA 17] Se constatar que há alguma inconsistência contate o setor Financeiro da Fundação para os ajustes necessários.
+[PÁGINA 17] - Filial:
+[PÁGINA 17] selecione na lista a filial à qual está associado seu projeto.
+[PÁGINA 17] Obs.:
+[PÁGINA 17] a seleção incorreta desta informação prejudica a seleção do produto a ser vendido.
+[PÁGINA 17] - Data/hora Saída:
+[PÁGINA 17] informe a Data e Hora previstas para a saída da mercadoria.
+[PÁGINA 17] - Tipo de Frete:
+[PÁGINA 17] selecione na lista o tipo/modalidade de frete que será utilizado.
+[PÁGINA 17] - Placa do Veículo:
+[PÁGINA 17] informe a placa do veículo que transportará a mercadoria.
+[PÁGINA 17] - UF do Veículo:
+[PÁGINA 17] informe a Unidade da Federação (UF) do veículo.
+[PÁGINA 17] - Nome do Motorista:
+[PÁGINA 17] informe o nome completo do motorista do veículo que transportará a mercadoria.
+[PÁGINA 17] - CPF ou RG:
+[PÁGINA 17] informe o nº do CPF ou do RG do motorista do veículo.
+[PÁGINA 17] - Anexar Arquivo:
+[PÁGINA 17] se necessário, é possível anexar um arquivo ao Pedido.
+[PÁGINA 17] Basta selecionar o ícone que será exibido a tela do Gerenciador de Arquivos para seleção do arquivo desejado.
+[PÁGINA 17] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 17] 17
+
+[PÁGINA 18]  Informações do Pedido – Item de Produto Neste bloco são solicitadas informações referentes ao Serviço Prestado.
+[PÁGINA 18] - Descrição:
+[PÁGINA 18] selecione na lisa o item que será vendido.
+[PÁGINA 18] Atenção:
+[PÁGINA 18] o item selecionado está associado ao código e à unidade de venda que deve ser utilizada.
+[PÁGINA 18] - Quantidade:
+[PÁGINA 18] quantidade do produto vendido na unidade indicada na descrição.
+[PÁGINA 18] - Valor unitário:
+[PÁGINA 18] valor unitário a ser cobrado pelo produto.
+[PÁGINA 18] Com base na Quantidade multiplicada pelo Valor Unitário o sistema calcula o Valor Total do Item e o Valor Total do Pedido em reais (R$).
+[PÁGINA 18] Se necessário incluir novos Itens selecione o botão ou caso queira excluir o último item selecione .
+[PÁGINA 18]  Informações de Pagamento Informe as condições de pagamento acordadas com o cliente.
+[PÁGINA 18] - Forma de Pagamento:
+[PÁGINA 18] selecione conforme opções exibidas clicando no ícone .
+[PÁGINA 18] Atenção:
+[PÁGINA 18] alista não será exibida caso haja somente uma forma de pagamento disponível no projeto.
+[PÁGINA 18] - Condição de Pagamento:
+[PÁGINA 18] selecione o prazo conforme opções exibidas clicando no ícone .
+[PÁGINA 18] Note que:
+[PÁGINA 18] outras condições de pagamento devem ser tratadas com o Setor Financeiro da FAI • UFSCar antes do Cadastramento do Pedido.
+[PÁGINA 18]  Pedido – Informações Complementares da Nota Fiscal Descreva informação adicional de seu interesse ou do cliente que deva ser apresentada no campo Observações da Nota Fiscal eletrônica (NFE) ou Nota Fiscal de Serviço (NFS).
+[PÁGINA 18]  Salvar Clique no botão para que seus dados sejam transferidos para o nosso sistema ou cancele a operação.
+[PÁGINA 18] Ao clicar em cancelar seus dados serão eliminados não sendo possível sua recuperação.
+[PÁGINA 18] Se necessário realizar alguma consulta em paralelo para validação abra uma nova aba no seu navegador.
+[PÁGINA 18] Atenção!
+[PÁGINA 18] Caso inconsistências sejam encontradas durante o processamento do Pedido o sistema emitirá mensagem informando o motivo da inconsistência.
+[PÁGINA 18] - Efetue as alterações necessárias e clique em Enviar novamente;
+[PÁGINA 18] ou - Entre em contato com o Setor Financeiro ou de Tecnologia da FAI • UFSCar para obter ajuda.
+[PÁGINA 18] Ao final do processo, um e-mail será enviado para o emissor do Pedido com cópia para o contato selecionado e para a Fundação.
+[PÁGINA 18] E o usuário é direcionado para a página inicial do Faturamento onde o Pedido Salvo estará listado.
+[PÁGINA 18] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 18] 18
+
+[PÁGINA 19] Relatórios Esta funcionalidade foi criada com o intuito de facilitar o gerenciamento do projeto e/ou tornar transparente os valores cobrados do projeto que são comumente analisados pelos coordenadores.
+[PÁGINA 19] Apresenta os seguintes relatórios:
+[PÁGINA 19] Custo Operacional por Período (COP, Ressarcimento e Retribuição) Dependendo da configuração do projeto são cobrados valores referentes à remuneração de:
+[PÁGINA 19] - COP (Custo Operacional) / DOA (Despesas Operacionais e Administrativas) - Ressarcimento - Retribuição - Royalties - Reserva Técnica Institucional - Outros Essa configuração pode ser consultada nos Dados Projeto (ver Tela Inicial / Dados do Projeto).
+[PÁGINA 19] A cobrança dos percentuais é realizada quando do pagamento do título do faturamento pelo cliente, ou seja, quando efetivamente o valor foi recebido pelo projeto.
+[PÁGINA 19] Essa cobrança é realizada periodicamente pela Fundação e gera um título para pagamento pelo projeto.
+[PÁGINA 19] Para evitar a geração de muitos títulos de pagamento, os valores são apurados no período e somente um título é gerado, ou seja, um título de pagamento pode estar relacionado a vários títulos de recebimento.
+[PÁGINA 19] Assim criamos este relatório com duas visões distintas para demonstrar:
+[PÁGINA 19] - Recebimento:
+[PÁGINA 19] os valores que cada título recebido pagou a título de despesas.
+[PÁGINA 19] - Pagamento:
+[PÁGINA 19] a composição de cada título de pagamento de despesas com os títulos de recebimento.
+[PÁGINA 19] Filtros de Busca Na parte superior da página existe a opção Exibir Filtros que apresenta as seguintes possibilidades:
+[PÁGINA 19]  Recebimento (seleção com base na data de recebimento dos títulos de origem – faturamento) A consulta inicial exibe os últimos 30 dias e no filtro superior é possível alterar o período.
+[PÁGINA 19] Demonstra a relação entre os títulos recebidos e os valores pagos pelo projeto a título de despesas:
+[PÁGINA 19] - Os Títulos Recebidos com a data do recebimento e seu valor pago pelo cliente - Tipo de Despesa por alínea com as respectivas taxas (%) e valores cobrados À direita é exibido um Resumo por alínea e o valor apurado no período informado.
+[PÁGINA 19]  Pagamento (seleção com base na data de pagamento das despesas pelo projeto) Demonstra como cada Título de pagamento foi composto e quais títulos recebidos o compõe.
+[PÁGINA 19] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 19] 19
+
+[PÁGINA 20] Relação Clientes do Projeto Filtros de Busca Na parte superior da página existe a opção Exibir Filtros que apresenta as seguintes possibilidades:
+[PÁGINA 20]  A Receber:
+[PÁGINA 20] é a lista exibida inicialmente.
+[PÁGINA 20]  Geral:
+[PÁGINA 20] lista todos os clientes com ou sem débitos pendentes.
+[PÁGINA 20]  Emissão:
+[PÁGINA 20] pesquisa por período de emissão do título.
+[PÁGINA 20]  Recebimento:
+[PÁGINA 20] pesquisa por período da data de recebimento do título (data de pagamento pelo cliente).
+[PÁGINA 20]  Vencimento:
+[PÁGINA 20] pesquisa por período de data de vencimento do título ou data negociada de pagamento.
+[PÁGINA 20] Relatório Relação Clientes Apresenta inicialmente os clientes com saldo devedor no projeto e a soma em Reais (R$) de:
+[PÁGINA 20] - Emitido (R$):
+[PÁGINA 20] valores faturados.
+[PÁGINA 20] - Recebido (R$):
+[PÁGINA 20] valores pagos.
+[PÁGINA 20] - A Vencer (R$):
+[PÁGINA 20] valores a pagar pelo cliente dentro do prazo negociado.
+[PÁGINA 20] - Vencido (R$):
+[PÁGINA 20] valores a pagar pelo cliente fora do prazo negociado para pagamento.
+[PÁGINA 20] Detalhes do Cliente Selecione o ícone Detalhes ao final da linha para ver mais informações do cliente em nova aba.
+[PÁGINA 20] - Dados do Cliente:
+[PÁGINA 20] clique no ícone para expandir o quadro e obter mais informações cadastrais.
+[PÁGINA 20] - Resumo dos valores do cliente.
+[PÁGINA 20] - Faturas:
+[PÁGINA 20] relação dos Títulos a Receber emitidos para o cliente com detalhes do pagamento.
+[PÁGINA 20] Obs.:
+[PÁGINA 20] Títulos vencidos e não pagos são exibidos em vermelho.
+[PÁGINA 20] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 20] 20
+
+[PÁGINA 21] Relação Fornecedores do Projeto Filtros de Busca Na parte superior da página existe a opção Exibir Filtros que apresenta as seguintes possibilidades:
+[PÁGINA 21]  Geral:
+[PÁGINA 21] é a lista exibida inicialmente.
+[PÁGINA 21]  Emissão:
+[PÁGINA 21] pesquisa por período de emissão do título.
+[PÁGINA 21]  Pagamento:
+[PÁGINA 21] pesquisa por período da data de pagamento do título (data pagamento FAI • UFSCar).
+[PÁGINA 21]  Vencimento:
+[PÁGINA 21] pesquisa por período de data de vencimento do título ou data negociada de pagamento.
+[PÁGINA 21] Relatório Relação de Fornecedores Apresenta inicialmente todos os fornecedores do projeto e a soma em Reais (R$) dos valores:
+[PÁGINA 21] - Emitido (R$):
+[PÁGINA 21] valores faturados.
+[PÁGINA 21] - Pago (R$):
+[PÁGINA 21] valores pagos.
+[PÁGINA 21] - A Vencer (R$):
+[PÁGINA 21] valores a pagar ao fornecedor dentro do prazo negociado.
+[PÁGINA 21] - Vencido (R$):
+[PÁGINA 21] valores a pagar ao fornecedor fora do prazo negociado para pagamento.
+[PÁGINA 21] Detalhes do Fornecedor Selecione o ícone Detalhes ao final da linha para ver mais informações do fornecedor.
+[PÁGINA 21] - Dados do Fornecedor:
+[PÁGINA 21] clique no ícone para expandir o quadro e obter mais informações cadastrais.
+[PÁGINA 21] - Resumo dos valores do fornecedor.
+[PÁGINA 21] - Faturas:
+[PÁGINA 21] relação dos Títulos a Pagar emitidos pelo fornecedor com detalhes do pagamento.
+[PÁGINA 21] Obs.:
+[PÁGINA 21] Títulos vencidos e não pagos são exibidos em vermelho.
+[PÁGINA 21] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 21] 21
+
+[PÁGINA 22] Tarifa de Boleto por Período Filtros de Busca Na parte superior da página existe a opção Exibir Filtros onde é possível restringir o período da pesquisa.
+[PÁGINA 22] Relatório Tarifas Bancárias sobre boletos Apresenta, inicialmente, os títulos que foram cobrados do projeto a título de TARIFA dos últimos 30 dias ordenados de forma crescente por título e demonstra como ele foi composto.
+[PÁGINA 22] A cobrança das Tarifas é realizada quando do pagamento do título do faturamento pelo cliente, ou seja, quando efetivamente o valor foi recebido pelo projeto ou no caso de cancelamento do título.
+[PÁGINA 22] Essa cobrança é realizada periodicamente pela Fundação e gera um título para pagamento pelo projeto.
+[PÁGINA 22] Para evitar a geração de muitos títulos de pagamento, os valores são apurados no período e é gerado um título de pagamento que pode estar relacionado a vários títulos de recebimento.
+[PÁGINA 22] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 22] 22
+
+[PÁGINA 23] Cursos Esta funcionalidade foi criada com o intuito de facilitar o gerenciamento de projetos de natureza CURSOS ao apresentar informações que são comumente solicitadas pelos coordenadores e que podem ser exportadas para o formato .xls.
+[PÁGINA 23] Apresenta os seguintes relatórios:
+[PÁGINA 23] Lista de Recebimentos por Participantes Apresenta, inicialmente, todos os clientes/alunos do projeto e a soma em Reais (R$) dos valores:
+[PÁGINA 23] - Emitido (R$):
+[PÁGINA 23] valores faturados.
+[PÁGINA 23] - Recebido (R$):
+[PÁGINA 23] valores pagos.
+[PÁGINA 23] - A Vencer (R$):
+[PÁGINA 23] valores a pagar pelo cliente/aluno dentro do prazo negociado.
+[PÁGINA 23] - Vencido (R$):
+[PÁGINA 23] valores a pagar pelo cliente/aluno fora do prazo negociado para pagamento.
+[PÁGINA 23] Detalhes do Cliente/Aluno Selecione o ícone Detalhes ao final da linha para ver mais informações do cliente/aluno.
+[PÁGINA 23] - Dados do Cliente:
+[PÁGINA 23] clique no ícone para expandir o quadro e obter mais informações cadastrais.
+[PÁGINA 23] - Resumo dos valores do cliente - Faturas:
+[PÁGINA 23] relação dos Títulos a Receber emitidos para o cliente/aluno com detalhes do pagamento.
+[PÁGINA 23] Obs.:
+[PÁGINA 23] Títulos vencidos e não pagos são exibidos em vermelho.
+[PÁGINA 23] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 23] 23
+
+[PÁGINA 24] Lista de Títulos Filtros de Busca Na parte superior da página existe a opção Exibir Filtros onde é possível estabelecer um período para pesquisa ou ainda realizar a pesquisa para um cliente específico e que apresenta também as seguintes possibilidades:
+[PÁGINA 24]  Filtros por Datas - Emissão:
+[PÁGINA 24] pesquisa os Faturamentos a partir da data de emissão da NFE.
+[PÁGINA 24] - Vencimento:
+[PÁGINA 24] pesquisa os Faturamentos a partir da data de vencimento do Título.
+[PÁGINA 24] - Pagamento:
+[PÁGINA 24] pesquisa os Faturamentos a partir da data de pagamento do Título.
+[PÁGINA 24] o Filtro por Situação do Título Atua como um segundo filtro.
+[PÁGINA 24] A partir dos dados selecionados, é possível exibir:
+[PÁGINA 24] - Recebidas:
+[PÁGINA 24] somente os Títulos já liquidados.
+[PÁGINA 24] - Todas:
+[PÁGINA 24] exibe todas as NFE e seus respectivos Títulos.
+[PÁGINA 24] - Abertas:
+[PÁGINA 24] somente os Títulos Abertos (não liquidados).
+[PÁGINA 24] Relatório Lista de Títulos Apresenta a relação dos Títulos a Receber emitidos para o projeto e sua situação.
+[PÁGINA 24] Fluxo de Recebimentos Mês/Ano Apresenta o fluxo de valores Recebidos (R$), a Receber (R$) e Cancelados (R$) por mês/ano.
+[PÁGINA 24] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 24] 24
+
+[PÁGINA 25] Formulários Atenção:
+[PÁGINA 25] Os formulários disponibilizados pela FAI • UFSCar estão sendo reformulados para o formato eletrônico.
+[PÁGINA 25] O preenchimento deve ser realizado através da Área de Coordenadores que trata a informação, gera a impressão e permite o acompanhamento durante o trâmite interno na FAI.
+[PÁGINA 25] Neste período de transição alguns formulários continuam disponíveis no formato ‘.doc’ (ver abaixo Adicionar Novo Formulário).
+[PÁGINA 25] (Set/2019) Na tela inicial é possível inserir novos formulários e efetuar o acompanhamento do atendimento pela Fundação.
+[PÁGINA 25] Podemos verificar que a tela oferece vários recursos de consulta como especificados abaixo:
+[PÁGINA 25] Formulários Eletrônicos – Acompanhamento  Aba Acompanhamento:
+[PÁGINA 25] lista informações referentes aos Formulários emitidos, para o projeto que foi acessado, que ainda estão em tramitação na Fundação, ou seja, estão sendo processados.
+[PÁGINA 25] Na lista exibida é possível identificar e acompanhar o andamento dos formulários pelas colunas ´status´ e ‘Últ.
+[PÁGINA 25] Trâmite’ Observações sobre o Trâmite:
+[PÁGINA 25] 1.
+[PÁGINA 25] Destino do Último Trâmite pode ser exibidos com os seguintes ícones:
+[PÁGINA 25] Alerta amarelo – indica que o formulário foi alterado pela Fundação.
+[PÁGINA 25] Alerta vermelho – indica que o formulário foi Rejeitado pela Fundação.
+[PÁGINA 25] 2.
+[PÁGINA 25] Esta informação é um link.
+[PÁGINA 25] Clique sobre ele e uma caixa será exibida com o histórico das movimentações do documento.
+[PÁGINA 25] 3.
+[PÁGINA 25] Um formulário alterado conserva a classificação original informada pelo emissor.
+[PÁGINA 25] 4.
+[PÁGINA 25] Quando um formulário é rejeitado, um e-mail é enviado para o Emissor, Coordenador e Analista responsável pela rejeição com a respectiva justificativa.
+[PÁGINA 25] 5.
+[PÁGINA 25] Os formulários Rejeitados são apresentados em aba específica para consulta.
+[PÁGINA 25] 6.
+[PÁGINA 25] Para Visualizar Formulário clique sobre o ícone com o botão esquerdo para abrir na mesma aba ou clique com o botão do meio para abrir em nova aba.
+[PÁGINA 25] Filtros de pesquisa:
+[PÁGINA 25] A caixa Pesquisar permite que sejam consultados os formulários:
+[PÁGINA 25] - Andamento:
+[PÁGINA 25] exibe os emitidos que estão em tramitação na Fundação, conforme Período indicado;
+[PÁGINA 25] - Finalizados:
+[PÁGINA 25] exibe os finalizados (arquivados) nos últimos 30 dias;
+[PÁGINA 25] e - Rejeitados:
+[PÁGINA 25] exibe os rejeitados nos últimos 30 dias.
+[PÁGINA 25] Insira uma nova Data Inicial e Data Final para alterar o período de busca desejado;
+[PÁGINA 25] e/ou Insira um termo no campo Buscar para filtrar os formulários que contenham o termo pesquisado.
+[PÁGINA 25] E clique no ícone da lupa para concretizar sua pesquisa.
+[PÁGINA 25] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 25] 25
+
+[PÁGINA 26] Note que o Acompanhamento de Formulários pode ser acessado de duas formas:
+[PÁGINA 26]  Ficha do Projeto – botão formulários:
+[PÁGINA 26] Visão somente do Projeto selecionado:
+[PÁGINA 26] apresenta acompanhamento somente dos formulários criados para o projeto específico que foi acessado na tela inicial do sistema através da Ficha de Projeto.
+[PÁGINA 26]  Menu lateral esquerdo – opção Área de Coordenadores / Formulários:
+[PÁGINA 26] Visão de todos os projetos do usuário:
+[PÁGINA 26] apresenta acompanhamento dos formulários de todos os projetos acessíveis pelo usuário que está logado, seja ele o Coordenador / Aprovador, Auxiliar ou Membro do Grupo de Trabalho.
+[PÁGINA 26] Esta opção fornece uma visão geral dos formulários em andamento sem a necessidade de acessar Projeto a Projeto.
+[PÁGINA 26] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 26] 26
+
+[PÁGINA 27] Formulários Eletrônicos – Acompanhamento SC (Solicitação de Compra) Permite realizar o acompanhamento das Solicitações de Compra emitidas eletronicamente desde sua criação na Área de Coordenadores até o pagamento ao fornecedor selecionado.
+[PÁGINA 27] A lista apresentada contém dados do Sapiens (ERP) que estão relacionados à SC eletrônica como:
+[PÁGINA 27] - - Solicitação de Compra Eletrônica:
+[PÁGINA 27] Número de identificação - Solicitação(ões) de Compras Sapiens:
+[PÁGINA 27] Número, Data emissão, Comprador.
+[PÁGINA 27] - Ordem(ns) de Compra:
+[PÁGINA 27] Número, Data emissão, Valor total, Fornecedor.
+[PÁGINA 27] - Nota(s) Fiscal(ais):
+[PÁGINA 27] Número, Série, Data Entrada no ERP.
+[PÁGINA 27] - Título(s):
+[PÁGINA 27] Número, Data Vencimento, Valor do Título, Data de Pagamento (se vazio indica que não foi pago).
+[PÁGINA 27] - Botão Enviar NF :
+[PÁGINA 27] Formulário “SC-NF” para envio da NF do fornecedor eletronicamente à FAI • UFSCar.
+[PÁGINA 27] - Note que para facilitar a visualização alguns itens não são repetidos quando da relação um para vários.
+[PÁGINA 27] Por ex.:
+[PÁGINA 27] - Uma SCe pode gerar várias Solicitações de Compra;
+[PÁGINA 27] - Uma Solicitação de Compra pode gerar várias Ordens de Compra;
+[PÁGINA 27] - Uma Ordem de Compra pode gerar várias Notas Fiscais;
+[PÁGINA 27] e finalmente - Uma Nota Fiscal pode gerar vários Títulos de pagamento.
+[PÁGINA 27] Filtros de pesquisa:
+[PÁGINA 27] A caixa Pesquisar permite que sejam consultados os formulários:
+[PÁGINA 27] - Todos:
+[PÁGINA 27] exibe todos os formulários emitido, conforme Período indicado;
+[PÁGINA 27] - Andamento:
+[PÁGINA 27] exibe os formulários que estão em processamento pela Fundação.
+[PÁGINA 27] Insira uma nova Data Inicial e Data Final para alterar o período de busca desejado;
+[PÁGINA 27] e Clique no ícone da lupa para concretizar sua pesquisa.
+[PÁGINA 27] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 27] 27
+
+[PÁGINA 28] Formulários Eletrônicos – Adiantamento de Recursos Permite realizar o acompanhamento e Prestação de Contas das Solicitações de Suprimento de Fundos emitidas eletronicamente.
+[PÁGINA 28] A lista apresentada contém dados que estão relacionados à SF eletrônica como:
+[PÁGINA 28] - Número do Formulário.
+[PÁGINA 28] - Número do Protocolo Eletrônico na FAI • UFSCar.
+[PÁGINA 28] - Status do Formulário.
+[PÁGINA 28] - Data de emissão.
+[PÁGINA 28] - Tipo.
+[PÁGINA 28] - Favorecido.
+[PÁGINA 28] - Número do Projeto.
+[PÁGINA 28] - Valor Total Adiantado.
+[PÁGINA 28] - Destino do Último Trâmite em conjunto com o ícone de alerta:
+[PÁGINA 28] alteração ou rejeição pela FAI • UFSCar.
+[PÁGINA 28] - Botões de Opção:
+[PÁGINA 28] Prestar Contas e Visualizar.
+[PÁGINA 28] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 28] 28
+
+[PÁGINA 29] Fornecedor Cadastrado x Fornecedor Novo  Fornecedor Cadastrado Caso seu fornecedor seja encontrado em nosso sistema, seus dados serão exibidos na sequência para que possam ser conferidos.
+[PÁGINA 29] Caso sejam necessárias manutenções, elas devem ser solicitadas ao Setor Financeiro da FAI • UFSCar.
+[PÁGINA 29]  Fornecedor Novo (não cadastrado) Caso seu fornecedor não seja encontrado, o sistema apresenta a mensagem “Nenhum fornecedor encontrado.
+[PÁGINA 29] Certifique-se de que o CNPJ/CPF foi digitado corretamente ou cadastre um novo fornecedor AQUI.
+[PÁGINA 29] ” Ao clicar no link, é exibido um formulário para que sejam inseridos os dados necessários ao seu cadastramento.
+[PÁGINA 29] Importante:
+[PÁGINA 29] antes de cadastrar um novo fornecedor, certifique-se de que o CNPJ/CPF esteja corretamente preenchido.
+[PÁGINA 29] Ao finalizar o cadastramento, volte para a tela do Formulário e insira o CNPJ/CPF que acaba de cadastrar e os dados do fornecedor serão exibidos.
+[PÁGINA 29] Observação:
+[PÁGINA 29] as instruções acima também são válidas para o cadastro de Beneficiário.
+[PÁGINA 29] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 29] 29
+
+[PÁGINA 30] Adicionar Novo formulário – Visão Geral Para adicionar um novo Formulário siga as etapas abaixo:
+[PÁGINA 30] - Selecione o Número do Projeto ao qual será adicionado um formulário.
+[PÁGINA 30] Observação:
+[PÁGINA 30] apesar de ter escolhido um projeto específico, através da Ficha do Projeto, a prática demonstrou interesse dos usuários de poderem alternar entre projetos nessa fase sem ter que voltar à Tela Inicial, oferecendo assim maior flexibilidade aos mesmos.
+[PÁGINA 30] - Após, selecione o tipo de formulário que será criado.
+[PÁGINA 30] Observação:
+[PÁGINA 30] o tipo “Outros” direciona para a página de download dos modelos ‘.doc’, que são os formulários que ainda não foram migrados para o sistema eletrônico.
+[PÁGINA 30] - E finalmente, para Adicionar o formulário, clique sobre o ícone com o botão esquerdo para abrir na mesma aba ou clique com o botão do meio do mouse para abrir em nova aba o formulário escolhido.
+[PÁGINA 30] - O sistema exibirá um formulário específico para a situação desejada.
+[PÁGINA 30] - Preencha os campos de acordo com as instruções e validações que o sistema apresentar conforme veremos mais adiante.
+[PÁGINA 30] Note que projetos com Bloqueio Financeiro estão impedidos de gerar novos formulários.
+[PÁGINA 30] O sistema sinaliza essa situação na Tela Inicial com a exibição do ícone à frente do saldo e com a mensagem abaixo:
+[PÁGINA 30] Anexar arquivo(s) no Formulário - Na seção Arquivos, utilize o botão Selecionar Arquivos.
+[PÁGINA 30] - Selecione o(s) arquivo(s) que deseja anexar ao formulário.
+[PÁGINA 30] Aprovação do Formulário pelo Coordenador ou Aprovador Todo formulário deve obrigatoriamente ser assinado pelo Coordenador que é o responsável pela aprovação das movimentações financeiras no projeto, ou pelo Aprovador que por ele foi designado.
+[PÁGINA 30] Os formulários eletrônicos, caso sejam emitidos por Auxiliares ou Membros do Grupo de Trabalho (em alguns casos, colaboradores da FAI • UFSCar), ficam disponíveis na tela de Acompanhamento com o status ‘Aguardando Aprovação’ para aprovação do Coordenador/Aprovador.
+[PÁGINA 30] Assinatura Eletrônica Os formulários são assinados eletronicamente, tanto para o emissor, coordenador/aprovador ou colaborador FAI • UFSCar.
+[PÁGINA 30] A assinatura eletrônica é obtida a partir da identificação utilizada no acesso à Área de Coordenadores, ou seja, login e senha.
+[PÁGINA 30] Destacamos que os dados de acesso são pessoais e intransferíveis.
+[PÁGINA 30] A delegação da autoridade a terceiros, através da divulgação do login e senha, não exime a responsabilidade pelos Formulários autorizados.
+[PÁGINA 30] Protocolo Eletrônico na FAI • UFSCar Somente após a aprovação eletrônica, pelo Coordenador/Aprovador, o formulário recebe um número de Protocolo Eletrônico e, a partir daí, poderá ser visualizado pelos colaboradores da FAI.
+[PÁGINA 30] Observação:
+[PÁGINA 30] o sistema conta com uma proteção que limita a entrega imediata dos formulários, que deve ocorrer após 10 minutos de sua aprovação.
+[PÁGINA 30] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 30] 30
+
+[PÁGINA 31] SP – Solicitação de Pagamento (antiga SN) A partir da funcionalidade Formulários:
+[PÁGINA 31] - Selecione o projeto - Selecione o formulário “SP-Solic.
+[PÁGINA 31] de Pagamento (Antiga SN)” - Clique no botão Adicionar com o botão esquerdo para abrir na mesma aba ou clique com o botão do meio do mouse para abrir em nova aba o formulário escolhido.
+[PÁGINA 31] Note que nem todos os projetos estão habilitados para a emissão do formulário SP conforme regras específicas.
+[PÁGINA 31] Neste caso o sistema emite a mensagem:
+[PÁGINA 31] O processo para preenchimento do formulário é simples e os campos possuem instruções necessárias:
+[PÁGINA 31] Observação:
+[PÁGINA 31] entenda por PJ = pessoa jurídica (CNPJ) e por PF = pessoa física (CPF).
+[PÁGINA 31]  A ‘SP’ aceita somente um documento por vez para pagamento, mesmo que seja de um único CNPJ/CPF.
+[PÁGINA 31] Preencha o formulário Solicitação de Pagamento – primeira tela - conforme abaixo:
+[PÁGINA 31]  Selecione o Tipo de Pagamento, conforme o caso:
+[PÁGINA 31] Pagamento – PJ :
+[PÁGINA 31] A Nota Fiscal ou Cupom foi emitido e a Fundação efetuará o pagamento.
+[PÁGINA 31] Adiantamento – PJ :
+[PÁGINA 31] A Nota Fiscal não foi emitida e o fornecedor solicita o pagamento antecipado que será realizado pela Fundação.
+[PÁGINA 31] Ressarcimento – PF :
+[PÁGINA 31] A Nota Fiscal ou Cupom foi emitido, o pagamento realizado e a Fundação deverá ressarcir o pagante.
+[PÁGINA 31]  Informe opcionalmente o Nro Externo:
+[PÁGINA 31] número exclusivo de controle da coordenação  Dados do Fornecedor x Favorecido Obs.:
+[PÁGINA 31] De acordo com o Tipo de Pagamento escolhido acima o sistema exibirá o comportamento adequado solicitando informação do Fornecedor ou do Favorecido (recebedor do valor).
+[PÁGINA 31] O procedimento de pesquisa abaixo é o mesmo para os dois casos, em qualquer circunstância.
+[PÁGINA 31] - CNPJ/CPF:
+[PÁGINA 31] Informe o nº CNPJ ou do CPF do Fornecedor que consta na Nota Fiscal / Cupom Eletrônico / Recibo ou do Favorecido e clique no ícone para pesquisar.
+[PÁGINA 31] Atenção:
+[PÁGINA 31] não é possível emitir uma SP para fornecedores estrangeiros.
+[PÁGINA 31] Partimos do princípio de que o fornecedor está cadastrado.
+[PÁGINA 31] Caso seja exibida a mensagem ao lado verifique se digitou o CNPJ corretamente ou consulte o item Fornecedor Cadastrado x Fornecedor Novo.
+[PÁGINA 31] Obs.:
+[PÁGINA 31] caso o CNPJ esteja cadastrado na Fundação a Razão Social será exibida.
+[PÁGINA 31] Os dados bancários também, dependendo do Tipo e da Forma de Pagamento.
+[PÁGINA 31] - Pagamento:
+[PÁGINA 31] informe se o pagamento será À Vista ou Parcelado - Informe o Número do Comprovante (Nota Fiscal, Nota de Serviço, Nota de Consumidor, Cupom Fiscal...) - Data de Vencimento:
+[PÁGINA 31] informe a data que consta na Nota Fiscal ou a data que deseja que seja pago.
+[PÁGINA 31] - Valor NF(R$):
+[PÁGINA 31] de acordo com o comprovante (Informar Valor Líquido se NFE/Cupom de produto ou Valor Bruto se NFS de serviço).
+[PÁGINA 31] - Selecione a Forma de Pagamento o Boleto o Depósito Conta do Fornecedor Necessário confirmar os Dados Bancários.
+[PÁGINA 31] Se divergente, informe no campo Observação.
+[PÁGINA 31] o Depósito Conta Favorecido - Pesquise pelo seu Favorecido através do Nº do CNPJ.
+[PÁGINA 31] Caso não seja encontrado ver item Fornecedor Cadastrado x Fornecedor Novo.
+[PÁGINA 31] Necessário confirmar os Dados Bancários.
+[PÁGINA 31] Se divergente, informe no campo Observação.
+[PÁGINA 31]  Descrição - Objeto:
+[PÁGINA 31] Informe a descrição com detalhes do Objeto a ser pago (detalhes do bem ou serviço adquirido) - Justificativa:
+[PÁGINA 31] Descreva o motivo da necessidade da aquisição/contratação do serviço.
+[PÁGINA 31] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 31] 31
+
+[PÁGINA 32]  Rateio Distribua o Valor de sua compra (Rateio) pelas Alíneas (Contas Financeiras / Rubrica);
+[PÁGINA 32] o Sistema atualiza automaticamente o valor Total.
+[PÁGINA 32] Selecione a Alínea na lista.
+[PÁGINA 32] As alíneas estão em conformidade com o Orçamento do seu projeto.
+[PÁGINA 32] O Centro de Custo será preenchido automaticamente.
+[PÁGINA 32] A somatória dos valores das alíneas deve ser igual ao Valor da NF (R$) informado anteriormente.
+[PÁGINA 32] -Caso sejam necessários novos Itens, selecione o ícone botão “+” ou, para excluir o último item.
+[PÁGINA 32]  Informações Complementares No campo Observação devem ser descritos outros detalhes pertinentes ao pagamento solicitado.
+[PÁGINA 32]  Salvar a 1ª parte Confira seus dados e clique no botão para que você possa passar à tela Anexar Arquivos.
+[PÁGINA 32] Note que não é possível Editar o formulário ao passar para a próxima tela.
+[PÁGINA 32] Atenção!
+[PÁGINA 32] Caso inconsistências sejam encontradas durante o processamento da Solicitação o sistema emitirá mensagem informando o motivo da inconsistência.
+[PÁGINA 32] - Efetue as alterações necessárias e clique em novamente;
+[PÁGINA 32] ou - Entre em contato com o Setor Financeiro ou de Tecnologia da FAI • UFSCar para obter ajuda.
+[PÁGINA 32] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 32] 32
+
+[PÁGINA 33] Ao salvar a SP será exibida a segunda tela da SP, formulário Solicitação de Pagamento – Upload para que sejam anexados os documentos comprobatórios (NF, Recibo, Cupom).
+[PÁGINA 33] Atenção:
+[PÁGINA 33] Se por algum motivo não foi possível dar continuidade ao preenchimento do formulário logo na sequência, por exemplo a aba do navegador fechou ou o comprovante não estava disponível etc, não se preocupe, pois, a primeira tela foi salva com o status Rascunho e pode ser acessada na
+[PÁGINA 33] Ficha do Projeto / Formulários.
+[PÁGINA 33] Nesta tela, ver imagem abaixo, é possível:
+[PÁGINA 33]  Deletar O formulário será excluído e os dados não poderão ser recuperados.
+[PÁGINA 33]  Resumo do Formulário Revisar os dados preenchidos anteriormente.
+[PÁGINA 33]  Instruções Rever as instruções necessárias para anexar os arquivos.
+[PÁGINA 33]  Anexar Selecionar o(s) arquivo(s) que deve(m) ser anexado(s) ao formulário.
+[PÁGINA 33] - Obrigatoriamente o documento fiscal - Boleto(s) - Orçamento(s), se for o caso  Comprovante de Despesa foi preenchido manualmente - Sim - Não Atenção:
+[PÁGINA 33] esta questão implica na forma como o formulário e seus anexos serão entregues à Fundação.
+[PÁGINA 33] Documento eletrônico são os emitidos e autenticados pela Sefaz (NFE, NFS, Cupom eletrônico) Os demais são documentos não autenticados mesmo tendo sido gerados por meio eletrônico (Recibos, Notas ao consumidor) Não:
+[PÁGINA 33] Indica que os documentos são eletrônicos e autenticados.
+[PÁGINA 33] Portanto serão assinados, protocolados e entregues de forma eletrônica à Fundação Sim:
+[PÁGINA 33] Documentos não autenticados Nesse caso o formulário deve ser impresso, assinado e/ou carimbado pelo coordenador/aprovador, os comprovantes anexados e devem ser entregues presencialmente na Fundação.
+[PÁGINA 33] Obs.:
+[PÁGINA 33] Projetos públicos não possuem essa opção, pois todos tem que ser impressos e assinados/carimbados.
+[PÁGINA 33] Finalmente clique no botão para que seus arquivos sejam transferidos para o nosso sistema e o formulário seja salvo e protocolado junto à Fundação, caso seja um documento eletrônico.
+[PÁGINA 33] Após a finalização da emissão o sistema apresenta a tela de Impressão para visualização do formulário final.
+[PÁGINA 33] Observação:
+[PÁGINA 33] a impressão é necessária somente se o documento fiscal anexado não esteja autenticado.
+[PÁGINA 33] Nesse caso, anexe os comprovantes à Solicitação de Pagamento, assine e carimbe e encaminhe à FAI • UFSCar;
+[PÁGINA 33] Trâmite junto à Fundação:
+[PÁGINA 33] após Enviar o formulário o trâmite junto à Fundação ocorre de acordo com o perfil do emissor ou após o Coordenador / Aprovador Aprovar o formulário:
+[PÁGINA 33] - Auxiliar/Membro:
+[PÁGINA 33] status Aguardando Aprovação - o formulário deve ser aprovado pelo Coordenador/Aprovador em Ficha do Projeto / Formulários / Visualizar.
+[PÁGINA 33] - Coordenador/Aprovador:
+[PÁGINA 33] status Em Trâmite - o formulário é aprovado automaticamente e protocolado.
+[PÁGINA 33] Acompanhe o Trâmite do formulário e, se necessário, contate o responsável pelo Último Trâmite (ver Formulários).
+[PÁGINA 33] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 33] 33
+
+[PÁGINA 34] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 34] 34
+
+[PÁGINA 35] TR – Transferência de Valores A partir da funcionalidade Formulários:
+[PÁGINA 35] - Selecione o projeto.
+[PÁGINA 35] - Selecione o formulário “TR-Transferência de Valores”.
+[PÁGINA 35] - Clique no botão Adicionar para inserir um novo formulário.
+[PÁGINA 35] Para possibilitar um melhor controle no processo, inicialmente, o formulário criado será exibido para o Setor de Projetos após 30 minutos de sua Aprovação.
+[PÁGINA 35] Preencha o formulário Transferência de Valores conforme abaixo:
+[PÁGINA 35]  Selecione o Tipo da Transferência:
+[PÁGINA 35] Entre Projetos, Empréstimo (somente FAI • UFSCar), Devolução de Empréstimo.
+[PÁGINA 35]  Selecione o Projeto de Destino  Informe o Valor a ser transferido  Preencha o campo Justificativa com informações relevantes à transferência.
+[PÁGINA 35]  Enviar Clique no botão Enviar para que seus dados sejam registrados no sistema.
+[PÁGINA 35] Após a finalização da emissão o sistema apresenta a tela de Impressão para visualização do formulário final.
+[PÁGINA 35] A aprovação do formulário depende do tipo de emissor:
+[PÁGINA 35] - Se o emissor é o Auxiliar ou o Membro do Grupo de Trabalho o formulário deve ser aprovado pelo Coordenador em Formulários/Visualizar.
+[PÁGINA 35] - Se o emissor é o Coordenador ou Aprovador o formulário é considerado aprovado automaticamente.
+[PÁGINA 35] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 35] 35
+
+[PÁGINA 36] SC – Solicitação de Compra / Termo de Referência A partir da funcionalidade Formulários:
+[PÁGINA 36] - Selecione o projeto.
+[PÁGINA 36] - Selecione o formulário “SC-Solic.
+[PÁGINA 36] Compra/Termo Referência)”.
+[PÁGINA 36] - Clique no botão Adicionar para inserir um novo formulário.
+[PÁGINA 36] Para possibilitar um melhor controle no processo, inicialmente, o formulário criado será exibido para o Setor de Projetos após 30 minutos de sua Aprovação.
+[PÁGINA 36] Preencha o formulário SC-Solic.Compra/Termo Referência conforme abaixo:
+[PÁGINA 36]  Informe dados da Pessoa de Contato que assessorará a compra:
+[PÁGINA 36] Nome, e-mail, fone(s).
+[PÁGINA 36]  Informe o Prazo de Entrega desejado.
+[PÁGINA 36]  Informe o Local de Entrega de forma detalhada:
+[PÁGINA 36] Instituição, Campus, Departamento, Laboratório etc  Informe a descrição do Objeto (descreva o que se deseja adquirir/contratar).
+[PÁGINA 36]  Informe a descrição do Objetivo (descreva o que se pretende atingir com a aquisição/contratação).
+[PÁGINA 36]  Informe a descrição da Justificativa (descreva as razões pela qual o material/serviço deve ser adquirido/contratado).
+[PÁGINA 36]  Se necessário, preencha o campo Fornecedor com sua(s) indicação(ões) com nome, e-mail, fone.
+[PÁGINA 36]  Se necessário, informe observações adicionais no campo Info.Complementares.
+[PÁGINA 36]  Informe-se Autoriza a compra pelo menor valor ou Autoriza a compra limitada a um valor especificado  Indique os Itens que deseja adquirir/contratar preenchendo os campos:
+[PÁGINA 36] o Quantidade.
+[PÁGINA 36] o Unidade de Medida.
+[PÁGINA 36] o Valor Unitário (R$).
+[PÁGINA 36] o Descrição detalhada do item.
+[PÁGINA 36] o Conta Financeira (Alínea/Rubrica) que será utilizada.
+[PÁGINA 36] o Centro de Custo.
+[PÁGINA 36] - O Sistema atualiza automaticamente o Valor Total do Item e o Valor Total da Compra.
+[PÁGINA 36] - Se necessários novos Itens, selecione o botão “+” ou, caso queira excluir um item, selecione “Inativar” Atenção:
+[PÁGINA 36] Itens inativados não serão salvos.
+[PÁGINA 36]  Através do botão Escolher Arquivos é possível anexar documentos (especificação técnica, catálogos etc.)  Salvar Rascunho Clique no botão Salvar para que seus dados sejam registrados no sistema.
+[PÁGINA 36] Será exibida a tela de Visualização da Solicitação de Compra criada onde é possível:
+[PÁGINA 36] o Imprimir a Solicitação de compra.
+[PÁGINA 36] o Editar.
+[PÁGINA 36] o Excluir.
+[PÁGINA 36] o Enviar para Aprovação do Coordenador (se Auxiliar/Membro do Grupo de Trabalho) ou Enviar para.
+[PÁGINA 36] FAI • UFSCar (se Coordenador/Aprovador).
+[PÁGINA 36] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 36] 36
+
+[PÁGINA 37] Atenção!
+[PÁGINA 37] Caso inconsistências sejam encontradas durante o processamento da Solicitação o sistema emitirá mensagem informando o motivo da inconsistência.
+[PÁGINA 37] - Efetue as alterações necessárias e clique em Salvar novamente;
+[PÁGINA 37] ou - Entre em contato com o Setor de Compra ou de Tecnologia da FAI • UFSCar para obter ajuda.
+[PÁGINA 37] Após a criação da Solicitação de Compra no sistema Sapiens (ERP) será possível efetuar o acompanhamento na aba Acompanhamento SC.
+[PÁGINA 37] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 37] 37
+
+[PÁGINA 38] SC-NF –Solicitação de Compra – Envio da NF A partir da funcionalidade Formulários:
+[PÁGINA 38] - Selecione a aba Acompanhamento SC (Solicitação de Compra).
+[PÁGINA 38] Diante dos formulários existe o ícone de EnviarNF Ao clicar sobre ele, é apresentado o formulário de Solicitação de Compra inicial para sua verificação.
+[PÁGINA 38] Selecionar o botão Enviar Nota Fiscal Ao clicar sobre ele, é apresentado o formulário Solicitação de Compra / NF.
+[PÁGINA 38]  Informações do fornecedor - Digitar o CNPJ do fornecedor (de acordo com o especificado na NFE / NFS) e clique e buscar - Os campos Cód.
+[PÁGINA 38] (código do cliente) e Razão Social (do fornecedor) serão preenchidos pelo sistema.
+[PÁGINA 38]  Informações da Nota Fiscal - Nro.:
+[PÁGINA 38] digitar o número da Nota Fiscal de Produto ou Serviço.
+[PÁGINA 38] - Total(R$):
+[PÁGINA 38] inserir o valor da Nota Fiscal de Produto ou Serviço.
+[PÁGINA 38] - Vencimento:
+[PÁGINA 38] inserir a data de vencimento (pagamento do título) conforme a Nota Fiscal ou boleto.
+[PÁGINA 38] - Através do botão Escolher Arquivos é possível anexar o arquivo da Nota Fiscal escaneado.
+[PÁGINA 38] Observação:
+[PÁGINA 38] antes de escanear a Nota Fiscal, solicitamos que aponha o carimbo de recebido e assine de punho para dirimir quaisquer dúvidas futuras.
+[PÁGINA 38]  Enviar Clique no botão Enviar para que seus dados sejam registrados no sistema.
+[PÁGINA 38] SF – Solicitação de Suprimento de Fundos A partir da funcionalidade Formulários:
+[PÁGINA 38] - Selecione o projeto - Selecione o formulário “SF – Suprimento de Fundos” - Clique no botão Adicionar para inserir um novo formulário.
+[PÁGINA 38] Selecione o Membro da Equipe que será o favorecido do adiantamento (que receberá o depósito bancário).
+[PÁGINA 38] Informe o valor a ser adiantado, número de controle externo (se houver) e Observação, caso necessário.
+[PÁGINA 38] Atenção:
+[PÁGINA 38] O projeto pode realizar até duas Solicitações, desde que nenhuma tenha extrapolado o prazo de Prestação de Contas, até o 15º dia do mês subsequente à Solicitação.
+[PÁGINA 38] Após o arquivamento da SF, pode-se efetuar o acompanhamento através da aba Adiantamento de Recursos.
+[PÁGINA 38] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 38] 38
+
+[PÁGINA 39] SF-PC –Suprimento de Fundos - Prestação de Contas A partir da funcionalidade Formulários:
+[PÁGINA 39] - Selecione a aba Adiantamento de Recursos.
+[PÁGINA 39] No filtro Pesquisar Adiantamento de Recurso, selecione o ‘status’ do formulário e informe o período de busca.
+[PÁGINA 39] Clique no ícone da lupa para realizar a busca.
+[PÁGINA 39] Diante dos formulários existem os ícones de Opções:
+[PÁGINA 39]  Visualizar Apresenta o formulário de Solicitação inicial, a partir do qual também é possível Prestar Contas.
+[PÁGINA 39]  Prestar Contas Dados Gerais o Apresenta os Dados Gerais da Solicitação.
+[PÁGINA 39] Dados da Prestação de Contas o Distribua o Valor das despesas (Rateio) pelas Contas Financeiras (Alínea/Rubrica) - O Sistema atualiza automaticamente o valor Total.
+[PÁGINA 39] - Caso sejam necessários novos Itens, selecione o botão “+” ou, caso queira excluir o item, selecione “X”.
+[PÁGINA 39] o Enviar.
+[PÁGINA 39] o Imprimir a Prestação de Contas.
+[PÁGINA 39] o Anexar os comprovantes originais e encaminhar à FAI • UFSCar.
+[PÁGINA 39] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 39] 39
+
+[PÁGINA 40] Gerenciando os Acessos Nesta funcionalidade é possível realizar a liberação de acesso aos Auxiliares do Coordenador ou aos Membros do Grupo de Trabalho do projeto.
+[PÁGINA 40] Para acessá-la utilize o Menu Lateral Esquerdo “Área de Coordenadores” e clique em “Gerenciar Acessos” ou em Dados do Projeto, aba Acessos (ver página 5) , do projeto específico.
+[PÁGINA 40] Filtros de Busca Entre com o CPF ou com o Nome do Auxiliar (qualquer termo que esteja no nome).
+[PÁGINA 40] O sistema apresenta uma lista com o resultado que satisfaz à pesquisa.
+[PÁGINA 40] Selecione o nome desejado.
+[PÁGINA 40]  Auxiliar Novo (não cadastrado) Caso seu auxiliar não seja encontrado, o sistema apresenta a mensagem “...
+[PÁGINA 40] pesquise pelo CPF no campo acima ou cadastre um novo auxiliar AQUI.
+[PÁGINA 40] ” Ao clicar no link, é exibida uma nova aba com o formulário para que sejam inseridos os dados necessários ao cadastramento.
+[PÁGINA 40] Importante:
+[PÁGINA 40] antes de cadastrar um novo auxiliar, certifique-se de que o CPF esteja corretamente preenchido.
+[PÁGINA 40] Ao finalizar o cadastramento, volte para a tela de Gerenciar Acesso ou aba Auxiliares e insira o CPF ou nome que acaba de cadastrar e os dados do Auxiliar serão exibidos.
+[PÁGINA 40] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 40] 40
+
+[PÁGINA 41]  Gerenciar Acessos Após selecionar o Auxiliar/Membro, clique no ícone Gerenciar Acessos no final da linha.
+[PÁGINA 41] O sistema exibirá uma matriz com todos os projetos (linha) sob sua coordenação e as funcionalidades (colunas) que podem ser atribuídas.
+[PÁGINA 41] Ao passar o mouse sobre o ícone ao lado da funcionalidade o sistema exibe mensagem explicativa sobre a permissão de acesso concedida ao Auxiliar/Membro.
+[PÁGINA 41] Atenção:
+[PÁGINA 41] o Membro acessa nativamente as funcionalidades Bolsista (dentro de RH) e FormuláriosMembro.
+[PÁGINA 41] Se necessário, utilize o campo ‘Buscar’ para selecionar na lista um Projeto específico, exceto se estiver em um projeto específico, via aba Acesso.
+[PÁGINA 41] É possível atribuir todas as funcionalidades a todos os projetos de uma única vez.
+[PÁGINA 41] Para isso clique no link Selecionar Tudo no topo da lista de projetos.
+[PÁGINA 41] Ou, ainda, clique no link Selecionar Linha para atribuir todas as funcionalidades de um único projeto.
+[PÁGINA 41]  Perfis de Acesso - Aprovador:
+[PÁGINA 41] permite efetuar a movimentação de recursos financeiros através da aprovação/liberação de formulários SP, SC etc ou enviando Propostas de Bolsas.
+[PÁGINA 41] Esta funcionalidade é de uso exclusivo do setor Gestão de Projetos da FAI • UFSCar.
+[PÁGINA 41] Para nomear um Aprovador é necessário enviar ofício à Fundação para formalizar a autorização.
+[PÁGINA 41] Após a autorização o ofício deve ser anexado ao projeto e pode ser consultado em Dados do Projeto .
+[PÁGINA 41] - FormulárioMembro:
+[PÁGINA 41] visualiza somente formulários onde o membro da equipe seja o emissor ou o favorecido e não tem acesso aos demais formulários emitidos por outros membros da equipe.
+[PÁGINA 41] - FormuláriosProjeto:
+[PÁGINA 41] visualiza todos os formulários do projeto, independentemente de quem foi o emissor.
+[PÁGINA 41] - Cursos:
+[PÁGINA 41] permite acesso à funcionalidade Cursos.
+[PÁGINA 41] - Finanças:
+[PÁGINA 41] permite acesso à funcionalidade Finanças.
+[PÁGINA 41] - Orçamento:
+[PÁGINA 41] permite acesso ao formulário Revisão Orçamentária do projeto.
+[PÁGINA 41] - Relatórios:
+[PÁGINA 41] permite acesso à funcionalidade Relatórios.
+[PÁGINA 41] - RH:
+[PÁGINA 41] visualiza os dados referentes aos custos com pessoal, porém não gera novas Propostas de Bolsa, cuja atribuição, por efetuar movimentação financeira, é de uso exclusivo do coordenador ou aprovador do projeto.
+[PÁGINA 41] - Saldo:
+[PÁGINA 41] permite visualizar o valor do Saldo do Projeto na Ficha do Projeto.
+[PÁGINA 41] - Vendas:
+[PÁGINA 41] permite acesso à funcionalidade Vendas.
+[PÁGINA 41] - Aprovador:
+[PÁGINA 41] atribuição de uso exclusivo da Fundação.
+[PÁGINA 41] Caso o coordenador queira autorizar que um de seus membros seja um Aprovador, que neste caso poderá autorizar a movimentação financeira do projeto através da aprovação de formulários SP, SC etc ou da geração de Proposta de Bolsas, é necessário que seja enviado um Ofício ao setor
+[PÁGINA 41] Gestão de Projetos da Fundação para formalização da autorização.
+[PÁGINA 41] Após a aprovação pela Fundação o ofício deve ser anexado ao Projeto e ficará liberado para consulta.
+[PÁGINA 41] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 41] 41
+
+[PÁGINA 42] FAQ O que são Notificações São alertas que indicam que informes, notícias ou comunicados foram enviados pela FAI • UFSCar aos Coordenadores.
+[PÁGINA 42] Assim que é efetuada a leitura a Notificação deixa de ser apresentada.
+[PÁGINA 42] Pode-se efetuar a leitura individualmente ou visualizar todas de uma única vez.
+[PÁGINA 42] Ver mais detalhes em Notificações.
+[PÁGINA 42] FAI • UFSCar Manual da Área de Coordenadores – v.3.01 – 20/02/2024 – Equipe TIC pág.
+[PÁGINA 42] 42
