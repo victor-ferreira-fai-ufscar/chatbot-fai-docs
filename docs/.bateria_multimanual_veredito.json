@@ -1,0 +1,420 @@
+{
+ "report": {
+  "resumo_executivo": "Bateria de 20 cenários sobre o índice compartilhado (Manual do Sistema + Manual dos Coordenadores): 9 OK, 10 falhas menores e apenas 1 grave (PRO-04). Roteamento entre manuais funcionou em 100% das perguntas single-manual (14/14 de sistema+processos citaram o manual certo); todas as 4 falhas de routing_ok são respostas substantivas SEM NENHUMA fonte, e todas ocorrem em perguntas cuja resposta cruza os dois manuais (true_manual=ambos). A cross-attribution observada é quase toda off-by-page DENTRO do manual correto (4 de 5 casos); só PRO-04 atribuiu conteúdo de um manual ao outro (formulário SF-PC do Manual do Sistema pp.38-39 citado como Coordenadores pp.15/19, sendo que SF-PC é PC de suprimento de fundos, não o mecanismo geral de prestação de contas) — a única citação enganosa acionável. Multi-turno ficou limpo (MT-01/MT-02 ok), a negativa absteve corretamente (NEG-01), mas MIX-03 produziu falsa negativa com conteúdo existente nos manuais. Conclusão: o problema dominante NÃO é confusão entre manuais (que separar índices resolveria), e sim supressão/imprecisão de citação quando a resposta exige síntese multi-documento. Recomendação: mitigação barata (regra multi-doc no prompt + guard determinístico contra resposta substantiva com zero citações + verificação de página) e nova bateria focada em cenários 'ambos' antes de decidir pela 2ª instância.",
+  "taxas": {
+   "routing_ok_pct": 80,
+   "page_support_pct": 65,
+   "cross_attribution_pct": 25,
+   "graves": 1,
+   "por_categoria": "SISTEMA (8): routing 6/8 (75%), page_support 5/8 (62,5%), cross-attr 3/8 (todas off-by-page intra-manual), sev: 2 ok / 6 menores / 0 graves. PROCESSO (6): routing 6/6 (100%), page_support 3/6 (50%), cross-attr 2/6, sev: 3 ok / 2 menores / 1 GRAVE (PRO-04). AMBÍGUA/MIX (3): routing 1/3 (33%), cross-attr 0/3, sev: 1 ok / 2 menores (incl. falsa negativa em MIX-03). NEGATIVA (1): 1/1 ok, abstenção correta. MULTITURNO (2): 2/2 ok, routing e páginas corretos, sem cross-attr — a regressão multi-turno observada antes NÃO reapareceu nesta bateria."
+  },
+  "falhas": [
+   {
+    "id": "PRO-04",
+    "severity": "grave",
+    "problema": "Única cross-attribution real entre manuais: a seção acionável 'Submissão' ensina procedimento via formulário SF-PC (que existe SÓ no Manual do Sistema pp.38-39 e é prestação de contas de SUPRIMENTO DE FUNDOS, não o mecanismo geral de PC do projeto) citando Manual dos Coordenadores pp.15/19, onde o conteúdo não existe; fases parcial/final e encerramento estão nas pp.60/67, não nas citadas, e na p.60 quem submete a PC financeira é a Fundação, não o coordenador."
+   },
+   {
+    "id": "SIS-03",
+    "severity": "menor",
+    "problema": "Resposta substantiva sem NENHUMA fonte (inline e cards vazios) em pergunta cujo conteúdo cruza os dois manuais (SP no sistema pp.31-33 + gestor/interlocutor em processos p.34); passo a passo genérico omite o fluxo real Formulários > SP > Upload."
+   },
+   {
+    "id": "SIS-04",
+    "severity": "menor",
+    "problema": "Resposta substantiva sem nenhuma fonte em pergunta coberta pelos dois manuais (Acompanhamento SC no sistema pp.27/37 + status/pendências em processos pp.19/22); omite o mecanismo específico (aba Acompanhamento SC)."
+   },
+   {
+    "id": "MIX-02",
+    "severity": "menor",
+    "problema": "Resposta substantiva sem nenhuma fonte apesar do conteúdo existir nos dois manuais (processos pp.23/31 + sistema p.36); instrui 'módulo de Compras ou Solicitações' quando o caminho real é Formulários > SC-Solic.Compra/Termo Referência."
+   },
+   {
+    "id": "MIX-03",
+    "severity": "menor",
+    "problema": "Falsa negativa: bot diz que 'o manual não detalha' quando o Manual do Sistema cobre a dúvida (pp.32/36/37, incl. 'contate o Setor de Compra ou de Tecnologia'); flag 'Foi negativa=false' do pipeline parece incorreta; boilerplate cita 'Supervisor de Projetos Específicos/Gerais' que não existe verbatim nos manuais."
+   },
+   {
+    "id": "SIS-02",
+    "severity": "menor",
+    "problema": "Off-by-page dentro do manual correto: passos 8-9 e visualização da NFE atribuídos à p.16 quando estão nas pp.17, 18 e 14; procedimento em si fiel."
+   },
+   {
+    "id": "SIS-05",
+    "severity": "menor",
+    "problema": "Conteúdo secundário (regra de atribuição de perfis e passo 'Salvar', ambos da p.7; login da p.4) citado como pp.40-41; mesmo manual, núcleo correto; 'Auxiliar Novo' descrito como botão quando é seção com link."
+   },
+   {
+    "id": "SIS-06",
+    "severity": "menor",
+    "problema": "Bullet 'confirmação de leitura individual/em massa' atribuído à p.5 quando está no FAQ p.42; paráfrase levemente inflada ('visualizar todas de uma vez' virou 'marcadas em massa'); mesmo manual."
+   },
+   {
+    "id": "SIS-08",
+    "severity": "menor",
+    "problema": "Elaboração não verificável: enumera campos do formulário de cadastro de fornecedor ('CNPJ/CPF, razão social, dados bancários') que o manual não lista; borderline-ok, nada acionável engana o usuário."
+   },
+   {
+    "id": "PRO-05",
+    "severity": "menor",
+    "problema": "Bullet 'Uso de Recursos' atribuído à p.45 quando deriva da p.40 (restrições 5.5.4); menção a 'bens permanentes' como vedação a autônomos é paráfrase embelezada de 'compras', sem página que a sustente; mesmo manual, núcleo fiel."
+   },
+   {
+    "id": "PRO-06",
+    "severity": "menor",
+    "problema": "'Critérios de aceitação' atribuído às pp.30/72 quando está nas pp.31/68 (glossário); página adjacente dentro do mesmo manual; sem risco real de enganar."
+   }
+  ],
+  "padrao_das_falhas": "As falhas NÃO se distribuem aleatoriamente — seguem dois padrões nítidos, ambos ortogonais à questão página-vs-manual entre índices: (1) TODAS as 4 falhas de roteamento (SIS-03, SIS-04, MIX-02, MIX-03) são respostas sem NENHUMA fonte, e as 4 ocorrem exatamente nas perguntas com true_manual=ambos — quando a resposta exige sintetizar os dois manuais, o pipeline suprime as citações por completo (3 respostas genéricas sem fonte + 1 falsa negativa). Das 5 perguntas 'ambos' da bateria, 4 falharam assim e a 5ª (PRO-04) gerou a única grave — ou seja, 100% dos cenários multi-documento falharam de alguma forma, enquanto perguntas single-manual tiveram roteamento 14/14. (2) A cross-attribution é dominantemente INTRA-manual: 4 dos 5 casos (SIS-02, SIS-05, SIS-06, PRO-05) são off-by-page dentro do manual correto, com conteúdo fiel — problema de granularidade de citação de página, que existiria igual com índices separados. Só PRO-04 cruzou manuais de verdade (conteúdo do Sistema citado como Coordenadores), e justamente numa pergunta 'ambos', onde separar índices não elimina o risco (a resposta precisaria consultar os dois de qualquer forma). (3) Multi-turno, que era a preocupação histórica, ficou limpo (MT-01/MT-02 ok, 0 cross-attr) — a regressão anterior não se reproduziu. (4) Sobreposição TR/SC não gerou grave (PRO-06 é só página adjacente); a grave foi na sobreposição prestação-de-contas/SF-PC.",
+  "recomendacao": "mitigar_e_reavaliar",
+  "justificativa": "Separar em 2 índices agora atacaria o problema errado. O caso de uso da separação é confusão de roteamento/atribuição ENTRE manuais em perguntas single-manual — e isso praticamente não ocorreu: 14/14 perguntas single-manual rotearam para o manual correto e 0 delas tiveram cross-attribution entre manuais; os off-by-page (4 casos) são intra-manual e persistiriam idênticos com índices isolados. O padrão real de falha é o cenário multi-documento (true_manual=ambos): 4 respostas sem nenhuma fonte + a única grave (PRO-04) — e índices separados PIORAM esse cenário, pois a resposta passaria a exigir orquestração de duas consultas, mais latência e um novo ponto de falha de fusão, sem nenhuma garantia de citação melhor. As mitigações baratas cobrem os dois padrões: (a) regra explícita no prompt para respostas multi-manual ('toda afirmação substantiva deve citar manual+página; é permitido e esperado citar os dois manuais na mesma resposta'); (b) guard determinístico no backend que bloqueia/reprocessa resposta substantiva com zero citações (o mesmo mecanismo do handler de negativa já existente — inclusive corrigindo a flag 'Foi negativa' que falhou em MIX-03); (c) verificação leve de página na citação (o marcador [PÁGINA N] denso por frase já existe no ground-truth do índice, dá para validar se a página citada contém termos-chave da afirmação). Com 1 grave em 20 (5%) e 45% de resultado plenamente OK, o custo/risco de manter junto por mais um ciclo é baixo; rodar nova bateria com peso maior em cenários 'ambos' e multi-turno após as mitigações, e só então reabrir a decisão de separação se a taxa de graves em multi-doc não cair."
+ },
+ "verdicts": [
+  {
+   "id": "SIS-01",
+   "routing_ok": true,
+   "cited_manuals": [
+    "Manual do Sistema Area Coordenadores.pdf"
+   ],
+   "true_manual": "sistema",
+   "true_pages": [
+    4
+   ],
+   "page_support_ok": true,
+   "cross_attribution": false,
+   "abstention_error": "none",
+   "severity": "ok",
+   "notes": "Todas as afirmações-chave batem com a pág. 4 do manual do sistema: \"acesse o endereço www.sistemas.fai.ufscar.br e selecione o botão Área de Coordenadores no canto superior à direita ... ou diretamente em https://sistemas.fai.ufscar.br/coordenadores\"; \"identificação do usuário através de e-mail ou CPF e senha\"; \"selecionar 'Não sou um robô'\"; \"Selecione Enter\"; \"Caso seja o primeiro acesso, é necessário alterar a senha provisória enviada para seu e-mail ... pela Fundação ... e efetuar o Aceite da Política de Privacidade\"; \"clique em 'Esqueci a Senha'. Uma mensagem automática será enviada para o ... e-mail cadastrado\". Roteamento correto (esperado=sistema), citação inline e card apontam para pág. 4 (91%). O segundo card (Manual dos Coordenadores.pdf, sem página) é apenas retrieval e não induz erro — aquele manual até menciona brevemente primeiro acesso/senha provisória na pág. 22."
+  },
+  {
+   "id": "SIS-02",
+   "routing_ok": true,
+   "cited_manuals": [
+    "Manual do Sistema Área Coordenadores.pdf"
+   ],
+   "true_manual": "sistema",
+   "true_pages": [
+    14,
+    15,
+    16,
+    17,
+    18
+   ],
+   "page_support_ok": false,
+   "cross_attribution": true,
+   "abstention_error": "none",
+   "severity": "menor",
+   "notes": "Manual correto (sistema) e conteúdo fiel. Págs. 15-16 sustentam os passos 4-7: pág. 15 tem \"Cliente Cadastrado x Cliente Novo\", \"cadastre um novo cliente clicando no link AQUI\" e \"Contato do Cliente ... Selecione um contato já existente\"; pág. 16 tem Solicitante/Responsável/Número Externo/Tipo de Pedido, \"Somente projetos específicos podem gerar Pedido de Venda de Produto(s) ... contactar o setor Financeiro\" e \"Anexar Arquivo\". PORÉM: passo 8 (limite \"250 caracteres por item ou total de 500\", Quantidade, Valor Unitário, cálculo automático) está na pág. 17, não na 16; passo 9 (botão Salvar/Enviar e retorno à tela de Faturamento) está na pág. 18, e a visualização da NFE/reenvio por e-mail na pág. 14 — ambos citados como pág. 16. Detalhe adicional: \"NFE gerada automaticamente\" simplifica o faturamento em lote 2x/dia (pág. 15). Off-by-page dentro do manual certo, sem enganar sobre o procedimento: severidade menor."
+  },
+  {
+   "id": "SIS-03",
+   "routing_ok": false,
+   "cited_manuals": [],
+   "true_manual": "ambos",
+   "true_pages": [
+    1,
+    4,
+    31,
+    32,
+    33,
+    34
+   ],
+   "page_support_ok": false,
+   "cross_attribution": false,
+   "abstention_error": "none",
+   "severity": "menor",
+   "notes": "Resposta substantiva SEM nenhuma fonte (inline [] e cards []), embora o conteúdo exista nos manuais. Conteúdo-chave: (a) SP pela Área de Coordenadores — Manual do SISTEMA pp.31-33: \"SP – Solicitação de Pagamento (antiga SN) A partir da funcionalidade Formulários: - Selecione o projeto - Selecione o formulário 'SP-Solic. de Pagamento'\"; p.33: segunda tela \"Solicitação de Pagamento – Upload\" para anexar \"documentos comprobatórios (NF, Recibo, Cupom)\"; (b) URL sistemas.fai.ufscar.br — SISTEMA pp.1 e 4; (c) \"Gestor do Projeto... interlocutor oficial\" — Manual de PROCESSOS p.34 (\"Gestor de Projeto da FAI/UFSCar, que é o seu interlocutor oficial\"). routing_ok=false e page_support_ok=false porque nada foi citado (não há manual/página a validar); sem cross_attribution pois nada foi atribuído a fonte errada. Passo a passo do bot é genérico e omite o fluxo real (Formulários → selecionar projeto → formulário SP → salvar → Upload), mas não contradiz o manual. Usuário não é enganado factualmente => severidade menor. Páginas 1/4/31/32/33 = manual do sistema; página 34 = manual de processos."
+  },
+  {
+   "id": "SIS-04",
+   "routing_ok": false,
+   "cited_manuals": [],
+   "true_manual": "ambos",
+   "true_pages": [
+    27,
+    37,
+    19,
+    22,
+    23,
+    4
+   ],
+   "page_support_ok": true,
+   "cross_attribution": false,
+   "abstention_error": "none",
+   "severity": "menor",
+   "notes": "Resposta substantiva SEM NENHUMA fonte (inline=[] e cards=[]), embora o conteúdo seja verídico e coberto pelos dois manuais. Onde o conteúdo realmente está: (a) acompanhamento da SC = Manual do Sistema pág. 27 (\"Acompanhamento SC ... desde sua criação na Área de Coordenadores até o pagamento ao fornecedor\") e pág. 37 (\"acompanhamento na aba Acompanhamento SC\"); (b) status/pendências = Manual de Processos pág. 19 (\"Acompanhamento em tempo real (aprovações, pendências)\") e pág. 22 (\"indicando status (em análise, aprovado, pendente, reprovado)\"); (c) lista \"compras, importação, financeiro, pessoal e viagens\" = Processos pág. 19/23 (inexistente no manual do sistema); (d) link sistemas.fai.ufscar.br = Sistema pág. 1/4; (e) contato com Gestor do Projeto = Processos pág. 8/38/41. routing_ok=false porque nenhum manual foi citado para categoria 'sistema' com resposta não-negativa. page_support_ok=true apenas por vacuidade (não há páginas citadas para divergir); a falha está na ausência total de atribuição. Sem cross_attribution (nada foi atribuído errado). Severidade 'menor': usuário não é enganado factualmente, mas recebe resposta genérica sem fontes e sem o mecanismo específico que responde a pergunta (aba Acompanhamento SC em Formulários Eletrônicos)."
+  },
+  {
+   "id": "SIS-05",
+   "routing_ok": true,
+   "cited_manuals": [
+    "Manual do Sistema Area Coordenadores.pdf"
+   ],
+   "true_manual": "sistema",
+   "true_pages": [
+    4,
+    7,
+    40,
+    41
+   ],
+   "page_support_ok": true,
+   "cross_attribution": true,
+   "abstention_error": "none",
+   "severity": "menor",
+   "notes": "Núcleo do procedimento confirmado nas páginas citadas do manual do sistema: pág. 40 (\"Menu Lateral Esquerdo... clique em 'Gerenciar Acessos' ou em Dados do Projeto, aba Acessos\"; \"Auxiliar Novo (não cadastrado) Caso seu auxiliar não seja encontrado... cadastre um novo auxiliar AQUI\") e pág. 41 (\"clique no ícone Gerenciar Acessos no final da linha. O sistema exibirá uma matriz com todos os projetos (linha)... e as funcionalidades (colunas)\"; perfis Finanças e FormulárioMembro listados). Divergências menores de página, todas dentro do MESMO manual: (a) a Observação \"atribuição de novos perfis apenas pelo coordenador ou aprovador\" está na pág. 7 (\"Somente o coordenador do projeto ou o aprovador podem atribuir novos perfis aos seus membros de equipe\"), não nas págs. 40-41 citadas; (b) o passo \"Clique em Salvar\" também vem da pág. 7 (\"efetue as modificações e clique em Salvar\") — não há menção a Salvar nas págs. 40-41; (c) o login e-mail/CPF+senha está na pág. 4. Imprecisão leve de UI: \"Auxiliar Novo\" é título de seção/mensagem com link, não botão clicável. Card extra do Manual dos Coordenadores (sem página) é plausível do retrieval (pág. 22 menciona inserir aprovadores/membros/auxiliares) e não foi usado inline. Usuário não seria enganado; apenas atribuição de página imprecisa para conteúdo secundário → severidade menor."
+  },
+  {
+   "id": "SIS-06",
+   "routing_ok": true,
+   "cited_manuals": [
+    "Manual do Sistema Area Coordenadores.pdf"
+   ],
+   "true_manual": "sistema",
+   "true_pages": [
+    5,
+    42
+   ],
+   "page_support_ok": false,
+   "cross_attribution": true,
+   "abstention_error": "none",
+   "severity": "menor",
+   "notes": "Roteamento correto: manual do sistema para categoria 'sistema'. A pág. 5 citada sustenta o núcleo da resposta: \"Notificações A notificação é uma das formas da Fundação se comunicar com seus usuários\", \"exibe em vermelho a quantidade de notificações pendentes\", \"Ao clicar sobre o ícone Notificações o sistema exibe a lista com as últimas Notificações e elimina a quantidade de notificações pendentes\", \"clique em 'Ver todas'\", \"Ajuda Apresenta o link para acessar esse Manual\" e \"Sair Encerra o sistema e desconecta o usuário\". Porém o bullet \"Confirmação de Leitura: podem ser marcadas como lidas individualmente ou em massa\" NÃO está na pág. 5 — corresponde ao FAQ na pág. 42: \"Pode-se efetuar a leitura individualmente ou visualizar todas de uma única vez\" (e \"Assim que é efetuada a leitura a Notificação deixa de ser apresentada\"). cross_attribution=true apenas por página errada DENTRO do mesmo manual (pág. 42 coberta pela citação única de pág. 5), não por troca de manual. Paráfrase levemente inflada: \"visualizar todas de uma única vez\" virou \"marcadas em massa\", e \"informes, notícias ou comunicados\" virou \"comunicados, atualizações ou ações necessárias em um projeto\" — embelezamento leve, sem inventar funcionalidade central. Severidade menor: usuário não é enganado quanto ao manual nem ao conteúdo essencial; só uma afirmação secundária tem página divergente."
+  },
+  {
+   "id": "SIS-07",
+   "routing_ok": true,
+   "cited_manuals": [
+    "Manual do Sistema Area Coordenadores.pdf"
+   ],
+   "true_manual": "sistema",
+   "true_pages": [
+    32
+   ],
+   "page_support_ok": true,
+   "cross_attribution": false,
+   "abstention_error": "none",
+   "severity": "ok",
+   "notes": "Todas as afirmações-chave estão na pág. 32 do manual do sistema (docs/manual_sistema_area_page_marked.txt): (1) \"Rateio Distribua o Valor de sua compra (Rateio) pelas Alíneas (Contas Financeiras / Rubrica); o Sistema atualiza automaticamente o valor Total\"; (2) \"As alíneas estão em conformidade com o Orçamento do seu projeto. O Centro de Custo será preenchido automaticamente\"; (3) \"A somatória dos valores das alíneas deve ser igual ao Valor da NF (R$) informado anteriormente\" — o campo Valor NF(R$) em si é definido na pág. 31, mas a regra de soma citada está de fato na pág. 32. Roteamento correto para 'sistema', citação inline única e precisa (pág. 32). O card extra \"Manual dos Coordenadores.pdf\" (sem página) é ruído do retrieval determinístico, sem conteúdo atribuído a ele na resposta; \"rateio\" no manual de processos não existe (só aparece no próprio manual do sistema, págs. 32 e 39). Sem cross-attribution."
+  },
+  {
+   "id": "SIS-08",
+   "routing_ok": true,
+   "cited_manuals": [
+    "Manual do Sistema Area Coordenadores.pdf"
+   ],
+   "true_manual": "sistema",
+   "true_pages": [
+    29,
+    31,
+    17
+   ],
+   "page_support_ok": true,
+   "cross_attribution": false,
+   "abstention_error": "none",
+   "severity": "menor",
+   "notes": "Núcleo da resposta integralmente na pág. 29 do manual do sistema (seção \"Fornecedor Cadastrado x Fornecedor Novo\"): mensagem \"Nenhum fornecedor encontrado\" + link para cadastrar novo fornecedor (linhas 683-685), retorno ao formulário redigitando o CNPJ/CPF (linha 688) e manutenções de fornecedor cadastrado via Setor Financeiro (linha 682) — todos literais na página citada. A etapa de busca por CNPJ/CPF em SC/SP é sustentada pelas págs. 31 (SP) e 17 (pedido), ambas remetendo ao item da pág. 29. Roteamento e citação corretos; sem cross-attribution. Única imprecisão (motivo do \"menor\", borderline-ok): a resposta enumera os campos do formulário de cadastro como \"(CNPJ/CPF, razão social, dados bancários)\", mas o manual diz apenas \"formulário para que sejam inseridos os dados necessários ao seu cadastramento\", sem listar campos — elaboração plausível (razão social/dados bancários aparecem na pág. 31 para fornecedor já cadastrado), porém não verificável no ground-truth. Nada acionável enganaria o usuário."
+  },
+  {
+   "id": "PRO-01",
+   "routing_ok": true,
+   "cited_manuals": [
+    "Manual dos Coordenadores.pdf"
+   ],
+   "true_manual": "processos",
+   "true_pages": [
+    59
+   ],
+   "page_support_ok": true,
+   "cross_attribution": false,
+   "abstention_error": "none",
+   "severity": "ok",
+   "notes": "Ground-truth (docs/manual_coordenadores_page_marked.txt, linha 915): \"[PÁGINA 59] 8.2 Remanejamento de Saldos entre Rubricas Orçamentárias É permitido... desde que previsto no edital, restrito ao limite de 20% da rubrica, autorizado pelo órgão financiador e formalizado junto à FAI UFSCar.\" Todas as 3 afirmações-chave (limite de 20%, previsão no edital, autorização do financiador + formalização na FAI) estão exatamente na pág. 59 do manual citado. Nenhuma menção a \"remanej\"/\"20%\" no manual do sistema. Roteamento correto para 'processos'. O card determinístico extra \"Manual do Sistema Área Coordenadores.pdf\" (sem página) é ruído de retrieval, mas nenhum conteúdo foi atribuído a ele — não conta como cross-attribution."
+  },
+  {
+   "id": "PRO-02",
+   "routing_ok": true,
+   "cited_manuals": [
+    "Manual dos Coordenadores.pdf"
+   ],
+   "true_manual": "processos",
+   "true_pages": [
+    32,
+    65
+   ],
+   "page_support_ok": true,
+   "cross_attribution": false,
+   "abstention_error": "none",
+   "severity": "ok",
+   "notes": "Pág. 32 do Manual dos Coordenadores contém exatamente os limites: \"Para obras e serviços de engenharia: em valor inferior a R$ 100.000,00\" e \"Para outros serviços e compras: em valor inferior a R$ 40.000,00\" (Decreto 8.241/2014; também repetido no glossário, pág. 65). Conteúdo ausente no manual do sistema. Citação inline e card (pág. 32) batem. Nuance sem impacto de atribuição: bot diz \"até R$ X por solicitação\", manual diz \"em valor inferior a R$ X, desde que não se refiram a parcelas\" (limite exclusivo e condição anti-fracionamento, não literalmente \"por solicitação\")."
+  },
+  {
+   "id": "PRO-03",
+   "routing_ok": true,
+   "cited_manuals": [
+    "Manual dos Coordenadores.pdf"
+   ],
+   "true_manual": "processos",
+   "true_pages": [
+    36
+   ],
+   "page_support_ok": true,
+   "cross_attribution": false,
+   "abstention_error": "none",
+   "severity": "ok",
+   "notes": "Todas as 6 afirmações-chave estão literalmente na pág. 36 do manual de processos (docs/manual_coordenadores_page_marked.txt, linhas 529-549): \"seguir o Código de Obras e Edificações da UFSCar (Resolução CoAd nº 022/2020)\"; \"abertura de processo SEI, encaminhado à Secretaria de Gestão do Espaço Físico (SeGEF) da UFSCar, após anuência da chefia pertinente\"; \"01 (um) orçamento, que servirá como base de referência de preço e de especificações\"; \"Prazo Mínimo para Documentação Simples (croqui/planta baixa): 60 dias\"; \"tempo médio provável pode chegar a 20 meses (599 dias)\"; \"Obras com prazo superior a 300 dias podem estar sujeitas à repactuação de valores, realinhamento e ou reequilíbrio\"; fiscalização pela \"Gerência de Engenharia da FAI•UFSCar\" garantindo o \"cronograma físico-financeiro\". Roteamento correto (processos), citação inline manual+página exatos. O card extra \"Manual do Sistema Área Coordenadores.pdf\" (sem página) é ruído do retrieval determinístico, não atribuição de conteúdo — nada de obras existe nesse manual."
+  },
+  {
+   "id": "PRO-04",
+   "routing_ok": true,
+   "cited_manuals": [
+    "Manual dos Coordenadores.pdf",
+    "Manual do Sistema Área Coordenadores.pdf"
+   ],
+   "true_manual": "ambos",
+   "true_pages": [
+    15,
+    19,
+    25,
+    60,
+    67,
+    38,
+    39
+   ],
+   "page_support_ok": false,
+   "cross_attribution": true,
+   "abstention_error": "none",
+   "severity": "grave",
+   "notes": "Suporte parcial: pág. 15 confirma os responsáveis (\"interlocutor oficial\"; Fiscal \"analisa e aprova a Prestação de Contas Final\") e pág. 19 confirma prazo (\"estabelecido no instrumento formal\") e conciliação pela FAI. Porém: (a) fases parcial/final e encerramento (devolução de saldos, confirmação no sistema) estão nas págs. 60/67, não nas 15/19; na pág. 60 quem submete a PC financeira aos financiadores é a Fundação, não o coordenador; (b) notas em nome da Fundação está na pág. 25/71; (c) o passo de Submissão via formulário SF-PC está SOMENTE no Manual do Sistema págs. 38-39 (card sem página; inline atribuído erroneamente a Coordenadores págs. 15/19) — cross-attribution; e o SF-PC é prestação de contas de SUPRIMENTO DE FUNDOS (adiantamento de pequeno valor), não o mecanismo geral de PC do projeto. Grave porque a seção acionável (\"Submissão\") ensina um procedimento errado com citação de manual/páginas onde o conteúdo não existe."
+  },
+  {
+   "id": "PRO-05",
+   "routing_ok": true,
+   "cited_manuals": [
+    "Manual dos Coordenadores.pdf"
+   ],
+   "true_manual": "processos",
+   "true_pages": [
+    45,
+    40
+   ],
+   "page_support_ok": false,
+   "cross_attribution": true,
+   "abstention_error": "none",
+   "severity": "menor",
+   "notes": "Roteamento correto: todo o conteúdo sobre autônomos/PF está no Manual dos Coordenadores (o manual do sistema não menciona 'autônomo'). A pág. 45 sustenta a maior parte da resposta: sem vínculo/proibida subordinação (linhas 690-691), justificativa técnica + contrato (680), Inscrição Municipal p/ NF (675-677), INSS contribuinte individual (686), retenção INSS/IRRF/ISS (688), Recibo + e-Social (683) e pagamento em 3 dias úteis pela Gestão de Pessoas (692). PORÉM o bullet 'Uso de Recursos' foi atribuído à pág. 45 quando na verdade deriva da pág. 40 (5.5.4 Restrições: 'Contratação direta de prestação de serviço de qualquer natureza' e 'Contratação direta para compras ou prestação de serviço de pessoa física'); além disso, a menção específica a 'bens permanentes' como vedação a autônomos não consta em nenhuma página (é paráfrase embelezada de 'compras'). Imprecisão parcial de página dentro do manual correto; núcleo da resposta fiel — severidade menor."
+  },
+  {
+   "id": "PRO-06",
+   "routing_ok": true,
+   "cited_manuals": [
+    "Manual dos Coordenadores.pdf"
+   ],
+   "true_manual": "processos",
+   "true_pages": [
+    30,
+    31,
+    68,
+    72
+   ],
+   "page_support_ok": false,
+   "cross_attribution": false,
+   "abstention_error": "none",
+   "severity": "menor",
+   "notes": "Roteamento correto: todo o conteúdo sobre TR está no Manual dos Coordenadores (o manual do sistema só menciona o formulário 'SC – Solicitação de Compra / Termo de Referência' na pág. 36, sem tratar de quando o TR é indispensável). Afirmação central suportada pela pág. 30 citada: 'Para aquisições de maior complexidade, é indispensável a elaboração de um Termo de Referência'. Responsabilidade do coordenador suportada pela pág. 72 citada: 'O coordenador é responsável por fornecer o Termo de Referência' (idem pág. 31). Da lista 'Ele define', escopo/cronograma/requisitos técnicos ou de qualificação estão na pág. 30; porém 'critérios de aceitação' NÃO consta nas págs. 30 nem 72 — está na pág. 31 ('...condições de fornecimento e critérios de aceitação') e na pág. 68 (glossário: 'define com precisão as especificações técnicas, escopo, cronograma, requisitos e critérios de aceitação do produto ou serviço', trecho que a lista do bot espelha quase literalmente). Imprecisão parcial de página em 1 dos 4 itens da lista, dentro do mesmo manual (página adjacente/glossário); sem risco real de enganar o usuário → severidade menor. O card extra do manual do sistema (sem página) vem do retrieval determinístico e não foi usado como fonte inline."
+  },
+  {
+   "id": "MIX-01",
+   "routing_ok": true,
+   "cited_manuals": [
+    "Manual do Sistema Area Coordenadores.pdf"
+   ],
+   "true_manual": "sistema",
+   "true_pages": [
+    4
+   ],
+   "page_support_ok": true,
+   "cross_attribution": false,
+   "abstention_error": "none",
+   "severity": "ok",
+   "notes": "Todas as afirmações-chave estão no Manual do Sistema, pág. 4, conforme citado: \"Para recuperar sua senha insira sua identificação (e-mail ou CPF) no campo login e clique em 'Esqueci a Senha'\" (linha 74); \"Uma mensagem automática será enviada para o endereço eletrônico (e-mail) cadastrado\" (linha 75); primeiro acesso com senha provisória + Aceite da Política de Privacidade (linha 72). Pequena paráfrase: o manual diz \"mensagem automática\", não literalmente \"link para criação de nova senha\" — extrapolação inócua, sem erro de fonte. Card extra \"Manual dos Coordenadores.pdf\" (sem página) é apenas artefato do retrieval; a resposta não atribui conteúdo a ele. Roteamento aceitável para categoria ambos_ok."
+  },
+  {
+   "id": "MIX-02",
+   "routing_ok": false,
+   "cited_manuals": [],
+   "true_manual": "ambos",
+   "true_pages": [
+    23,
+    31,
+    36
+   ],
+   "page_support_ok": false,
+   "cross_attribution": false,
+   "abstention_error": "none",
+   "severity": "menor",
+   "notes": "Resposta substantiva SEM NENHUMA fonte (inline [] e cards []), apesar de o conteúdo existir nos DOIS manuais. Regras de compras: PROCESSOS pág. 23 (\"Todos os pedidos devem ser realizados exclusivamente por meio da plataforma Área de Coordenadores... utilizar a Solicitação de Compra (SC)/Termo de Referência (TR)\") e pág. 31 (anexar \"um (01) orçamento ou cotação preliminar\" ao formulário). Passo a passo de envio: SISTEMA pág. 36 (\"A partir da funcionalidade Formulários... Selecione o formulário 'SC-Solic.Compra/Termo Referência'... Adicionar... Indique os Itens (Quantidade, Valor Unitário)... Escolher Arquivos para anexar documentos... Enviar para FAI • UFSCar\"). routing_ok=false e page_support_ok=false porque nada foi citado — falha de atribuição, não de conteúdo. Sem cross-attribution (nada foi atribuído a manual/página errados; a resposta menciona apenas \"o manual\" genericamente). Imprecisão leve adicional: o bot instrui \"Localize o módulo de Compras ou Solicitações\", quando o caminho real é a aba Formulários > SC-Solic.Compra/Termo Referência. Conteúdo factual correto e coberto => severidade menor, não grave."
+  },
+  {
+   "id": "MIX-03",
+   "routing_ok": false,
+   "cited_manuals": [],
+   "true_manual": "ambos",
+   "true_pages": [
+    32,
+    36,
+    37,
+    15,
+    61
+   ],
+   "page_support_ok": true,
+   "cross_attribution": false,
+   "abstention_error": "falsa_negativa",
+   "severity": "menor",
+   "notes": "Falsa negativa: o bot afirmou que \"o manual não detalha\" o que fazer, mas o Manual do Sistema cobre a dúvida — pág. 32: \"Selecione a Alínea na lista. As alíneas estão em conformidade com o Orçamento do seu projeto.\" (explica por que a alínea pode não aparecer); pág. 36: campo \"Conta Financeira (Alínea/Rubrica)\" no formulário SC; pág. 37 (seção SC): \"Entre em contato com o Setor de Compra ou de Tecnologia da FAI • UFSCar para obter ajuda\" — resposta direta ao \"o que faço?\". O conteúdo do redirecionamento está no Manual de Processos: Gestor como \"interlocutor oficial\" (pág. 15) e contatos (16) 3351-9000 / fai@fai.ufscar.br (pág. 61). Sem citações inline nem cards, page_support_ok é vacuamente verdadeiro e não há cross-attribution. routing_ok=false porque, para esperado=ambos_ok, o bot deveria responder com fonte de qualquer um dos manuais e não citou nenhum. Severidade menor: o usuário não é enganado (redirecionar ao Gestor é coerente com processos pág. 8/15), mas perde a orientação específica existente (Setor de Compra/Tecnologia, conformidade das alíneas com o orçamento). Obs.: \"Supervisor de Projetos Específicos/Gerais\" não aparece verbatim em nenhum manual (pág. 4 de processos lista só \"Supervisor de Projetos\"); é boilerplate do handler de negativa. Flag \"Foi negativa=false\" do pipeline parece incorreta — a resposta é materialmente uma negativa com direcionamento."
+  },
+  {
+   "id": "NEG-01",
+   "routing_ok": true,
+   "cited_manuals": [],
+   "true_manual": "nenhum",
+   "true_pages": [],
+   "page_support_ok": true,
+   "cross_attribution": false,
+   "abstention_error": "none",
+   "severity": "ok",
+   "notes": "Abstenção correta. Nenhum dos manuais define prazo da FINEP para prestação de contas: FINEP aparece apenas como exemplo de financiadora no manual de processos (págs. 2, 11, 12 — \"Cada órgão financiador... FINEP, FAPESP... estabelece regras específicas\"), e a pág. 19 remete o prazo ao \"instrumento formal\" (\"Verificar o prazo final da prestação de contas, estabelecido no instrumento formal\"), sem valor numérico. Manual do sistema não menciona FINEP. Bot respondeu com a negativa padrão (Gestor → Supervisores → (16) 3351-9000 / fai@fai.ufscar.br), sem citar fontes nem páginas — comportamento esperado para a categoria 'negativa'."
+  },
+  {
+   "id": "MT-01",
+   "routing_ok": true,
+   "cited_manuals": [
+    "Manual dos Coordenadores.pdf"
+   ],
+   "true_manual": "processos",
+   "true_pages": [
+    59
+   ],
+   "page_support_ok": true,
+   "cross_attribution": false,
+   "abstention_error": "none",
+   "severity": "ok",
+   "notes": "Afirmação-chave (limite de 20% para remanejamento de rubricas) confirmada no ground-truth: [PÁGINA 59] \"8.2 Remanejamento de Saldos entre Rubricas Orçamentárias É permitido... restrito ao limite de 20% da rubrica, autorizado pelo órgão financiador e formalizado junto à FAI UFSCar\" (manual_coordenadores_page_marked.txt, linha 915). Manual e página citados corretos; roteamento 'processos' atendido. \"Remanejamento\" não aparece no manual do Sistema. Contexto do T1 (previsão em edital, 20%, autorização do financiador) também sustentado pela mesma página. Cards de fonte vazios, mas citação inline correta."
+  },
+  {
+   "id": "MT-02",
+   "routing_ok": true,
+   "cited_manuals": [
+    "Manual do Sistema Area Coordenadores.pdf"
+   ],
+   "true_manual": "sistema",
+   "true_pages": [
+    14
+   ],
+   "page_support_ok": true,
+   "cross_attribution": false,
+   "abstention_error": "none",
+   "severity": "ok",
+   "notes": "Todas as afirmações do T2 estão na pág. 14 do manual do sistema: \"últimos 30 dias de Faturamento que foram atribuídos ao Projeto\"; \"três blocos: Pedido, Nota Fiscal e Título a Receber\"; \"Pedido emitido, Nota e título emitido, Título pago\"; \"Na parte superior da página existe a opção Exibir Filtros\" (período/cliente/situação do Título). Roteamento correto (sistema). A pág. 15 citada não contém as afirmações do T2 (cobre integração Sapiens, faturamento 2x/dia e cadastro de cliente novo — conteúdo relacionado ao T1/mesma seção Faturamento), sendo sobre-citação inócua do retrieval, não erro de atribuição. \"Nota emitida\" é paráfrase leve de \"Nota e título emitido\". Manual dos Coordenadores só trata Pedido de Venda em nível de processo (págs. 23, 26), sem as telas/status descritos."
+  }
+ ]
+}

@@ -1,0 +1,549 @@
+[
+ {
+  "id": "COORD-01",
+  "pergunta": "Meu projeto é financiado com recursos públicos. Quais normas regem as compras e contratações de serviços nesse caso?",
+  "tema": "Marco legal — legislação sobre aquisições",
+  "paginas_ref": [
+   11,
+   70
+  ],
+  "resposta_esperada_resumo": "As compras e contratações com recursos públicos são norteadas primordialmente pelo Decreto nº 8.241/2014 (aquisição de bens e contratação de obras e serviços pelas fundações de apoio), aplicando-se de forma subsidiária os princípios e diretrizes da Lei nº 14.133/2021 (Nova Lei de Licitações e Contratos).",
+  "resposta": "Para compras e contratações de serviços com recursos públicos, o manual estabelece as seguintes normas e procedimentos:\n\n**Base Legal e Princípios**\nAs aquisições devem seguir os princípios da legalidade, economicidade, impessoalidade, transparência e eficiência. As bases legais citadas para este tema são:\n*   Decreto nº 8.241/2014 (regulação de aquisição de bens e contratação de obras e serviços por fundações de apoio);\n*   Lei nº 14.133/2021 (Nova Lei de Licitações e Contratos, aplicada subsidiariamente);\n*   Portaria nº 448/2002 (critérios de classificação das despesas).\n\n**Modalidades de Contratação**\nO manual define três caminhos principais dependendo do valor e da situação:\n1.  **Compra Direta:** Permitida para valores inferiores a R$ 100.000,00 (obras ou serviços) ou R$ 40.000,00 (outros serviços e compras). Exige justificativa técnica e pesquisa de preços.\n2.  **Seleção Pública:** Utilizada quando o valor ultrapassa os limites da compra direta; trata-se de um processo licitatório com critérios objetivos.\n3.  **Contratação por Inexigibilidade:** Aplicável quando há apenas um fornecedor ou a competição é inviável, exigindo justificativa detalhada e parecer jurídico.\n\n**Procedimento Geral**\nO fluxo para a realização das contratações envolve:\n*   Identificação da necessidade e elaboração do plano de aplicação/trabalho (aprovado pela FAI e pela instituição parceira).\n*   Realização de pesquisa de mercado e obtenção de orçamentos (exceto para itens \"Compra Fácil\").\n*   Elaboração de Termo de Referência, quando necessário.\n*   Submissão do pedido via sistema **Área de Coordenadores** da FAI•UFSCar, com posterior aprovação do coordenador e assinatura do contrato pela Fundação.\n\n**Documentação Exigida**\nPara cada aquisição, é necessária a apresentação de nota fiscal, recibo ou fatura em nome da FAI•UFSCar. Para compras complexas, deve-se incluir o Termo de Referência e demais documentos técnicos pertinentes ao plano de aplicação aprovado.\n\nTodas as solicitações (compras, importações, financeiro, pessoal e viagens) devem ser realizadas pelo sistema **Área de Coordenadores**, onde é possível acompanhar status e pendências em tempo real.\n\n> Fonte: [Manual dos Coordenadores.pdf, págs. 11, 19, 30, 32, 33]",
+  "fontes_cards": [
+   "- Manual dos Coordenadores.pdf (pág. 11 · 96%)",
+   "- Manual dos Coordenadores.pdf (pág. 19 · 6%)",
+   "- Manual dos Coordenadores.pdf (pág. 30 · 71%)",
+   "- Manual dos Coordenadores.pdf (pág. 32 · 71%)",
+   "- Manual dos Coordenadores.pdf (pág. 33 · 71%)"
+  ],
+  "tools": [],
+  "latencia_s": 7.6,
+  "erro": null
+ },
+ {
+  "id": "COORD-02",
+  "pergunta": "Qual é exatamente o papel do fiscal do projeto? O que ele faz?",
+  "tema": "Agentes do projeto e responsabilidades",
+  "paginas_ref": [
+   15
+  ],
+  "resposta_esperada_resumo": "O fiscal acompanha e fiscaliza a execução do projeto, verifica a correta aplicação dos recursos, emite relatórios de conformidade e recomenda ajustes, atesta o cumprimento/recebimento de cada etapa ou entrega e analisa e aprova a Prestação de Contas Final do projeto.",
+  "resposta": "O Fiscal do Projeto tem a função de acompanhar e fiscalizar a execução do projeto, garantindo que os recursos sejam aplicados corretamente. Suas principais responsabilidades incluem:\n\n*   **Acompanhamento e fiscalização**: monitorar a execução das atividades previstas no cronograma;\n*   **Verificação de recursos**: assegurar a correta aplicação dos recursos financeiros e materiais;\n*   **Relatórios de conformidade**: emitir relatórios contendo recomendações quando necessário;\n*   **Atestes**: atestar o cumprimento ou recebimento de cada etapa ou entrega do projeto;\n*   **Prestação de Contas**: analisar e aprovar a Prestação de Contas Final do projeto.\n\n> Fonte: [Manual dos Coordenadores.pdf, pág. 15]",
+  "fontes_cards": [
+   "- Manual dos Coordenadores.pdf (pág. 15 · 73%)",
+   "- Manual do Sistema Área Coordenadores.pdf"
+  ],
+  "tools": [],
+  "latencia_s": 2.9,
+  "erro": null
+ },
+ {
+  "id": "COORD-03",
+  "pergunta": "Meu convênio envolve repasse de recursos federais. Sou obrigado a usar alguma plataforma do governo para a gestão dele?",
+  "tema": "Formalização de projetos e convênios",
+  "paginas_ref": [
+   21
+  ],
+  "resposta_esperada_resumo": "Sim: a Plataforma TransfereGov (mantida pelo Ministério da Gestão e da Inovação em Serviços Públicos) é o instrumento de gestão obrigatório para convênios e termos de parceria que envolvem transferência de recursos da União, garantindo transparência, padronização e controle do início ao fim da parceria.",
+  "resposta": "Sim, o uso da plataforma **TransfereGov** é obrigatório para convênios (e termos de parceria) que envolvam a transferência de recursos da União para a execução de projetos.\n\nEssa plataforma, mantida pelo Ministério da Gestão e da Inovação em Serviços Públicos, permite registrar, acompanhar e controlar as transferências de recursos federais, garantindo transparência, padronização e controle do início ao fim da parceria. Os coordenadores de projeto utilizam o TransfereGov para submeter pedidos, monitorar status e garantir a correta aplicação dos recursos.\n\n> Fonte: [Manual dos Coordenadores.pdf, pág. 21]",
+  "fontes_cards": [
+   "- Manual dos Coordenadores.pdf (pág. 21 · 62%)",
+   "- Manual do Sistema Área Coordenadores.pdf"
+  ],
+  "tools": [],
+  "latencia_s": 4.7,
+  "erro": null
+ },
+ {
+  "id": "COORD-04",
+  "pergunta": "Até quando preciso enviar as notas fiscais do projeto para a FAI? O que acontece se eu atrasar?",
+  "tema": "Gestão financeira — documentos de pagamento",
+  "paginas_ref": [
+   25,
+   71
+  ],
+  "resposta_esperada_resumo": "As notas fiscais devem ser enviadas à FAI dentro do mês de sua emissão ou até o 5º dia do mês subsequente, sempre identificando o projeto. O não envio no prazo pode acarretar multa e implicações legais ao projeto ou à Fundação.",
+  "resposta": "Para o envio das notas fiscais ao FAI•UFSCar, as orientações são as seguintes:\n\n*   **Prazo de envio:** As notas devem ser enviadas à Fundação dentro do mês em que foram emitidas ou, no máximo, até o **5º dia útil do mês subsequente**.\n*   **Consequências do atraso:** O não cumprimento deste prazo pode acarretar multas e implicações legais tanto para o projeto quanto para a Fundação.\n\n> Fonte: [Manual dos Coordenadores.pdf, pág. 25]",
+  "fontes_cards": [
+   "- Manual dos Coordenadores.pdf (pág. 25 · 61%)",
+   "- Manual do Sistema Área Coordenadores.pdf"
+  ],
+  "tools": [],
+  "latencia_s": 3.2,
+  "erro": null
+ },
+ {
+  "id": "COORD-05",
+  "pergunta": "Paguei do meu bolso uma despesa pequena e urgente do projeto. Existe limite de valor para pedir ressarcimento à FAI?",
+  "tema": "Execução de despesas — ressarcimento de pequenas despesas",
+  "paginas_ref": [
+   27
+  ],
+  "resposta_esperada_resumo": "Despesas eventuais de pequeno vulto podem ser ressarcidas até o limite de três vezes o maior salário-mínimo nacional vigente por projeto, mediante solicitação justificada do coordenador e aprovação da Gerência de Projetos. É proibido usar esses recursos para contratação de pessoas físicas, prestação de serviços e aquisição de material permanente.",
+  "resposta": "Para despesas urgentes ou pequenas pagas pelo coordenador ou pesquisador, o reembolso está limitado a **três vezes o maior salário-mínimo nacional vigente por projeto**, desde que permitido e compatível com as regras do financiador e aprovado pela Gerência de Projetos.\n\n> Fonte: [Manual dos Coordenadores.pdf, pág. 27]",
+  "fontes_cards": [
+   "- Manual dos Coordenadores.pdf (pág. 27 · 33%)",
+   "- Manual do Sistema Área Coordenadores.pdf"
+  ],
+  "tools": [],
+  "latencia_s": 3.4,
+  "erro": null
+ },
+ {
+  "id": "COORD-06",
+  "pergunta": "Até que valor a FAI consegue fazer compra direta com recursos públicos, sem precisar de seleção pública?",
+  "tema": "Modalidades de aquisição — compra direta (recursos públicos)",
+  "paginas_ref": [
+   32,
+   65
+  ],
+  "resposta_esperada_resumo": "Pelo Decreto nº 8.241/2014, a compra direta é admitida para obras e serviços de engenharia em valor inferior a R$ 100.000,00 e para outros serviços e compras em valor inferior a R$ 40.000,00 (desde que não sejam parcelas de um mesmo objeto de maior vulto). Acima desses limites, realiza-se Seleção Pública.",
+  "resposta": "Para a realização de compras diretas com recursos públicos sem a necessidade de seleção pública (dispensa de licitação), os limites estabelecidos pelo manual são:\n\n*   **Obras e serviços de engenharia:** até **R$ 100.000,00**.\n*   **Outros serviços e compras:** até **R$ 40.000,00**.\n\n> Fonte: [Manual dos Coordenadores.pdf, pág. 32]",
+  "fontes_cards": [
+   "- Manual dos Coordenadores.pdf (pág. 32 · 52%)",
+   "- Manual do Sistema Área Coordenadores.pdf"
+  ],
+  "tools": [],
+  "latencia_s": 3.9,
+  "erro": null
+ },
+ {
+  "id": "COORD-07",
+  "pergunta": "No meu projeto com recursos privados, a partir de que valor a compra deixa de ser direta e passa a exigir mais orçamentos?",
+  "tema": "Modalidades de aquisição — compras com recursos privados",
+  "paginas_ref": [
+   32
+  ],
+  "resposta_esperada_resumo": "Pela Resolução FAI.UFSCar nº 013/2026 (Art. 31), a compra direta com simples pesquisa de mercado vale para aquisições de até 10 vezes o maior salário-mínimo nacional; acima disso, a compra é feita por processo, com pesquisa de mercado e coleta de no mínimo 3 orçamentos formais.",
+  "resposta": "Para projetos com recursos privados, o manual estabelece as seguintes diretrizes sobre a modalidade de **Compra Direta**:\n\n*   **Limites de valor para Compra Direta:**\n    *   **Obras e serviços de engenharia:** até R$ 100.000,00.\n    *   **Outros serviços e compras:** até R$ 40.000,00.\n\nEm relação à necessidade de múltiplos orçamentos para projetos com recursos privados, o manual não estabelece essa exigência. É necessário anexar apenas um orçamento ou cotação preliminar ao formulário de solicitação de compra (exceto para itens da \"Compra Fácil\"), seguindo os procedimentos de pesquisa de mercado e obtenção de orçamentos.\n\n> Fonte: [Manual dos Coordenadores.pdf, págs. 31, 32]",
+  "fontes_cards": [
+   "- Manual dos Coordenadores.pdf (pág. 31 · 72%)",
+   "- Manual dos Coordenadores.pdf (pág. 32 · 72%)"
+  ],
+  "tools": [],
+  "latencia_s": 3.6,
+  "erro": null
+ },
+ {
+  "id": "COORD-08",
+  "pergunta": "Preciso comprar um produto controlado que ainda não está nas licenças da FAI. Quanto tempo leva para incluir e quais restrições existem?",
+  "tema": "Aquisição de produtos controlados",
+  "paginas_ref": [
+   30,
+   33
+  ],
+  "resposta_esperada_resumo": "A inclusão de novos itens nas licenças da FAI leva cerca de 90 dias (contatar o Setor de Compras: compras.fai@fai.ufscar.br). A quantidade adquirida não pode ultrapassar o limite das licenças, a instituição apoiada também precisa de autorizações válidas, e é vedada a compra de produtos controlados pela modalidade Compra Direta.",
+  "resposta": "Para incluir um produto controlado que não consta nas licenças da FAI, o procedimento e as condições são os seguintes:\n\n*   **Solicitação de Compras (SC):** O item deve ser indicado na Solicitação de Compras; caso ele não esteja listado, a solicitação poderá ser rejeitada ou exigirá a inclusão prévia.\n*   **Autorização:** É necessário que o produto esteja autorizado tanto nas licenças da FAI quanto na instituição apoiada que receberá o material.\n*   **Contato com o Setor de Compras:** Você deve entrar em contato com o setor responsável pelo e-mail **compras.fai@fai.ufscar.br**, fornecendo os dados técnicos do item e a justificativa para a inclusão.\n*   **Prazo:** O trâmite para a inclusão desse tipo de produto leva aproximadamente **90 dias**.\n\n> Fonte: [Manual dos Coordenadores.pdf, pág. 30]",
+  "fontes_cards": [
+   "- Manual dos Coordenadores.pdf (pág. 30 · 94%)",
+   "- Manual do Sistema Área Coordenadores.pdf"
+  ],
+  "tools": [],
+  "latencia_s": 4.0,
+  "erro": null
+ },
+ {
+  "id": "COORD-09",
+  "pergunta": "Estou planejando uma obra no meu projeto. Quanto tempo costuma levar o processo todo, da documentação até o início da obra?",
+  "tema": "Obras e serviços de engenharia — prazos",
+  "paginas_ref": [
+   36
+  ],
+  "resposta_esperada_resumo": "O prazo mínimo para documentação simples (croqui/planta baixa) é de 60 dias, e o tempo médio total do processo (documentação, licitação e início da obra) pode chegar a 20 meses (599 dias). Obras com prazo superior a 300 dias podem sofrer repactuação de valores/reequilíbrio de contrato; o coordenador envia apenas 1 orçamento de referência.",
+  "resposta": "O processo para a realização de obras em projetos de pesquisa envolve diversas etapas de planejamento, documentação e aprovação técnica. De acordo com o manual, os prazos e procedimentos são estruturados da seguinte forma:\n\n### Etapas do Processo\n1.  **Planejamento e Documentação:** O coordenador deve elaborar um plano de trabalho detalhado, orçamento (com alíneas), Termo de Referência (quando exigido) e documentos técnicos específicos (como croquis ou plantas baixas). É necessário enviar apenas um orçamento para servir como base de referência de preço.\n2.  **Abertura de Processo:** O coordenador abre o processo no sistema SEI e encaminha à Secretaria de Gestão do Espaço Físico (SeGEF) da UFSCar, após anuência da chefia.\n3.  **Análise Técnica (SeGEF):** A SeGEF verifica a conformidade com o Código de Obras e Edificações da UFSCar e as diretrizes do Zoneamento Ambiental Urbano (ZAU). Caso necessário, solicita autorizações para intervenções específicas (como uso de contêineres, demolição de paredes ou novas instalações).\n4.  **Orçamentação:** A responsabilidade pelo processo de orçamentação é da Fundação.\n5.  **Licitação:** Se o valor da obra ultrapassar os limites de compra direta, o processo seguirá as normas de licitação vigentes.\n6.  **Início da Obra:** O início ocorre somente após a aprovação das autorizações prévias, conclusão da licitação (se aplicável) e liberação dos recursos.\n\n### Prazos Estimados\nO tempo necessário para concluir o ciclo completo depende da complexidade da obra:\n*   **Documentação simples (croqui/planta baixa):** 60 dias.\n*   **Tempo médio total do processo:** Pode levar até **20 meses** (599 dias) para percorrer todas as etapas, desde a documentação até o início da obra.\n\n> Fonte: [Manual dos Coordenadores.pdf, págs. 35, 36]",
+  "fontes_cards": [
+   "- Manual dos Coordenadores.pdf (pág. 35 · 76%)",
+   "- Manual dos Coordenadores.pdf (pág. 36 · 76%)"
+  ],
+  "tools": [],
+  "latencia_s": 3.2,
+  "erro": null
+ },
+ {
+  "id": "COORD-10",
+  "pergunta": "Depois que a proposta de importação é aprovada e a remessa liberada para embarque, quanto tempo demora até a entrega?",
+  "tema": "Importação de bens e serviços",
+  "paginas_ref": [
+   38
+  ],
+  "resposta_esperada_resumo": "Após a aprovação da proposta e a liberação da remessa para embarque, estima-se prazo de aproximadamente 20 dias para as etapas de tramitação logística, procedimentos aduaneiros, entrega e liquidação do processo; recomenda-se cautela em aquisições próximas ao fim da vigência do projeto.",
+  "resposta": "Após a aprovação da proposta e a liberação para embarque, o prazo estimado de entrega é de aproximadamente **20 dias**. Esse período abrange todas as etapas logísticas, procedimentos aduaneiros, entrega e liquidação do processo.\n\n> Fonte: [Manual dos Coordenadores.pdf, pág. 38]",
+  "fontes_cards": [
+   "- Manual dos Coordenadores.pdf (pág. 38 · 98%)",
+   "- Manual do Sistema Área Coordenadores.pdf"
+  ],
+  "tools": [],
+  "latencia_s": 2.8,
+  "erro": null
+ },
+ {
+  "id": "COORD-11",
+  "pergunta": "Quem pode receber adiantamento para viagens do projeto e que tipo de despesa esse adiantamento cobre?",
+  "tema": "Gestão de viagens e diárias — adiantamento",
+  "paginas_ref": [
+   41
+  ],
+  "resposta_esperada_resumo": "O adiantamento cobre exclusivamente despesas com hospedagem, alimentação e transportes em viagens a serviço, e é exclusivo para pessoas formalmente vinculadas ao projeto (CLT, docentes das apoiadas, estagiários, bolsistas, servidores técnico-administrativos e membros externos nomeados na equipe). A prestação de contas posterior é obrigatória; sem ela, novas solicitações ficam impedidas e o valor pode ter de ser devolvido.",
+  "resposta": "Para receber adiantamento para viagens de projeto, as pessoas devem estar formalmente vinculadas ao projeto e nomeadas na equipe de trabalho. Isso inclui:\n\n*   Funcionários contratados sob regime CLT;\n*   Docentes das Instituições Apoiadas;\n*   Estagiários;\n*   Bolsistas;\n*   Servidores técnico-administrativos;\n*   Membros externos à Instituição Apoiada.\n\nO adiantamento cobre as seguintes despesas:\n\n*   Hospedagem;\n*   Alimentação (refeições e lanches);\n*   Transportes relacionados a viagens a serviço do projeto.\n\n> Fonte: [Manual dos Coordenadores.pdf, págs. 41, 42]",
+  "fontes_cards": [
+   "- Manual dos Coordenadores.pdf (pág. 41 · 94%)",
+   "- Manual dos Coordenadores.pdf (pág. 42 · 94%)",
+   "- Manual do Sistema Área Coordenadores.pdf"
+  ],
+  "tools": [],
+  "latencia_s": 3.6,
+  "erro": null
+ },
+ {
+  "id": "COORD-12",
+  "pergunta": "Cadastrei um bolsista novo no projeto. Em quanto tempo o cadastro da bolsa é efetivado e em quanto tempo sai o pagamento?",
+  "tema": "Gestão de pessoas — concessão de bolsas (prazos)",
+  "paginas_ref": [
+   47
+  ],
+  "resposta_esperada_resumo": "O cadastro da bolsa é efetivado em até 7 dias úteis a contar do recebimento do formulário eletrônico pelo setor de bolsas da Gestão de Pessoas, e o pagamento é realizado em até 3 dias úteis após a aprovação do coordenador.",
+  "resposta": "Para o cadastro e pagamento de bolsas no âmbito da FAI•UFSCar, os prazos estabelecidos são:\n\n*   **Cadastro do bolsista**: O processo deve ser concluído em até **07 (sete) dias úteis**, contados a partir do recebimento do formulário eletrônico pelo setor de bolsas do Departamento de Gestão de Pessoas.\n*   **Pagamento da bolsa**: Ocorre em até **03 (três) dias úteis** após a aprovação do coordenador realizada na Área de Coordenadores.\n\n> Fonte: [Manual dos Coordenadores.pdf, pág. 47]",
+  "fontes_cards": [
+   "- Manual dos Coordenadores.pdf (pág. 47 · 94%)",
+   "- Manual do Sistema Área Coordenadores.pdf"
+  ],
+  "tools": [],
+  "latencia_s": 2.6,
+  "erro": null
+ },
+ {
+  "id": "COORD-13",
+  "pergunta": "Quantas horas por semana um estagiário pode trabalhar no projeto e qual a duração máxima do estágio?",
+  "tema": "Gestão de pessoas — contratação de estagiários",
+  "paginas_ref": [
+   48
+  ],
+  "resposta_esperada_resumo": "A jornada é de no máximo 6 horas diárias e 30 horas semanais para estágio não obrigatório; para estágio obrigatório pode chegar a 40 horas semanais, mediante comprovação (previsão no projeto pedagógico e aprovação da instituição de ensino). A duração máxima do estágio é de 2 anos, exceto para pessoas com deficiência (PCDs).",
+  "resposta": "Para um estagiário em projeto, as condições são as seguintes:\n\n*   **Carga horária semanal:** Pode chegar a **até 40 horas por semana**, desde que seja um estágio obrigatório e esteja comprovado pela matriz curricular do curso, com aprovação da instituição de ensino e pelo Termo de Compromisso de Estágio (TCE).\n*   **Duração máxima:** O período máximo do estágio é de **2 anos**, exceto para pessoas com deficiência (PCDs).\n\n> Fonte: [Manual dos Coordenadores.pdf, pág. 48]",
+  "fontes_cards": [
+   "- Manual dos Coordenadores.pdf (pág. 48 · 96%)",
+   "- Manual do Sistema Área Coordenadores.pdf"
+  ],
+  "tools": [],
+  "latencia_s": 2.9,
+  "erro": null
+ },
+ {
+  "id": "COORD-14",
+  "pergunta": "Um funcionário do projeto sofreu um acidente de trabalho. O que devo fazer e em qual prazo?",
+  "tema": "Segurança e medicina do trabalho",
+  "paginas_ref": [
+   58
+  ],
+  "resposta_esperada_resumo": "Qualquer acidente de trabalho ou situação de risco deve ser comunicado à área de Gestão de Pessoas em até 24 horas, que adotará as providências cabíveis, incluindo o registro da Comunicação de Acidente de Trabalho (CAT) quando necessário.",
+  "resposta": "Em caso de acidente de trabalho ou situação de risco envolvendo um funcionário do projeto, você deve seguir o seguinte procedimento:\n\n*   **Comunicação imediata:** O fato deve ser comunicado imediatamente ao Departamento de Gestão de Pessoas.\n*   **Prazo:** A comunicação deve ocorrer em até **24 horas** após a ocorrência.\n\nApós receber a notificação, o departamento responsável adotará as providências cabíveis e realizará o registro da Comunicação de Acidente de Trabalho (CAT), quando necessário.\n\n> Fonte: [Manual dos Coordenadores.pdf, pág. 58]",
+  "fontes_cards": [
+   "- Manual dos Coordenadores.pdf (pág. 58 · 63%)",
+   "- Manual do Sistema Área Coordenadores.pdf"
+  ],
+  "tools": [],
+  "latencia_s": 2.5,
+  "erro": null
+ },
+ {
+  "id": "COORD-15",
+  "pergunta": "Sobrou saldo em uma rubrica do orçamento e falta em outra. Posso remanejar esses recursos? Quais são as condições?",
+  "tema": "Acompanhamento de projetos — remanejamento de saldos entre rubricas",
+  "paginas_ref": [
+   59
+  ],
+  "resposta_esperada_resumo": "O remanejamento entre rubricas orçamentárias é permitido em alguns casos, desde que previsto no edital, restrito ao limite de 20% da rubrica, autorizado pelo órgão financiador e formalizado junto à FAI UFSCar.",
+  "resposta": "Sim, é possível realizar o remanejamento de recursos (transferência de saldo de uma rubrica para outra) dentro do mesmo projeto ou entre projetos diferentes.\n\nPara que o procedimento ocorra, as seguintes condições e passos devem ser seguidos:\n\n*   **Autorização:** A transferência só pode ser realizada com a autorização prévia do órgão financiador (como FAPESP, CNPq, MCTI).\n*   **Formalização:** Após a aprovação do financiador, o remanejamento deve ser formalizado junto à FAI•UFSCar.\n*   **Regras do Edital:** O procedimento e as documentações necessárias devem seguir as regras estabelecidas no edital do projeto.\n*   **Procedimento na Área de Coordenadores:** O formulário de remanejamento deve ser preenchido na plataforma **Área de Coordenadores**, informando a rubrica de origem, a rubrica de destino, o valor e a justificativa.\n*   **Saldo:** A operação não pode resultar em saldo negativo na rubrica original.\n\nCaso existam dúvidas sobre limites percentuais ou outras restrições específicas, é necessário consultar o edital do projeto ou entrar em contato com o Setor Financeiro da FAI•UFSCar.\n\n> Fonte: [Manual dos Coordenadores.pdf, pág. 23]",
+  "fontes_cards": [],
+  "tools": [
+   "consultar_base_conhecimento",
+   "verificando_fontes",
+   "consultar_base_conhecimento"
+  ],
+  "latencia_s": 79.7,
+  "erro": null
+ },
+ {
+  "id": "SIST-01",
+  "pergunta": "Esqueci minha senha da Área de Coordenadores. Como faço para recuperar o acesso?",
+  "tema": "Login e Senha",
+  "paginas_ref": [
+   4
+  ],
+  "resposta_esperada_resumo": "Inserir a identificação (e-mail ou CPF) no campo login e clicar em 'Esqueci a Senha'; uma mensagem automática é enviada para o e-mail cadastrado.",
+  "resposta": "Para recuperar sua senha na **Área de Coordenadores**, você deve seguir o procedimento detalhado no manual do sistema:\n\n1.  **Acesse a página de login**: Acesse o endereço `https://sistemas.fai.ufscar.br/coordenadores`.\n2.  **Solicite a recuperação**: Na tela de autenticação, clique no link **\"Esqueci a Senha\"**.\n3.  **Identificação**: Informe seu e-mail ou CPF cadastrado no campo indicado (e complete o captcha \"Não sou um robô\", se solicitado).\n4.  **Envio do pedido**: Clique em **Enviar**. Uma mensagem automática será enviada para o seu e-mail registrado.\n5.  **Redefinição**: Acesse o e-mail recebido, clique no link de redefinição e siga as instruções para criar uma nova senha.\n\nCaso você não receba o e-mail ou encontre dificuldades técnicas, entre em contato com o suporte da FAI através do e-mail **suporte@fai.ufscar.br** ou pelo telefone **(16) 3351-9000**.\n\n> Fonte: [Manual do Sistema Area Coordenadores.pdf, pág. 4]",
+  "fontes_cards": [
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 4 · 97%)",
+   "- Manual dos Coordenadores.pdf"
+  ],
+  "tools": [],
+  "latencia_s": 3.0,
+  "erro": null
+ },
+ {
+  "id": "SIST-02",
+  "pergunta": "Para que serve o ícone de notificações com aquele numerozinho vermelho no topo da tela?",
+  "tema": "Tela Inicial / Notificações",
+  "paginas_ref": [
+   5,
+   42
+  ],
+  "resposta_esperada_resumo": "São comunicados/informes enviados pela FAI aos usuários; o número em vermelho é a quantidade de notificações pendentes. Ao clicar no ícone o sistema exibe as últimas notificações (com indicação de lida/não lida) e zera o contador; 'Ver todas' lista as demais. Após a leitura a notificação deixa de ser apresentada.",
+  "resposta": "O ícone de **Notificações** localizado no topo da tela da Área de Coordenadores indica a quantidade de notificações pendentes por meio de um número em destaque na cor vermelha.\n\nAo clicar nesse ícone, o sistema abre uma lista com as mensagens mais recentes enviadas pela Fundação. A partir daí, é possível visualizar todas as notificações simultaneamente ou ler cada uma individualmente. Assim que uma notificação é lida, o número correspondente no ícone desaparece, sinalizando que não há mais itens pendentes.\n\n> Fonte: [Manual do Sistema Area Coordenadores.pdf, pág. 5]",
+  "fontes_cards": [
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 5 · 98%)"
+  ],
+  "tools": [
+   "consultar_base_conhecimento"
+  ],
+  "latencia_s": 33.4,
+  "erro": null
+ },
+ {
+  "id": "SIST-03",
+  "pergunta": "No balancete do projeto, qual a diferença entre a visão de saldo 'Projeto' e a visão 'Contábil'?",
+  "tema": "Finanças / Balancete do Projeto",
+  "paginas_ref": [
+   8
+  ],
+  "resposta_esperada_resumo": "Projeto = Liberado – (Empenho + Gasto); Contábil = (Orçado + Liberado) – (Empenho + Gasto). A explicação aparece ao posicionar o mouse sobre o botão de Visão de Saldo nos filtros.",
+  "resposta": "No balancete do projeto, as visões de saldo possuem as seguintes definições e funções:\n\n*   **Saldo do Projeto:** Representa o valor disponível para uso pelo coordenador. Esta visão pode ser consultada no **Balancete do Projeto (nível 1)** ou diretamente na **Ficha do Projeto**, acessível pelo ícone na barra superior da tela.\n*   **Visão Contábil:** É utilizada para acompanhar o status orçamentário do projeto, apresentando as posições:\n    *   **Projeto – Liberado – (Empenho + Gasto)**;\n    *   **Contábil – (Orçado + Liberado) – (Empenho + Gasto)**.\n\nPara acessar essas informações, você deve utilizar a funcionalidade **Finanças** no sistema da FAI•UFSCar.\n\n> Fonte: [Manual do Sistema Area Coordenadores.pdf, págs. 8, 41]",
+  "fontes_cards": [
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 8 · 90%)",
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 41 · 21%)",
+   "- Manual dos Coordenadores.pdf"
+  ],
+  "tools": [
+   "consultar_base_conhecimento"
+  ],
+  "latencia_s": 33.0,
+  "erro": null
+ },
+ {
+  "id": "SIST-04",
+  "pergunta": "Cadastrei a proposta de bolsa, o membro aceitou a proposta e eu aprovei o pagamento, mas o bolsista não recebeu. O que pode estar faltando?",
+  "tema": "Recursos Humanos / Bolsistas (Proposta de Bolsa)",
+  "paginas_ref": [
+   12
+  ],
+  "resposta_esperada_resumo": "Falta o Aceite do Termo de Outorga de Bolsa: o sistema gera o Termo e envia por e-mail ao membro, que deve finalizar com a assinatura eletrônica. Enquanto não houver esse aceite, nenhum pagamento é realizado, independentemente da aprovação pelo coordenador.",
+  "resposta": "Para que o pagamento da bolsa seja processado pela FAI•UFSCar, é necessário que todas as etapas do fluxo de aprovação e aceite sejam concluídas no sistema.\n\nCom base nos manuais, se a proposta já foi aprovada pelo coordenador mas o bolsista ainda não recebeu o valor, o motivo mais provável é a **falta da assinatura eletrônica no Termo de Outorga de Bolsa**.\n\nO fluxo funciona da seguinte forma:\n1.  **Aprovação do Coordenador**: Após a aprovação por parte do coordenador na Área de Coordenadores, o sistema gera automaticamente o Termo de Outorga e envia por e-mail ao bolsista para assinatura eletrônica.\n2.  **Aceite pelo Bolsista**: O pagamento só é habilitado após o bolsista realizar essa assinatura eletrônica. Sem a confirmação desse aceite no sistema, o processo permanece pendente e o pagamento não é liberado.\n3.  **Prazo de Pagamento**: Uma vez que o termo é assinado, a FAI•UFSCar realiza o pagamento em até **03 dias úteis** após a aprovação do coordenador (considerando a conformidade com os dados do Termo de Outorga).\n\nRecomendo verificar se o bolsista recebeu o e-mail com o link para assinatura eletrônica e se ele já concluiu esse procedimento.\n\n> Fonte: [Manual do Sistema Area Coordenadores.pdf, pág. 13]\n> Fonte: [Manual dos Coordenadores.pdf, pág. 47]",
+  "fontes_cards": [
+   "- Manual dos Coordenadores.pdf (pág. 47 · 71%)",
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 13 · 72%)"
+  ],
+  "tools": [
+   "consultar_base_conhecimento"
+  ],
+  "latencia_s": 39.6,
+  "erro": null
+ },
+ {
+  "id": "SIST-05",
+  "pergunta": "Qual a diferença entre suspender e cancelar um pagamento de bolsa pendente?",
+  "tema": "Recursos Humanos / Ações do Coordenador sobre pagamentos de bolsa",
+  "paginas_ref": [
+   13
+  ],
+  "resposta_esperada_resumo": "Suspensão é temporária, exige justificativa e permite aprovar o pagamento posteriormente; cancelamento é definitivo, exige justificativa e não permite aprovação posterior. Já a aprovação é automática: ao clicar o pagamento é autorizado (clicou -> pagou), sem ações posteriores.",
+  "resposta": "A diferença entre suspender e cancelar um pagamento de bolsa pendente reside na possibilidade de reversão da ação e no objetivo da interrupção:\n\n*   **Suspensão temporária**: Interrompe o pagamento da competência selecionada por um período determinado. É necessário incluir uma justificativa para a ação. O pagamento **pode ser reativado posteriormente**, retomando o fluxo normal.\n*   **Cancelamento definitivo**: Remove permanentemente o pagamento da competência selecionada. Também exige justificativa, porém a operação é **irreversível** e o pagamento não pode ser recuperado.\n\n> Fonte: [Manual do Sistema Area Coordenadores.pdf, pág. 13]",
+  "fontes_cards": [
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 13 · 21%)",
+   "- Manual dos Coordenadores.pdf"
+  ],
+  "tools": [
+   "consultar_base_conhecimento"
+  ],
+  "latencia_s": 31.2,
+  "erro": null
+ },
+ {
+  "id": "SIST-06",
+  "pergunta": "Cadastrei um pedido de venda hoje de manhã. Quando a nota fiscal vai ser emitida?",
+  "tema": "Faturamento / Emissão de Pedido de Venda",
+  "paginas_ref": [
+   15
+  ],
+  "resposta_esperada_resumo": "O faturamento é realizado duas vezes ao dia: pedidos cadastrados pela manhã são faturados à tarde e os cadastrados à tarde, na manhã do dia seguinte. Os dados vão direto ao Sapiens, sem intervenção/conferência da FAI.",
+  "resposta": "O faturamento da nota fiscal ocorre duas vezes ao dia, seguindo o cronograma abaixo:\n\n*   **Pedidos cadastrados pela manhã:** são faturados no período da tarde do mesmo dia;\n*   **Pedidos cadastrados à tarde:** são faturados no período da manhã do dia seguinte.\n\nComo você informou que realizou o cadastro hoje de manhã, a nota fiscal deve ser emitida no período da tarde deste mesmo dia.\n\n> Fonte: [Manual do Sistema Area Coordenadores.pdf, pág. 15]",
+  "fontes_cards": [
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 15 · 46%)",
+   "- Manual dos Coordenadores.pdf"
+  ],
+  "tools": [],
+  "latencia_s": 2.7,
+  "erro": null
+ },
+ {
+  "id": "SIST-07",
+  "pergunta": "Existe limite de texto na descrição do item de serviço quando emito um pedido de venda?",
+  "tema": "Faturamento / Item de Serviço do Pedido de Venda",
+  "paginas_ref": [
+   17
+  ],
+  "resposta_esperada_resumo": "Sim: máximo de 250 caracteres por item e total de 500 caracteres no Pedido; o limite é imposto pelo software emissor da NFS (Nota Fiscal de Serviço) utilizado pela Prefeitura Municipal.",
+  "resposta": "O manual estabelece os seguintes limites para a descrição do item de serviço em um pedido de venda:\n\n*   **Por item:** Máximo de **250 caracteres**.\n*   **Na ordem (total):** Máximo de **500 caracteres**.\n\n> Fonte: [Manual do Sistema Area Coordenadores.pdf, pág. 17]",
+  "fontes_cards": [
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 17 · 92%)",
+   "- Manual dos Coordenadores.pdf"
+  ],
+  "tools": [],
+  "latencia_s": 2.6,
+  "erro": null
+ },
+ {
+  "id": "SIST-08",
+  "pergunta": "No relatório de Custo Operacional por Período, o que muda entre as visões Recebimento e Pagamento?",
+  "tema": "Relatórios / Custo Operacional por Período (COP, Ressarcimento e Retribuição)",
+  "paginas_ref": [
+   19
+  ],
+  "resposta_esperada_resumo": "Recebimento (seleção pela data de recebimento dos títulos de faturamento) mostra quanto cada título recebido pagou de despesas por alínea, com taxas (%) e resumo à direita; consulta inicial exibe os últimos 30 dias. Pagamento (seleção pela data de pagamento das despesas) mostra como cada título de pagamento foi composto pelos títulos de recebimento.",
+  "resposta": "No relatório de **Custo Operacional por Período**, as duas visões apresentam perspectivas diferentes sobre a relação entre os títulos de recebimento e pagamento:\n\n*   **Recebimento**: mostra os valores que cada título recebido pagou a título de despesas.\n*   **Pagamento**: exibe a composição de cada título de pagamento de despesas com os títulos de recebimento.\n\nO relatório foi desenvolvido para facilitar o gerenciamento do projeto e tornar transparente os valores cobrados, que são frequentemente analisados pelos coordenadores. \n\n> Fonte: [Manual do Sistema Area Coordenadores.pdf, pág. 19]",
+  "fontes_cards": [
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 19 · 90%)",
+   "- Manual dos Coordenadores.pdf"
+  ],
+  "tools": [],
+  "latencia_s": 4.0,
+  "erro": null
+ },
+ {
+  "id": "SIST-09",
+  "pergunta": "Apareceu um alerta vermelho na coluna do último trâmite de um formulário que eu enviei. O que isso significa?",
+  "tema": "Formulários Eletrônicos / Acompanhamento (ícones de trâmite)",
+  "paginas_ref": [
+   25
+  ],
+  "resposta_esperada_resumo": "Alerta vermelho indica que o formulário foi Rejeitado pela Fundação (o amarelo indica que foi alterado). Na rejeição, um e-mail com a justificativa é enviado ao Emissor, ao Coordenador e ao Analista responsável, e os formulários rejeitados ficam em aba específica para consulta.",
+  "resposta": "O alerta vermelho na coluna de trâmite indica que o formulário foi **rejeitado** pela Fundação.\n\nPara contextualizar, o termo **trâmite** refere-se ao percurso do formulário dentro do fluxo interno da FAI•UFSCar. Na lista de acompanhamento, os ícones podem indicar diferentes situações:\n*   **Alerta amarelo**: indica que o formulário foi alterado pela Fundação;\n*   **Alerta vermelho**: indica a rejeição do formulário por parte da Fundação.\n\nAlém disso, na tela inicial da Área de Coordenadores, um ícone de alerta em vermelho ao lado dos filtros indica que existem formulários aguardando aprovação e serve como link para a tela geral de formulários.\n\n> Fonte: [Manual do Sistema Area Coordenadores.pdf, págs. 6, 25]",
+  "fontes_cards": [
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 6 · 45%)",
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 25 · 88%)"
+  ],
+  "tools": [
+   "consultar_base_conhecimento"
+  ],
+  "latencia_s": 32.3,
+  "erro": null
+ },
+ {
+  "id": "SIST-10",
+  "pergunta": "Depois que envio uma solicitação de compra eletrônica, como acompanho no sistema o andamento da compra até o pagamento do fornecedor?",
+  "tema": "Formulários Eletrônicos / Acompanhamento SC (Solicitação de Compra)",
+  "paginas_ref": [
+   27
+  ],
+  "resposta_esperada_resumo": "Pela aba Acompanhamento SC, que mostra a cadeia vinda do Sapiens (ERP): SC eletrônica -> Solicitação(ões) de Compra Sapiens -> Ordem(ns) de Compra -> Nota(s) Fiscal(is) -> Título(s), com data de pagamento (vazia = não pago). Na tela também há o botão Enviar NF (formulário SC-NF) e filtros Todos/Andamento por período.",
+  "resposta": "Para acompanhar o andamento de uma solicitação de compra eletrônica (SC) até o pagamento ao fornecedor no sistema **Área de Coordenadores**, você deve seguir os passos abaixo:\n\n1.  **Acesso à aba \"Acompanhamento SC\"**: No menu lateral da Área de Coordenadores, acesse a opção *Solicitações* e selecione *Acompanhamento SC*. Nesta tela, é possível visualizar todas as SCs criadas e identificar seus status atuais (como aguardando aprovação, aprovada, ordem gerada, NF recebida, título criado ou pagamento efetuado).\n2.  **Visualização de detalhes**: Ao clicar no número da SC específica, você será direcionado para uma página de acompanhamento detalhada que exibe:\n    *   **Ordens de Compra (OC)**: links para cada OC gerada pela SC;\n    *   **Notas Fiscais Eletrônicas (NF-E)**: links para as notas emitidas pelo fornecedor;\n    *   **Títulos**: links para os títulos gerados a partir da NF, indicando se o pagamento já foi realizado ou se ainda está pendente.\n3.  **Confirmação no Faturamento**: Caso precise de uma visão direta sobre o status do pagamento, você pode acessar o menu *Faturamento*. Na tela inicial, haverá um bloco específico para **Título a Receber**, que indica se o status é \"Pago\" ou se ainda está em aberto.\n\nVale ressaltar que todas as informações são atualizadas automaticamente pelo sistema Sapiens (ERP), não sendo necessária qualquer sincronização manual por parte do usuário.\n\n> Fonte: [Manual do Sistema Area Coordenadores.pdf, págs. 14, 25, 27, 37]",
+  "fontes_cards": [
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 14 · 57%)",
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 27 · 83%)",
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 37 · 88%)",
+   "- Manual dos Coordenadores.pdf"
+  ],
+  "tools": [],
+  "latencia_s": 3.4,
+  "erro": null
+ },
+ {
+  "id": "SIST-11",
+  "pergunta": "Acabei de aprovar um formulário. Por que o pessoal da FAI ainda não está conseguindo visualizá-lo?",
+  "tema": "Formulários / Protocolo Eletrônico e aprovação",
+  "paginas_ref": [
+   30
+  ],
+  "resposta_esperada_resumo": "Somente após a aprovação eletrônica pelo Coordenador/Aprovador o formulário recebe número de Protocolo Eletrônico e passa a ser visível aos colaboradores da FAI; além disso, há uma proteção que retém a entrega do formulário por 10 minutos após a aprovação.",
+  "resposta": "O formulário só passa a ficar visível para os colaboradores da FAI após um período de processamento no sistema. De acordo com o manual, a visibilidade é liberada automaticamente **10 minutos após a aprovação eletrônica**.\n\nApós esse intervalo, todos os funcionários que possuem acesso ao Sistema Área de Coordenadores poderão visualizar o documento aprovado em diferentes seções do sistema.\n\n> Fonte: [Manual do Sistema Area Coordenadores.pdf, pág. 35]",
+  "fontes_cards": [
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 30 · 96%)",
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 35 · 83%)",
+   "- Manual dos Coordenadores.pdf"
+  ],
+  "tools": [
+   "consultar_base_conhecimento"
+  ],
+  "latencia_s": 36.0,
+  "erro": null
+ },
+ {
+  "id": "SIST-12",
+  "pergunta": "Estava preenchendo uma SP e a aba do navegador fechou antes de eu anexar a nota fiscal. Perdi tudo?",
+  "tema": "Formulários Eletrônicos / SP – Solicitação de Pagamento (rascunho e upload)",
+  "paginas_ref": [
+   33
+  ],
+  "resposta_esperada_resumo": "Não: a primeira tela da SP fica salva com status Rascunho e pode ser acessada em Ficha do Projeto / Formulários para retomar o preenchimento e anexar os comprovantes na tela de Upload (documento fiscal obrigatório, boletos e orçamentos se for o caso).",
+  "resposta": "O manual informa que não existe um sistema de salvamento automático durante o preenchimento dos formulários na **Área de Coordenadores**. Caso a sessão caia ou o navegador seja fechado antes da conclusão e envio do processo, os dados que ainda não foram salvos serão perdidos.\n\nAlém disso, o manual ressalta que ao clicar em **Cancelar**, os dados são eliminados e não podem ser recuperados. Portanto, se você não finalizou a ação de salvar/enviar antes do fechamento da aba, será necessário preencher as informações novamente.\n\n> Fonte: [Manual do Sistema Area Coordenadores.pdf, pág. 18]",
+  "fontes_cards": [
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 18 · 28%)",
+   "- Manual dos Coordenadores.pdf"
+  ],
+  "tools": [
+   "consultar_base_conhecimento"
+  ],
+  "latencia_s": 46.0,
+  "erro": null
+ },
+ {
+  "id": "SIST-13",
+  "pergunta": "Quais tipos de transferência eu consigo fazer pelo formulário TR e ele chega na hora para o Setor de Projetos?",
+  "tema": "Formulários Eletrônicos / TR – Transferência de Valores",
+  "paginas_ref": [
+   35
+  ],
+  "resposta_esperada_resumo": "Tipos: Entre Projetos, Empréstimo (somente FAI • UFSCar) e Devolução de Empréstimo. O formulário só é exibido para o Setor de Projetos 30 minutos após a Aprovação; se o emissor for Coordenador/Aprovador a aprovação é automática, se for Auxiliar/Membro precisa ser aprovado em Formulários/Visualizar.",
+  "resposta": "O formulário **TR – Transferência de Valores** permite registrar três tipos de transferência:\n\n*   **Entre Projetos**: para transferência de recursos entre projetos dentro da mesma instituição;\n*   **Empréstimo**: exclusivo para a FAI•UFSCar;\n*   **Devolução de Empréstimo**: para devolução de recursos previamente emprestados à Fundação.\n\nPara realizar o registro, você deve:\n1. Selecionar o **tipo de transferência** correspondente;\n2. Escolher o **Projeto de Destino**;\n3. Informar o **valor** a ser transferido e preencher a **justificativa** com informações relevantes;\n4. Clicar em **Enviar** para que os dados sejam registrados no sistema.\n\nApós a aprovação do formulário, ele é exibido ao Setor de Projetos 30 minutos depois da sua aprovação.\n\n> Fonte: [Manual do Sistema Area Coordenadores.pdf, pág. 35]",
+  "fontes_cards": [
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 35 · 85%)",
+   "- Manual dos Coordenadores.pdf"
+  ],
+  "tools": [
+   "consultar_base_conhecimento"
+  ],
+  "latencia_s": 35.7,
+  "erro": null
+ },
+ {
+  "id": "SIST-14",
+  "pergunta": "Como faço a prestação de contas de um suprimento de fundos pelo sistema?",
+  "tema": "Formulários Eletrônicos / SF-PC – Suprimento de Fundos - Prestação de Contas",
+  "paginas_ref": [
+   39
+  ],
+  "resposta_esperada_resumo": "Em Formulários, selecionar a aba Adiantamento de Recursos, localizar o formulário pelo filtro (status e período, buscando pela lupa) e clicar em Prestar Contas; distribuir o valor das despesas (Rateio) pelas Contas Financeiras/Alíneas (o sistema atualiza o total, botão '+' para novos itens), Enviar, Imprimir a Prestação de Contas e anexar os comprovantes originais encaminhando à FAI.",
+  "resposta": "Para realizar a prestação de contas de um suprimento de fundos através da **Área de Coordenadores**, você deve seguir o passo a passo abaixo:\n\n1.  **Acesso ao módulo**: No sistema Área de Coordenadores, acesse a aba **Adiantamento de Recursos** (disponível no menu lateral ou na barra superior da ficha do projeto).\n2.  **Localização da solicitação**: No campo *Pesquisar Adiantamento de Recurso*, selecione o status desejado e informe o período de busca. Clique no ícone da lupa para realizar a pesquisa.\n3.  **Seleção das opções**: Após localizar a solicitação, você terá três ícones disponíveis:\n    *   **Visualizar**: exibe o formulário de solicitação inicial;\n    *   **Prestar Contas (Dados Gerais)**: exibe os dados gerais da solicitação;\n    *   **Dados da Prestação de Contas**: permite realizar a distribuição do valor das despesas (rateio) pelas contas financeiras (alínea/rubrica).\n4.  **Edição dos itens**: Na tela *Dados da Prestação de Contas*, você pode adicionar novos itens clicando em **\"+\"** ou remover itens existentes com **\"X\"**. O sistema atualizará automaticamente o valor total conforme as alterações.\n5.  **Finalização e envio**: Clique em **Enviar** para registrar a prestação de contas no sistema. Caso necessário, utilize a opção **Imprimir a Prestação de Contas** e anexe os comprovantes originais para encaminhamento à FAI•UFSCar.\n6.  **Acompanhamento**: Após o arquivamento do suprimento de fundos (SF), você poderá acompanhar o andamento, status e documentos anexados na mesma aba *Adiantamento de Recursos*.\n\n> Fonte: [Manual do Sistema Area Coordenadores.pdf, págs. 38, 39]",
+  "fontes_cards": [
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 38 · 92%)",
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 39 · 92%)",
+   "- Manual dos Coordenadores.pdf"
+  ],
+  "tools": [
+   "consultar_base_conhecimento"
+  ],
+  "latencia_s": 35.8,
+  "erro": null
+ },
+ {
+  "id": "SIST-15",
+  "pergunta": "Quero que minha auxiliar veja todos os formulários do projeto, não só os que ela mesma emitiu. Que perfil de acesso eu dou para ela?",
+  "tema": "Gerenciando os Acessos / Perfis de acesso",
+  "paginas_ref": [
+   40,
+   41
+  ],
+  "resposta_esperada_resumo": "Atribuir o perfil FormuláriosProjeto, que permite visualizar todos os formulários do projeto independentemente do emissor (FormulárioMembro só mostra formulários em que o membro é emissor ou favorecido). A atribuição é feita em Gerenciar Acessos (menu lateral 'Área de Coordenadores' ou aba Acessos em Dados do Projeto): pesquisar por CPF/nome, clicar no ícone Gerenciar Acessos e marcar a funcionalidade na matriz projetos x funcionalidades.",
+  "resposta": "Para que a sua auxiliar consiga visualizar todos os formulários do projeto (e não apenas aqueles que ela mesma emitiu), ela precisa possuir um perfil de acesso que permita a visualização completa das solicitações do projeto.\n\nDe acordo com o manual da **FAI•UFSCar**, existem dois perfis que permitem essa visão ampla:\n\n*   **Coordenador do Projeto**: Possui perfil completo e pode visualizar todos os formulários do projeto, independentemente de quem seja o emissor (visualização tipo *FormuláriosProjeto*).\n*   **Aprovador**: Também possui permissão para visualizar todos os formulários do projeto, mas este perfil é destinado especificamente para autorizar movimentações financeiras e gerar propostas de bolsas.\n\n**Importante sobre a atribuição:**\nO coordenador pode gerenciar esses acessos por meio da funcionalidade **Gerenciar Acessos**, onde seleciona o membro e define quais projetos e funcionalidades (como Finanças, Cursos ou Relatórios) ele poderá acessar. \n\nNote que o perfil de **Auxiliar / Membro do Grupo de Trabalho** possui uma visão limitada: ele só visualiza os formulários nos quais é emissor ou beneficiário (*FormulárioMembro*). Portanto, para a necessidade descrita, o perfil de **Coordenador** (ou o de **Aprovador**, se for o caso específico de finanças) é o adequado.\n\n> Fonte: [Manual do Sistema Area Coordenadores.pdf, págs. 7, 40, 41]",
+  "fontes_cards": [
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 7 · 82%)",
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 40 · 97%)",
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 41 · 97%)",
+   "- Manual dos Coordenadores.pdf"
+  ],
+  "tools": [
+   "consultar_base_conhecimento"
+  ],
+  "latencia_s": 36.0,
+  "erro": null
+ }
+]

@@ -1,0 +1,236 @@
+{
+ "tag": "tuned",
+ "mode": "mix",
+ "repeats": 3,
+ "results": [
+  {
+   "id": "Projetos-01",
+   "question": "Qual é o limite financeiro para a contratação direta de serviços e compras com recursos públicos e como evitar o fracionamento de despesa?",
+   "runs": [
+    {
+     "answer": "Para a contratação direta de serviços e compras com recursos públicos, o manual estabelece os seguintes limites financeiros:\n\n*   **Obras:** até **R$ 100.000,00**.\n*   **Outros serviços ou compras:** até **R$ 40.000,00**.\n\nCaso o valor de uma contratação direta ultrapasse esses limites, a FAI deve recorrer à modalidade de **Seleção Pública**, que é o procedimento de concorrência adotado para valores superiores ao permitido na Compra Direta.\n\nSobre o fracionamento de despesa e itens fora do planejamento:\nQuando uma despesa não está prevista no plano de trabalho aprovado, ela deve ser autorizada pelo órgão financiador e é limitada a **20% do valor da rubrica**. Esse limite serve para restringir ou controlar despesas que excedam o previsto.\n\n> Fonte: [Manual dos Coordenadores.pdf, págs. 32, 65, 66]",
+     "sources": [
+      "- Manual dos Coordenadores.pdf (pág. 32 · 12%)",
+      "- Manual dos Coordenadores.pdf (pág. 65 · 18%)",
+      "- Manual dos Coordenadores.pdf (pág. 66 · 18%)",
+      "- Manual do Sistema Área Coordenadores.pdf"
+     ],
+     "abstained": false,
+     "has_sources": true,
+     "chars": 806,
+     "elapsed": 54.9,
+     "error": null
+    },
+    {
+     "answer": "Para a contratação direta de serviços e compras com recursos públicos, o manual estabelece os seguintes limites financeiros:\n\n*   **Obras:** até **R$ 100.000,00**.\n*   **Outros serviços ou compras:** até **R$ 40.000,00**.\n\nCaso o valor de uma contratação direta ultrapasse esses limites, a FAI deve recorrer à modalidade de **Seleção Pública**, que é o procedimento de concorrência adotado para valores superiores ao permitido na Compra Direta.\n\nSobre o fracionamento de despesa e itens fora do planejamento:\nQuando uma despesa não está prevista no plano de trabalho aprovado, ela deve ser autorizada pelo órgão financiador e é limitada a **20% do valor da rubrica**. Esse limite serve para restringir ou controlar despesas que excedam o previsto.\n\n> Fonte: [Manual dos Coordenadores.pdf, págs. 32, 65, 66]",
+     "sources": [
+      "- Manual dos Coordenadores.pdf (pág. 32 · 12%)",
+      "- Manual dos Coordenadores.pdf (pág. 65 · 18%)",
+      "- Manual dos Coordenadores.pdf (pág. 66 · 18%)",
+      "- Manual do Sistema Área Coordenadores.pdf"
+     ],
+     "abstained": false,
+     "has_sources": true,
+     "chars": 806,
+     "elapsed": 6.0,
+     "error": null
+    },
+    {
+     "answer": "Para a contratação direta de serviços e compras com recursos públicos, o manual estabelece os seguintes limites financeiros:\n\n*   **Obras:** até **R$ 100.000,00**.\n*   **Outros serviços ou compras:** até **R$ 40.000,00**.\n\nCaso o valor de uma contratação direta ultrapasse esses limites, a FAI deve recorrer à modalidade de **Seleção Pública**, que é o procedimento de concorrência adotado para valores superiores ao permitido na Compra Direta.\n\nSobre o fracionamento de despesa e itens fora do planejamento:\nQuando uma despesa não está prevista no plano de trabalho aprovado, ela deve ser autorizada pelo órgão financiador e é limitada a **20% do valor da rubrica**. Esse limite serve para restringir ou controlar despesas que excedam o previsto.\n\n> Fonte: [Manual dos Coordenadores.pdf, págs. 32, 65, 66]",
+     "sources": [
+      "- Manual dos Coordenadores.pdf (pág. 32 · 12%)",
+      "- Manual dos Coordenadores.pdf (pág. 65 · 18%)",
+      "- Manual dos Coordenadores.pdf (pág. 66 · 18%)",
+      "- Manual do Sistema Área Coordenadores.pdf"
+     ],
+     "abstained": false,
+     "has_sources": true,
+     "chars": 806,
+     "elapsed": 3.7,
+     "error": null
+    }
+   ],
+   "n_ans": 3,
+   "n_abst": 0,
+   "n_err": 0,
+   "unstable": false
+  },
+  {
+   "id": "Projetos-08",
+   "question": "Quais as limitações para a contratação de profissionais autônomos (Pessoa Física)?",
+   "runs": [
+    {
+     "answer": "O manual não detalha as limitações para a contratação de profissionais autônomos (Pessoa Física).",
+     "sources": [],
+     "abstained": true,
+     "has_sources": false,
+     "chars": 97,
+     "elapsed": 67.3,
+     "error": null
+    },
+    {
+     "answer": "Para a contratação de profissionais autônomos (Pessoa Física), as diretrizes e limitações estabelecidas pelo manual são as seguintes:\n\n**Requisitos e Obrigações Fiscais**\n*   **Documentação:** É exigida uma justificativa técnica e a formalização por meio de um contrato de prestação de serviços.\n*   **Registro:** O profissional deve estar registrado no INSS como contribuinte individual.\n*   **Retenção de Impostos:** Devem ser retidos na fonte os impostos **INSS**, **IRRF** e **ISS**.\n\n**Natureza do Vínculo**\n*   **Ausência de Vínculo Empregatício:** Não deve haver relação de emprego, sendo vedada qualquer subordinação que configure vínculo trabalhista.\n*   **Benefícios:** O profissional não possui direito a FGTS, férias ou outros benefícios típicos da CLT.\n*   **Remuneração:** Não há remuneração mensal fixa; o valor é definido e acordado no contrato de serviço.\n\n**Pagamento e Procedimentos**\n*   **Fluxo de Pagamento:** O pagamento é realizado pelo Departamento de Gestão de Pessoas em até três dias úteis após o recebimento do formulário \"RECIBO DE PRESTAÇÃO DIRETA DE SERVIÇO DE TERCEIROS\".\n*   **Regra de Contratação:** É proibida a contratação direta para compras ou prestação de serviços por pessoa física fora do processo formal estabelecido pela FAI•UFSCar.\n\n> Fonte: [Manual dos Coordenadores.pdf, págs. 40, 44, 45]",
+     "sources": [
+      "- Manual dos Coordenadores.pdf (pág. 40 · 31%)",
+      "- Manual dos Coordenadores.pdf (pág. 44 · 96%)",
+      "- Manual dos Coordenadores.pdf (pág. 45 · 96%)"
+     ],
+     "abstained": false,
+     "has_sources": true,
+     "chars": 1335,
+     "elapsed": 45.4,
+     "error": null
+    },
+    {
+     "answer": "Para a contratação de profissionais autônomos (Pessoa Física), as diretrizes e limitações estabelecidas pelo manual são as seguintes:\n\n**Requisitos e Obrigações Fiscais**\n*   **Documentação:** É exigida uma justificativa técnica e a formalização por meio de um contrato de prestação de serviços.\n*   **Registro:** O profissional deve estar registrado no INSS como contribuinte individual.\n*   **Retenção de Impostos:** Devem ser retidos na fonte os impostos **INSS**, **IRRF** e **ISS**.\n\n**Natureza do Vínculo**\n*   **Ausência de Vínculo Empregatício:** Não deve haver relação de emprego, sendo vedada qualquer subordinação que configure vínculo trabalhista.\n*   **Benefícios:** O profissional não possui direito a FGTS, férias ou outros benefícios típicos da CLT.\n*   **Remuneração:** Não há remuneração mensal fixa; o valor é definido e acordado no contrato de serviço.\n\n**Pagamento e Procedimentos**\n*   **Fluxo de Pagamento:** O pagamento é realizado pelo Departamento de Gestão de Pessoas em até três dias úteis após o recebimento do formulário \"RECIBO DE PRESTAÇÃO DIRETA DE SERVIÇO DE TERCEIROS\".\n*   **Regra de Contratação:** É proibida a contratação direta para compras ou prestação de serviços por pessoa física fora do processo formal estabelecido pela FAI•UFSCar.\n\n> Fonte: [Manual dos Coordenadores.pdf, págs. 40, 44, 45]",
+     "sources": [
+      "- Manual dos Coordenadores.pdf (pág. 40 · 31%)",
+      "- Manual dos Coordenadores.pdf (pág. 44 · 96%)",
+      "- Manual dos Coordenadores.pdf (pág. 45 · 96%)"
+     ],
+     "abstained": false,
+     "has_sources": true,
+     "chars": 1335,
+     "elapsed": 2.8,
+     "error": null
+    }
+   ],
+   "n_ans": 2,
+   "n_abst": 1,
+   "n_err": 0,
+   "unstable": true
+  },
+  {
+   "id": "Projetos-03",
+   "question": "Quais os prazos e trâmites para obras de engenharia nos campi da UFSCar?",
+   "runs": [
+    {
+     "answer": "Para obras e serviços de engenharia nos campi da UFSCar, o procedimento segue as diretrizes do *Código de Obras e Edificações da UFSCar* (Resolução CoAd nº 022/2020).\n\nOs trâmites e prazos são estruturados da seguinte forma:\n\n**Fluxo Inicial e Documentação:**\n1.  **Planejamento:** O coordenador do projeto deve elaborar um plano de trabalho e enviar **um orçamento** que servirá como referência de preço e especificações.\n2.  **Abertura de Processo:** A demanda inicia-se com a abertura de processo no SEI, encaminhado à *Secretaria de Gestão do Espaço Físico (SeGEF)* da UFSCar após anuência da chefia pertinente.\n3.  **Autorizações Prévias:** São necessárias autorizações prévias para intervenções específicas, tais como:\n    *   Uso de contêineres e coberturas fixas;\n    *   Supressão ou plantio de árvores;\n    *   Mudanças de layout e demolição de paredes;\n    *   Instalação de equipamentos e novas instalações elétricas ou modificações.\n\n**Prazos:**\n*   **Documentação Simples:** O prazo mínimo para documentação simples (como croqui ou planta baixa) é de **60 dias**.\n*   **Tempo Médio Total:** O tempo total do processo — que engloba desde a documentação e licitação até o início da obra — pode chegar a **20 meses (599 dias)**.\n*   **Observação sobre Longa Duração:** Obras com prazo superior a **300 dias** podem estar sujeitas a repactuação de valores, realinhamento ou reequilíbrio contratual, o que pode impactar os recursos financeiros disponíveis.\n\n**Responsabilidade Financeira:**\nO processo de orçamentação é de responsabilidade da FAI/UFSCar.\n\n> Fonte: [Manual dos Coordenadores.pdf, págs. 34, 36]",
+     "sources": [
+      "- Manual dos Coordenadores.pdf (pág. 34 · 93%)",
+      "- Manual dos Coordenadores.pdf (pág. 36 · 99%)",
+      "- Manual do Sistema Área Coordenadores.pdf"
+     ],
+     "abstained": false,
+     "has_sources": true,
+     "chars": 1618,
+     "elapsed": 43.2,
+     "error": null
+    },
+    {
+     "answer": "Para obras e serviços de engenharia nos campi da UFSCar, o procedimento segue as diretrizes do *Código de Obras e Edificações da UFSCar* (Resolução CoAd nº 022/2020).\n\nOs trâmites e prazos são estruturados da seguinte forma:\n\n**Fluxo Inicial e Documentação:**\n1.  **Planejamento:** O coordenador do projeto deve elaborar um plano de trabalho e enviar **um orçamento** que servirá como referência de preço e especificações.\n2.  **Abertura de Processo:** A demanda inicia-se com a abertura de processo no SEI, encaminhado à *Secretaria de Gestão do Espaço Físico (SeGEF)* da UFSCar após anuência da chefia pertinente.\n3.  **Autorizações Prévias:** São necessárias autorizações prévias para intervenções específicas, tais como:\n    *   Uso de contêineres e coberturas fixas;\n    *   Supressão ou plantio de árvores;\n    *   Mudanças de layout e demolição de paredes;\n    *   Instalação de equipamentos e novas instalações elétricas ou modificações.\n\n**Prazos:**\n*   **Documentação Simples:** O prazo mínimo para documentação simples (como croqui ou planta baixa) é de **60 dias**.\n*   **Tempo Médio Total:** O tempo total do processo — que engloba desde a documentação e licitação até o início da obra — pode chegar a **20 meses (599 dias)**.\n*   **Observação sobre Longa Duração:** Obras com prazo superior a **300 dias** podem estar sujeitas a repactuação de valores, realinhamento ou reequilíbrio contratual, o que pode impactar os recursos financeiros disponíveis.\n\n**Responsabilidade Financeira:**\nO processo de orçamentação é de responsabilidade da FAI/UFSCar.\n\n> Fonte: [Manual dos Coordenadores.pdf, págs. 34, 36]",
+     "sources": [
+      "- Manual dos Coordenadores.pdf (pág. 34 · 93%)",
+      "- Manual dos Coordenadores.pdf (pág. 36 · 99%)",
+      "- Manual do Sistema Área Coordenadores.pdf"
+     ],
+     "abstained": false,
+     "has_sources": true,
+     "chars": 1618,
+     "elapsed": 3.2,
+     "error": null
+    },
+    {
+     "answer": "Para obras e serviços de engenharia nos campi da UFSCar, o procedimento segue as diretrizes do *Código de Obras e Edificações da UFSCar* (Resolução CoAd nº 022/2020).\n\nOs trâmites e prazos são estruturados da seguinte forma:\n\n**Fluxo Inicial e Documentação:**\n1.  **Planejamento:** O coordenador do projeto deve elaborar um plano de trabalho e enviar **um orçamento** que servirá como referência de preço e especificações.\n2.  **Abertura de Processo:** A demanda inicia-se com a abertura de processo no SEI, encaminhado à *Secretaria de Gestão do Espaço Físico (SeGEF)* da UFSCar após anuência da chefia pertinente.\n3.  **Autorizações Prévias:** São necessárias autorizações prévias para intervenções específicas, tais como:\n    *   Uso de contêineres e coberturas fixas;\n    *   Supressão ou plantio de árvores;\n    *   Mudanças de layout e demolição de paredes;\n    *   Instalação de equipamentos e novas instalações elétricas ou modificações.\n\n**Prazos:**\n*   **Documentação Simples:** O prazo mínimo para documentação simples (como croqui ou planta baixa) é de **60 dias**.\n*   **Tempo Médio Total:** O tempo total do processo — que engloba desde a documentação e licitação até o início da obra — pode chegar a **20 meses (599 dias)**.\n*   **Observação sobre Longa Duração:** Obras com prazo superior a **300 dias** podem estar sujeitas a repactuação de valores, realinhamento ou reequilíbrio contratual, o que pode impactar os recursos financeiros disponíveis.\n\n**Responsabilidade Financeira:**\nO processo de orçamentação é de responsabilidade da FAI/UFSCar.\n\n> Fonte: [Manual dos Coordenadores.pdf, págs. 34, 36]",
+     "sources": [
+      "- Manual dos Coordenadores.pdf (pág. 34 · 93%)",
+      "- Manual dos Coordenadores.pdf (pág. 36 · 99%)",
+      "- Manual do Sistema Área Coordenadores.pdf"
+     ],
+     "abstained": false,
+     "has_sources": true,
+     "chars": 1618,
+     "elapsed": 3.1,
+     "error": null
+    }
+   ],
+   "n_ans": 3,
+   "n_abst": 0,
+   "n_err": 0,
+   "unstable": false
+  },
+  {
+   "id": "Projetos-06",
+   "question": "Qual é o prazo médio para a conclusão de um processo logístico internacional?",
+   "runs": [
+    {
+     "answer": "O prazo médio estimado para a conclusão do processo logístico internacional é de aproximadamente **20 dias**. Esse período ocorre após a aprovação da proposta e a liberação da remessa, abrangendo as etapas de tramitação logística, procedimentos aduaneiros, entrega e liquidação do processo.\n\n> Fonte: [Manual dos Coordenadores.pdf, pág. 38]",
+     "sources": [
+      "- Manual dos Coordenadores.pdf (pág. 38 · 11%)",
+      "- Manual do Sistema Área Coordenadores.pdf"
+     ],
+     "abstained": false,
+     "has_sources": true,
+     "chars": 340,
+     "elapsed": 33.0,
+     "error": null
+    },
+    {
+     "answer": "O prazo médio estimado para a conclusão do processo logístico internacional é de aproximadamente **20 dias**. Esse período ocorre após a aprovação da proposta e a liberação da remessa, abrangendo as etapas de tramitação logística, procedimentos aduaneiros, entrega e liquidação do processo.\n\n> Fonte: [Manual dos Coordenadores.pdf, pág. 38]",
+     "sources": [
+      "- Manual dos Coordenadores.pdf (pág. 38 · 11%)",
+      "- Manual do Sistema Área Coordenadores.pdf"
+     ],
+     "abstained": false,
+     "has_sources": true,
+     "chars": 340,
+     "elapsed": 2.5,
+     "error": null
+    },
+    {
+     "answer": "O prazo médio estimado para a conclusão do processo logístico internacional é de aproximadamente **20 dias**. Esse período ocorre após a aprovação da proposta e a liberação da remessa, abrangendo as etapas de tramitação logística, procedimentos aduaneiros, entrega e liquidação do processo.\n\n> Fonte: [Manual dos Coordenadores.pdf, pág. 38]",
+     "sources": [
+      "- Manual dos Coordenadores.pdf (pág. 38 · 11%)",
+      "- Manual do Sistema Área Coordenadores.pdf"
+     ],
+     "abstained": false,
+     "has_sources": true,
+     "chars": 340,
+     "elapsed": 2.3,
+     "error": null
+    }
+   ],
+   "n_ans": 3,
+   "n_abst": 0,
+   "n_err": 0,
+   "unstable": false
+  },
+  {
+   "id": "TI-01",
+   "question": "Como faço para trocar meu e-mail?",
+   "runs": [
+    {
+     "answer": "Para esclarecer essa demanda específica, recomendo entrar em contato com o Gestor do seu Projeto. Caso ainda não tenha um gestor designado, procure o Supervisor de Projetos Específicos ou o Supervisor de Projetos Gerais pelo telefone (16) 3351-9000 ou e-mail fai@fai.ufscar.br.",
+     "sources": [],
+     "abstained": true,
+     "has_sources": false,
+     "chars": 277,
+     "elapsed": 36.5,
+     "error": null
+    },
+    {
+     "answer": "Para esclarecer essa demanda específica, recomendo entrar em contato com o Gestor do seu Projeto. Caso ainda não tenha um gestor designado, procure o Supervisor de Projetos Específicos ou o Supervisor de Projetos Gerais pelo telefone (16) 3351-9000 ou e-mail fai@fai.ufscar.br.",
+     "sources": [],
+     "abstained": true,
+     "has_sources": false,
+     "chars": 277,
+     "elapsed": 45.8,
+     "error": null
+    },
+    {
+     "answer": "Olá! Sou a Lina, assistente virtual da FAI•UFSCar. Como posso ajudar?",
+     "sources": [],
+     "abstained": false,
+     "has_sources": false,
+     "chars": 69,
+     "elapsed": 51.5,
+     "error": null
+    }
+   ],
+   "n_ans": 1,
+   "n_abst": 2,
+   "n_err": 0,
+   "unstable": true
+  }
+ ]
+}

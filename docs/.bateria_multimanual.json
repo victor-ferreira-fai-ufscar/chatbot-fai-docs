@@ -1,0 +1,414 @@
+[
+ {
+  "id": "SIS-01",
+  "categoria": "sistema",
+  "esperado": "sistema",
+  "pergunta": "Como acesso a Área de Coordenadores pela primeira vez?",
+  "answer": "Para acessar a **Área de Coordenadores** pela primeira vez, você deve seguir o passo a passo abaixo:\n\n1.  **Acesse o endereço oficial**: Acesse o site [https://sistemas.fai.ufscar.br/coordenadores](https://sistemas.fai.ufscar.br/coordenadores) (ou www.sistemas.fai.ufscar.br).\n2.  **Selecione a área**: Clique no botão **\"Área de Coordenadores\"**, localizado no canto superior direito da página inicial.\n3.  **Autenticação**: Insira o seu e-mail ou CPF e a senha provisória que você recebeu da Fundação.\n4.  **Validação**: Marque a opção \"Não sou um robô\" (captcha) para validar a segurança e pressione **Enter** ou clique no botão de login.\n5.  **Primeiro acesso**: Ao entrar pela primeira vez, o sistema solicitará que você altere a senha provisória para uma nova de sua escolha e aceite a Política de Privacidade.\n\nCaso precise recuperar sua senha em algum momento, utilize a opção \"Esqueci a Senha\" na tela de login, informando seu e-mail ou CPF para receber as instruções por e-mail.\n\n> Fonte: [Manual do Sistema Area Coordenadores.pdf, pág. 4]",
+  "sources": [
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 4 · 91%)",
+   "- Manual dos Coordenadores.pdf"
+  ],
+  "conversation_id": 912,
+  "tools": [
+   "consultar_base_conhecimento"
+  ],
+  "elapsed_s": 47.7,
+  "error": null,
+  "inline_files": [
+   "Manual do Sistema Area Coordenadores.pdf"
+  ],
+  "is_negativa": false
+ },
+ {
+  "id": "SIS-02",
+  "categoria": "sistema",
+  "esperado": "sistema",
+  "pergunta": "Como emitir um Pedido de Venda na Área de Coordenadores?",
+  "answer": "Para emitir um Pedido de Venda na **Área de Coordenadores**, você deve seguir o passo a passo detalhado abaixo:\n\n1.  **Acesso ao Sistema**: Faça login no portal [https://sistemas.fai.ufscar.br/coordenadores](https://sistemas.fai.ufscar.br/coordenadores) utilizando seu e-mail ou CPF e senha.\n2.  **Navegação**: No menu lateral esquerdo, acesse a funcionalidade **Faturamento**.\n3.  **Início do Pedido**: Clique no botão **\"Adicionar\"** ou **\"Novo Pedido de Vendas\"**.\n4.  **Identificação do Cliente**: Pesquise pelo CNPJ/CPF do cliente. Caso o cliente não possua cadastro, você deverá registrar um novo (pág. 15).\n5.  **Seleção de Contato**: Escolha um contato já existente ou clique em **\"Cadastrar Novo\"** para criar um contato associado ao cliente (pág. 15).\n6.  **Preenchimento do Cabeçalho**:\n    *   **Solicitante**: Pessoa responsável pela solicitação.\n    *   **Responsável**: Pessoa que executará o serviço (podendo ser alterada posteriormente).\n    *   **Número Externo**: Campo para controle interno opcional.\n    *   **Tipo de Pedido**: Selecione entre **Serviço** ou **Produto**. Note que apenas projetos específicos podem gerar pedidos de produto; em caso de dúvida, contate o setor Financeiro da Fundação (pág. 16).\n7.  **Anexos (Opcional)**: Caso existam documentos complementares, utilize a opção **\"Anexar Arquivo\"** (pág. 16).\n8.  **Inclusão de Itens**: Para cada item, preencha a **Descrição** (limite de 250 caracteres por item ou 500 no total), a **Quantidade** e o **Valor Unitário**. O sistema realizará o cálculo automático dos valores totais (pág. 16).\n9.  **Finalização**: Após revisar as informações, clique em **\"Enviar\"** ou **\"Salvar\"**. A Nota Fiscal Eletrônica (NFE) será gerada automaticamente e poderá ser visualizada na tela de Faturamento (pág. 16).\n10. **Acompanhamento**: O pedido constará na lista de faturamentos, onde você poderá visualizar a NFE ou reenviar uma cópia por e-mail.\n\n> Fonte: [Manual do Sistema Area Coordenadores.pdf, págs. 15, 16]",
+  "sources": [
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 15 · 95%)",
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 16 · 95%)"
+  ],
+  "conversation_id": 913,
+  "tools": [
+   "consultar_base_conhecimento"
+  ],
+  "elapsed_s": 42.7,
+  "error": null,
+  "inline_files": [
+   "Manual do Sistema Area Coordenadores.pdf"
+  ],
+  "is_negativa": false
+ },
+ {
+  "id": "SIS-03",
+  "categoria": "sistema",
+  "esperado": "sistema",
+  "pergunta": "Como faço uma Solicitação de Pagamento (SP) pelo sistema?",
+  "answer": "Para realizar uma Solicitação de Pagamento (SP) pelo sistema, você deve utilizar a **Área de Coordenadores**.\n\nO procedimento para solicitações financeiras, incluindo pagamentos, é realizado por meio desta plataforma de autoatendimento. O passo a passo geral envolve:\n\n1.  Acessar o portal oficial da Área de Coordenadores em [https://sistemas.fai.ufscar.br/](https://sistemas.fai.ufscar.br/).\n2.  Identificar a demanda específica (ex.: pagamento de fornecedores, prestadores de serviço ou despesas de viagem).\n3.  Preencher os campos necessários e anexar a documentação exigida pelo manual para o tipo de pagamento solicitado.\n\nCaso você tenha dúvidas sobre documentos específicos ou prazos para uma solicitação de pagamento em particular, recomendo consultar o **Gestor do seu Projeto**, que é o interlocutor oficial para acompanhar o status e as pendências das suas solicitações na plataforma.\n\nSe desejar, posso disponibilizar o manual completo da Área de Coordenadores para download.",
+  "sources": [],
+  "conversation_id": 914,
+  "tools": [
+   "consultar_base_conhecimento"
+  ],
+  "elapsed_s": 71.4,
+  "error": null,
+  "inline_files": [],
+  "is_negativa": false
+ },
+ {
+  "id": "SIS-04",
+  "categoria": "sistema",
+  "esperado": "sistema",
+  "pergunta": "Como acompanho minha Solicitação de Compra (SC) na Área de Coordenadores?",
+  "answer": "O acompanhamento da sua Solicitação de Compra (SC) deve ser realizado por meio do sistema **Área de Coordenadores**.\n\nNesta plataforma, você pode:\n*   **Acompanhar o status** das suas solicitações;\n*   **Verificar pendências** e documentos necessários;\n*   **Gerenciar diversos tipos de pedidos**, incluindo compras, importação, financeiro, pessoal e viagens.\n\nPara acessar a plataforma, utilize o link oficial: [https://sistemas.fai.ufscar.br/](https://sistemas.fai.ufscar.br/).\n\nCaso tenha dúvidas específicas sobre o andamento de um processo ou precise de orientações detalhadas sobre uma solicitação em curso, entre em contato com o **Gestor do seu Projeto**.",
+  "sources": [],
+  "conversation_id": 915,
+  "tools": [
+   "consultar_base_conhecimento"
+  ],
+  "elapsed_s": 71.5,
+  "error": null,
+  "inline_files": [],
+  "is_negativa": false
+ },
+ {
+  "id": "SIS-05",
+  "categoria": "sistema",
+  "esperado": "sistema",
+  "pergunta": "Como libero acesso ao sistema para um auxiliar do meu projeto?",
+  "answer": "Para liberar o acesso de um auxiliar ou membro da sua equipe ao sistema **Área de Coordenadores**, você deve seguir os passos descritos no manual do sistema:\n\n1.  **Acesso ao Sistema**: Faça login em [https://sistemas.fai.ufscar.br/coordenadores](https://sistemas.fai.ufscar.br/coordenadores) utilizando seu e-mail/CPF e senha.\n2.  **Localização da Funcionalidade**: No menu lateral esquerdo, acesse a opção **\"Gerenciar Acessos\"**. Alternativamente, você pode acessar o projeto desejado, ir até a aba **Dados do Projeto** e selecionar **Acesso**.\n3.  **Cadastro do Usuário**: Caso o auxiliar ou membro da equipe ainda não conste na lista, clique em **\"Auxiliar Novo\"** e preencha os dados necessários (como CPF e nome). Após salvar, ele passará a aparecer na lista de usuários.\n4.  **Atribuição de Permissões**: Na linha correspondente ao usuário desejado, clique no ícone **\"Gerenciar Acessos\"** localizado ao final da linha. O sistema abrirá uma matriz com os projetos sob sua coordenação e as funcionalidades disponíveis (ex: *Finanças*, *FormuláriosMembro*). Selecione as permissões que devem ser concedidas a ele.\n5.  **Finalização**: Clique em **Salvar** para atualizar o perfil de acesso no sistema.\n\n**Observação:** A atribuição de novos perfis aos membros da equipe deve ser realizada apenas pelo coordenador do projeto ou por um aprovador.\n\n> Fonte: [Manual do Sistema Area Coordenadores.pdf, págs. 40, 41]",
+  "sources": [
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 40 · 99%)",
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 41 · 99%)",
+   "- Manual dos Coordenadores.pdf"
+  ],
+  "conversation_id": 916,
+  "tools": [
+   "consultar_base_conhecimento"
+  ],
+  "elapsed_s": 53.2,
+  "error": null,
+  "inline_files": [
+   "Manual do Sistema Area Coordenadores.pdf"
+  ],
+  "is_negativa": false
+ },
+ {
+  "id": "SIS-06",
+  "categoria": "sistema",
+  "esperado": "sistema",
+  "pergunta": "O que são as notificações da Área de Coordenadores?",
+  "answer": "As notificações na **Área de Coordenadores** são mensagens enviadas pela FAI•UFSCar aos usuários do sistema para informar sobre comunicados, atualizações ou ações necessárias em um projeto.\n\nO funcionamento das notificações ocorre da seguinte forma:\n\n*   **Ícone de Notificações:** Localizado na interface do sistema, ele exibe em vermelho a quantidade de mensagens pendentes.\n*   **Acesso e Visualização:** Ao clicar no ícone, o usuário visualiza uma lista com as últimas notificações recebidas e o contador de pendências é removido.\n*   **Consulta Completa:** Existe um link \"Ver todas\" que permite ao coordenador consultar todas as notificações enviadas pelo sistema.\n*   **Confirmação de Leitura:** As notificações podem ser marcadas como lidas individualmente ou em massa, deixando de aparecer na contagem de pendências.\n\nAlém disso, o menu de notificações oferece links para ajuda (acesso ao manual da Área de Coordenadores) e para encerrar a sessão do usuário.\n\n> Fonte: [Manual do Sistema Area Coordenadores.pdf, pág. 5]",
+  "sources": [
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 5 · 97%)",
+   "- Manual dos Coordenadores.pdf"
+  ],
+  "conversation_id": 917,
+  "tools": [
+   "consultar_base_conhecimento"
+  ],
+  "elapsed_s": 37.9,
+  "error": null,
+  "inline_files": [
+   "Manual do Sistema Area Coordenadores.pdf"
+  ],
+  "is_negativa": false
+ },
+ {
+  "id": "SIS-07",
+  "categoria": "sistema",
+  "esperado": "sistema",
+  "pergunta": "Como funciona o rateio de valores pelas alíneas ao preencher uma Solicitação de Pagamento?",
+  "answer": "O rateio de valores pelas alíneas no preenchimento da Solicitação de Pagamento funciona da seguinte forma:\n\nNo formulário **SP – Solicitação de Pagamento**, existe uma seção específica para o **Rateio**. Nela, você deve distribuir o valor total da compra entre as **alíneas** (que correspondem às contas financeiras ou rubricas) do seu projeto.\n\nO procedimento detalhado é:\n*   **Seleção e Atualização**: Ao selecionar a alínea desejada na lista, o sistema atualiza automaticamente o valor total correspondente.\n*   **Conformidade**: As alíneas exibidas já estão em conformidade com o orçamento do seu projeto, e o centro de custo será preenchido automaticamente pelo sistema.\n*   **Regra de Soma**: É fundamental que a soma dos valores atribuídos às diversas alíneas seja exatamente igual ao **Valor da NF (R$)** informado anteriormente no formulário.\n\n> Fonte: [Manual do Sistema Area Coordenadores.pdf, pág. 32]",
+  "sources": [
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 32 · 96%)",
+   "- Manual dos Coordenadores.pdf"
+  ],
+  "conversation_id": 918,
+  "tools": [
+   "consultar_base_conhecimento"
+  ],
+  "elapsed_s": 37.2,
+  "error": null,
+  "inline_files": [
+   "Manual do Sistema Area Coordenadores.pdf"
+  ],
+  "is_negativa": false
+ },
+ {
+  "id": "SIS-08",
+  "categoria": "sistema",
+  "esperado": "sistema",
+  "pergunta": "O que devo fazer se meu fornecedor ainda não é cadastrado na FAI?",
+  "answer": "Para lidar com um fornecedor que ainda não está cadastrado na FAI•UFSCar, você deve seguir o procedimento descrito no manual da Área de Coordenadores:\n\n1.  **Busca inicial**: Ao preencher a sua solicitação (como uma Solicitação de Compra ou de Pagamento), insira o CNPJ/CPF do fornecedor no campo correspondente para que o sistema realize a busca na base de dados da FAI•UFSCar.\n2.  **Cadastro de novo fornecedor**: Caso o sistema exiba a mensagem \"Nenhum fornecedor encontrado\", você deve clicar no link **\"cadastre um novo fornecedor\"** disponível na tela. Isso abrirá um formulário eletrônico para inserir os dados necessários, como CNPJ/CPF, razão social e informações bancárias.\n3.  **Confirmação**: Certifique-se de que o CNPJ/CPF está correto antes de concluir o cadastro. Após finalizar, retorne à tela original da solicitação e digite novamente o CNPJ/CPF; os dados do fornecedor deverão aparecer automaticamente.\n\nCaso precise alterar informações de um fornecedor já cadastrado (como dados bancários), você deve solicitar a alteração diretamente ao **Setor Financeiro da FAI•UFSCar**.\n\n> Fonte: [Manual do Sistema Area Coordenadores.pdf, pág. 29]",
+  "sources": [
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 29 · 85%)",
+   "- Manual dos Coordenadores.pdf"
+  ],
+  "conversation_id": 919,
+  "tools": [
+   "consultar_base_conhecimento"
+  ],
+  "elapsed_s": 49.9,
+  "error": null,
+  "inline_files": [
+   "Manual do Sistema Area Coordenadores.pdf"
+  ],
+  "is_negativa": false
+ },
+ {
+  "id": "PRO-01",
+  "categoria": "processo",
+  "esperado": "processos",
+  "pergunta": "Qual o limite percentual para remanejamento entre rubricas?",
+  "answer": "O remanejamento entre rubricas orçamentárias é limitado a **20% da rubrica**, desde que essa possibilidade esteja prevista no edital, seja autorizada pelo órgão financiador e formalizada junto à FAI•UFSCar.\n\n> Fonte: [Manual dos Coordenadores.pdf, pág. 59]",
+  "sources": [
+   "- Manual dos Coordenadores.pdf (pág. 59 · 87%)",
+   "- Manual do Sistema Área Coordenadores.pdf"
+  ],
+  "conversation_id": 920,
+  "tools": [
+   "consultar_base_conhecimento"
+  ],
+  "elapsed_s": 28.6,
+  "error": null,
+  "inline_files": [
+   "Manual dos Coordenadores.pdf"
+  ],
+  "is_negativa": false
+ },
+ {
+  "id": "PRO-02",
+  "categoria": "processo",
+  "esperado": "processos",
+  "pergunta": "Qual é o limite financeiro para a contratação direta de serviços e compras com recursos do projeto?",
+  "answer": "O limite financeiro para a contratação direta de serviços e compras com recursos do projeto é definido da seguinte forma:\n\n*   **Obras e serviços de engenharia:** até **R$ 100.000,00** por solicitação.\n*   **Outros serviços e compras:** até **R$ 40.000,00** por solicitação.\n\n> Fonte: [Manual dos Coordenadores.pdf, pág. 32]",
+  "sources": [
+   "- Manual dos Coordenadores.pdf (pág. 32 · 90%)",
+   "- Manual do Sistema Área Coordenadores.pdf"
+  ],
+  "conversation_id": 921,
+  "tools": [
+   "consultar_base_conhecimento"
+  ],
+  "elapsed_s": 63.4,
+  "error": null,
+  "inline_files": [
+   "Manual dos Coordenadores.pdf"
+  ],
+  "is_negativa": false
+ },
+ {
+  "id": "PRO-03",
+  "categoria": "processo",
+  "esperado": "processos",
+  "pergunta": "Quais os prazos e trâmites para obras de engenharia nos campi da UFSCar?",
+  "answer": "Para as obras de engenharia nos campi da UFSCar, os trâmites e prazos são regidos pelo Código de Obras e Edificações da UFSCar (Resolução CoAd nº 022/2020) e seguem o fluxo detalhado abaixo:\n\n*   **Início do processo**: Deve ser aberto um processo no sistema SEI, que deve ser encaminhado à Secretaria de Gestão do Espaço Físico (SeGEF) da UFSCar após a anuência da chefia pertinente.\n*   **Orçamento**: O coordenador do projeto deve enviar um orçamento para servir como base de referência de preço e das especificações necessárias para a demanda.\n*   **Documentação mínima**: É estabelecido um prazo mínimo de 60 dias para a entrega de documentação simples, como croqui ou planta baixa.\n*   **Tempo total médio**: O processo completo — que engloba desde a documentação até a licitação e o início da obra — pode levar, em média, cerca de 20 meses (aproximadamente 599 dias).\n*   **Obras extensas**: Projetos com prazo superior a 300 dias podem estar sujeitos a repactuação de valores, realinhamento ou reequilíbrio contratual, o que pode impactar os recursos financeiros.\n*   **Fiscalização**: O acompanhamento e a fiscalização das obras são realizados pela Gerência de Engenharia da FAI•UFSCar para garantir o cumprimento do cronograma físico-financeiro.\n\n> Fonte: [Manual dos Coordenadores.pdf, pág. 36]",
+  "sources": [
+   "- Manual dos Coordenadores.pdf (pág. 36 · 99%)",
+   "- Manual do Sistema Área Coordenadores.pdf"
+  ],
+  "conversation_id": 922,
+  "tools": [
+   "consultar_base_conhecimento"
+  ],
+  "elapsed_s": 39.6,
+  "error": null,
+  "inline_files": [
+   "Manual dos Coordenadores.pdf"
+  ],
+  "is_negativa": false
+ },
+ {
+  "id": "PRO-04",
+  "categoria": "processo",
+  "esperado": "processos",
+  "pergunta": "Como funciona a prestação de contas de um projeto?",
+  "answer": "A prestação de contas é o processo que comprova a correta aplicação dos recursos do projeto, garantindo transparência, fiscalização e controle. O processo ocorre em duas fases principais: **parcial** (durante a execução) e **final** (no encerramento).\n\n### 1. Responsáveis\n*   **Coordenador do Projeto**: responsável por elaborar, acompanhar e submeter a prestação de contas.\n*   **Gestor de Projetos (da Fundação)**: interlocutor oficial que auxilia na conciliação dos valores e documentos.\n*   **Fiscal do Projeto**: verifica a conformidade das despesas e aprova a prestação de contas final.\n\n### 2. Documentação exigida\n| Tipo | Conteúdo |\n| :--- | :--- |\n| **Relatórios técnicos** | Resultados alcançados, comparado ao plano aprovado |\n| **Relatórios financeiros** | Despesas realizadas, notas fiscais, comprovantes de pagamento |\n| **Notas fiscais e recibos** | Emitidas em nome da Fundação ou filiais, identificando o projeto |\n| **Outros documentos** | Contratos, termos de referência, aprovações internas |\n\n### 3. Prazo\nO prazo final para a entrega das contas é estabelecido no instrumento formal (convênio, contrato, termo de fomento). O coordenador deve cumprir esse prazo e garantir que todos os documentos estejam completos.\n\n### 4. Submissão\nPara realizar o envio da prestação de contas, siga estas etapas:\n1.  Reunir todos os documentos necessários;\n2.  Acessar o formulário **SF-PC – Suprimento de Fundos - Prestação de Contas** na plataforma **Área de Coordenadores**;\n3.  Preencher as informações solicitadas e anexar os comprovantes;\n4.  Enviar para aprovação do gestor ou fiscal do projeto.\n\n### 5. Encerramento\nNo encerramento do projeto, além da prestação de contas financeira (parcial e final), a Fundação zela pela devolução de saldos não utilizados e confirma o encerramento no sistema.\n\n> Fonte: [Manual dos Coordenadores.pdf, págs. 15, 19]",
+  "sources": [
+   "- Manual dos Coordenadores.pdf (pág. 15 · 86%)",
+   "- Manual dos Coordenadores.pdf (pág. 19 · 86%)",
+   "- Manual do Sistema Área Coordenadores.pdf"
+  ],
+  "conversation_id": 923,
+  "tools": [
+   "consultar_base_conhecimento"
+  ],
+  "elapsed_s": 54.9,
+  "error": null,
+  "inline_files": [
+   "Manual dos Coordenadores.pdf"
+  ],
+  "is_negativa": false
+ },
+ {
+  "id": "PRO-05",
+  "categoria": "processo",
+  "esperado": "processos",
+  "pergunta": "Quais as limitações para a contratação de profissionais autônomos (Pessoa Física)?",
+  "answer": "As limitações para a contratação de profissionais autônomos (Pessoa Física) pela FAI•UFSCar são as seguintes:\n\n*   **Vínculo Empregatício**: A relação deve ser estritamente de prestação de serviços, sem qualquer vínculo empregatício. É proibida qualquer subordinação que configure uma relação de emprego.\n*   **Uso de Recursos**: O profissional autônomo não pode ser utilizado para a aquisição de bens permanentes ou para a contratação direta de serviços em geral (como compras e materiais).\n*   **Exigências Contratuais**: A contratação deve, obrigatoriamente, contar com uma justificativa técnica e um contrato de prestação de serviço.\n\nAlém dessas limitações, o manual estabelece os seguintes requisitos e condições:\n\n*   **Requisitos do Profissional**: O contratado deve possuir registro de inscrição municipal para emissão de nota fiscal, estar cadastrado como contribuinte individual no INSS (seguindo as regras municipais) e permitir a retenção na fonte dos impostos correspondentes (INSS, IRRF, ISS, conforme o caso).\n*   **Documentação**: É necessário o preenchimento completo do *Recibo de Prestação Direta de Serviço*, com campos de informações legíveis para cadastro no e-Social.\n*   **Pagamento**: Após a aprovação pelo Departamento de Projetos, o pagamento é realizado pelo Departamento de Gestão de Pessoas em até **3 dias úteis** após o recebimento do formulário *Recibo de Prestação Direta de Serviço*.\n\n> Fonte: [Manual dos Coordenadores.pdf, pág. 45]",
+  "sources": [
+   "- Manual dos Coordenadores.pdf (pág. 45 · 96%)"
+  ],
+  "conversation_id": 924,
+  "tools": [
+   "consultar_base_conhecimento"
+  ],
+  "elapsed_s": 40.4,
+  "error": null,
+  "inline_files": [
+   "Manual dos Coordenadores.pdf"
+  ],
+  "is_negativa": false
+ },
+ {
+  "id": "PRO-06",
+  "categoria": "processo",
+  "esperado": "processos",
+  "pergunta": "Quando é indispensável a elaboração de um Termo de Referência (TR)?",
+  "answer": "O Termo de Referência (TR) é indispensável em situações que exigem especificação técnica detalhada e controle de qualidade, especialmente nas aquisições mais complexas.\n\nEle funciona como a base para todo o processo de aquisição, definindo os seguintes pontos:\n*   **Escopo** da compra ou importação;\n*   **Cronograma**;\n*   **Requisitos técnicos** ou de qualificação desejados;\n*   **Critérios de aceitação** do produto ou serviço.\n\nO coordenador é o responsável por elaborar e fornecer o TR.\n\n> Fonte: [Manual dos Coordenadores.pdf, págs. 30, 72]",
+  "sources": [
+   "- Manual dos Coordenadores.pdf (pág. 30 · 57%)",
+   "- Manual dos Coordenadores.pdf (pág. 72 · 35%)",
+   "- Manual do Sistema Área Coordenadores.pdf"
+  ],
+  "conversation_id": 925,
+  "tools": [
+   "consultar_base_conhecimento"
+  ],
+  "elapsed_s": 53.5,
+  "error": null,
+  "inline_files": [
+   "Manual dos Coordenadores.pdf"
+  ],
+  "is_negativa": false
+ },
+ {
+  "id": "MIX-01",
+  "categoria": "ambigua",
+  "esperado": "ambos_ok",
+  "pergunta": "Esqueci minha senha da Área de Coordenadores, como faço?",
+  "answer": "Para recuperar ou redefinir sua senha da **Área de Coordenadores**, você deve seguir o procedimento descrito no manual:\n\n1.  **Acesse a página de login**: Acesse o portal da Área de Coordenadores (ex.: https://sistemas.fai.ufscar.br/coordenadores).\n2.  **Solicite a recuperação**: No campo de login, insira seu e-mail ou CPF e clique na opção **\"Esqueci a Senha\"**.\n3.  **Verifique seu e-mail**: O sistema enviará automaticamente uma mensagem para o endereço cadastrado contendo um link para a criação de uma nova senha.\n4.  **Primeiro acesso**: Caso seja o seu primeiro acesso ao sistema, você deverá alterar a senha provisória enviada pela Fundação antes de aceitar a Política de Privacidade.\n\n> Fonte: [Manual do Sistema Area Coordenadores.pdf, pág. 4]",
+  "sources": [
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 4 · 92%)",
+   "- Manual dos Coordenadores.pdf"
+  ],
+  "conversation_id": 926,
+  "tools": [
+   "consultar_base_conhecimento"
+  ],
+  "elapsed_s": 37.8,
+  "error": null,
+  "inline_files": [
+   "Manual do Sistema Area Coordenadores.pdf"
+  ],
+  "is_negativa": false
+ },
+ {
+  "id": "MIX-02",
+  "categoria": "mista",
+  "esperado": "ambos_ok",
+  "pergunta": "Quais as regras para compras no projeto e como envio a Solicitação de Compra pelo sistema?",
+  "answer": "As regras para compras e o procedimento de envio da Solicitação de Compra pelo sistema são detalhados no manual.\n\n**Regras para Compras:**\nPara realizar compras, é necessário observar as seguintes diretrizes:\n*   **Processo de Aquisição**: O coordenador deve formalizar a necessidade de compra através do sistema **Área de Coordenadores**.\n*   **Documentação**: É necessário anexar os orçamentos e demais documentos exigidos para cada tipo de aquisição.\n*   **Aprovação**: A solicitação passará por análise interna antes da autorização para execução.\n\n**Como enviar a Solicitação de Compra pelo sistema:**\nPara realizar o envio via **Área de Coordenadores**, siga o fluxo abaixo:\n1.  Acesse a plataforma [https://sistemas.fai.ufscar.br/](https://sistemas.fai.ufscar.br/).\n2.  Localize o módulo de **Compras** ou **Solicitações**.\n3.  Preencha os campos obrigatórios com as informações do item, quantidades e valores estimados.\n4.  Anexe os documentos comprobatórios (como orçamentos).\n5.  Envie a solicitação para análise da equipe de gestão.\n\nSe você tiver dúvidas sobre o status de uma solicitação já enviada ou precisar de orientações específicas sobre um item complexo, recomendo entrar em contato com o **Gestor do seu Projeto**. Caso não possua um gestor designado, você pode contatar o **Supervisor de Projetos Específicos** ou o **Supervisor de Projetos Gerais** através dos canais oficiais da FAI•UFSCar.\n\nSe desejar, posso disponibilizar o manual completo para download.",
+  "sources": [],
+  "conversation_id": 927,
+  "tools": [
+   "consultar_base_conhecimento"
+  ],
+  "elapsed_s": 72.5,
+  "error": null,
+  "inline_files": [],
+  "is_negativa": false
+ },
+ {
+  "id": "MIX-03",
+  "categoria": "ambigua",
+  "esperado": "ambos_ok",
+  "pergunta": "Não estou conseguindo encontrar a alínea correta ao fazer uma Solicitação de Compra, o que faço?",
+  "answer": "O manual não detalha como proceder especificamente caso você tenha dificuldade em encontrar a alínea correta ao realizar uma Solicitação de Compra.\n\nPara resolver essa questão, recomendo que você entre em contato com o **Gestor do seu Projeto**, que é o interlocutor oficial para acompanhar as demandas e orientar sobre os procedimentos internos da FAI•UFSCar. Caso não haja um Gestor designado, você pode entrar em contato com o **Supervisor de Projetos Específicos** ou o **Supervisor de Projetos Gerais**.\n\nCaso precise de suporte geral da Fundação, você pode utilizar os canais oficiais:\n*   **Telefone:** (16) 3351-9000\n*   **E-mail:** fai@fai.ufscar.br",
+  "sources": [],
+  "conversation_id": 928,
+  "tools": [
+   "consultar_base_conhecimento"
+  ],
+  "elapsed_s": 73.5,
+  "error": null,
+  "inline_files": [],
+  "is_negativa": false
+ },
+ {
+  "id": "NEG-01",
+  "categoria": "negativa",
+  "esperado": "negativa",
+  "pergunta": "Qual o prazo máximo que a FINEP concede para a prestação de contas de um projeto?",
+  "answer": "Para esclarecer essa demanda específica, recomendo entrar em contato com o Gestor do seu Projeto. Caso ainda não tenha um gestor designado, procure o Supervisor de Projetos Específicos ou o Supervisor de Projetos Gerais pelo telefone (16) 3351-9000 ou e-mail fai@fai.ufscar.br.",
+  "sources": [],
+  "conversation_id": 929,
+  "tools": [
+   "consultar_base_conhecimento"
+  ],
+  "elapsed_s": 69.4,
+  "error": null,
+  "inline_files": [],
+  "is_negativa": true
+ },
+ {
+  "id": "MT-01",
+  "categoria": "multiturno",
+  "esperado": "processos",
+  "pergunta": "T1: O que é o remanejamento de rubricas em um projeto? | T2: E qual é o percentual máximo permitido disso?",
+  "turno1": {
+   "answer": "O **remanejamento de rubricas** (também chamado de remanejamento de saldos) consiste na transferência de recursos financeiros dentro do orçamento de um projeto, ou seja, a movimentação de valores de uma rubrica orçamentária para outra. Essa prática permite ajustar o uso dos valores previstos conforme as necessidades da execução do projeto.\n\nPara que o remanejamento ocorra, devem ser seguidas as seguintes condições:\n*   **Previsão no Edital:** O procedimento deve estar previsto nas regras do edital do projeto;\n*   **Limite de Valor:** O valor transferido não pode ultrapassar **20% da rubrica original**;\n*   **Autorização:** A transferência precisa ser autorizada pelo órgão financiador;\n*   **Formalização:** O remanejamento deve ser formalizado junto à FAI•UFSCar, seguindo os procedimentos internos de controle e prestação de contas.\n\n> Fonte: [Manual dos Coordenadores.pdf, pág. 59]",
+   "inline_files": [
+    "Manual dos Coordenadores.pdf"
+   ],
+   "sources": [
+    "- Manual dos Coordenadores.pdf (pág. 59 · 95%)",
+    "- Manual do Sistema Área Coordenadores.pdf"
+   ]
+  },
+  "answer": "O percentual máximo permitido para o remanejamento de uma rubrica é de **20%** do valor da rubrica original.\n\n> Fonte: [Manual dos Coordenadores.pdf, pág. 59]",
+  "sources": [],
+  "tools": [],
+  "elapsed_s": 4.0,
+  "error": null,
+  "inline_files": [
+   "Manual dos Coordenadores.pdf"
+  ],
+  "is_negativa": false
+ },
+ {
+  "id": "MT-02",
+  "categoria": "multiturno",
+  "esperado": "sistema",
+  "pergunta": "T1: Como emito um Pedido de Venda na Área de Coordenadores? | T2: E onde eu acompanho o status desse pedido depois de emitido?",
+  "turno1": {
+   "answer": "Para emitir um Pedido de Venda na **Área de Coordenadores**, você deve seguir o passo a passo detalhado no manual do sistema:\n\n1.  **Acesso ao Sistema**: Acesse o portal [https://sistemas.fai.ufscar.br/coordenadores](https://sistemas.fai.ufscar.br/coordenadores) e realize o login com seu e-mail/CPF e senha.\n2.  **Localização da Funcionalidade**: Na tela inicial, acesse a funcionalidade de **Faturamento (ou \"Pedidos\")** e clique no botão **Adicionar [novos pedidos]**.\n3.  **Seleção do Cliente**: Pesquise pelo CNPJ ou CPF do cliente. Caso o cliente já esteja cadastrado, os dados aparecerão automaticamente; caso contrário, você deverá cadastrar um novo ou contatar o setor Financeiro da Fundação.\n4.  **Escolha do Contato**: Selecione o contato exibido ou cadastre um novo. Se nenhum for selecionado, o sistema utilizará o contato padrão.\n5.  **Preenchimento do Cabeçalho**:\n    *   **Solicitante**: Pessoa responsável pela solicitação do serviço.\n    *   **Responsável**: Pessoa que executa o serviço (por padrão, o nome do Coordenador do projeto).\n    *   **Número Externo**: Utilizado para controle interno do cliente ou coordenador.\n    *   **Tipo de Pedido**: Selecione entre *Serviço* ou *Produto*. Note que apenas projetos específicos podem gerar pedidos de venda de produto; nestes casos, consulte o setor Financeiro da Fundação.\n    *   **Anexar Arquivo**: Opção opcional para anexar documentos ao pedido através do ícone correspondente.\n6.  **Inclusão de Itens**: Para cada item, informe a descrição, quantidade e valor unitário (o sistema realizará o cálculo automático do total).\n7.  **Finalização**: Após revisar todos os dados, clique em enviar/confirmar. O sistema gerará automaticamente a Nota Fiscal Eletrônica (NFE) e registrará o pedido no Sapiens.\n\n> Fonte: [Manual do Sistema Area Coordenadores.pdf, págs. 14, 15, 16]",
+   "inline_files": [
+    "Manual do Sistema Area Coordenadores.pdf"
+   ],
+   "sources": [
+    "- Manual do Sistema Área Coordenadores.pdf (pág. 14 · 94%)",
+    "- Manual do Sistema Área Coordenadores.pdf (pág. 15 · 95%)",
+    "- Manual do Sistema Área Coordenadores.pdf (pág. 16 · 95%)"
+   ]
+  },
+  "answer": "Para acompanhar o status do pedido após a emissão, você deve acessar a seção **Faturamento** (ou **Pedidos**) dentro da **Área de Coordenadores**.\n\nNessa tela:\n*   **Visualização**: O sistema exibe uma lista dos pedidos realizados nos últimos 30 dias que estão atribuídos ao seu projeto.\n*   **Informações por Pedido**: Cada linha apresenta colunas específicas para o *Pedido*, a *Nota Fiscal* e o *Título a Receber*.\n*   **Identificação de Status**: O status atual do pedido é indicado por ícones ou etiquetas (ex.: \"Pedido emitido\", \"Nota emitida\" ou \"Título pago\").\n*   **Filtros**: Você pode utilizar os filtros localizados no topo da página para buscar e refinar a visualização por data, cliente ou situação específica.\n\n> Fonte: [Manual do Sistema Area Coordenadores.pdf, págs. 14, 15]",
+  "sources": [
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 14 · 69%)",
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 15 · 69%)",
+   "- Manual dos Coordenadores.pdf"
+  ],
+  "tools": [
+   "consultar_base_conhecimento"
+  ],
+  "elapsed_s": 54.3,
+  "error": null,
+  "inline_files": [
+   "Manual do Sistema Area Coordenadores.pdf"
+  ],
+  "is_negativa": false
+ }
+]

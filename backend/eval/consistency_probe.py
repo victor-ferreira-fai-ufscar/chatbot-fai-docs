@@ -35,6 +35,11 @@ API = "http://localhost:8000/api/v1/chat/stream"
 ABSTENTION_RE = re.compile(
     r"n[ãa]o\s+(consta|detalha|est[áa]\s+detalhad|especifica|menciona|trata|aborda|"
     r"foi\s+poss[íi]vel|encontr|disp[oõ]e|h[áa]\s+informa)", re.I)
+# Negativa por TOKEN-SENTINELA: o sistema substitui o token pela mensagem fixa de
+# direcionamento (NO_CONTEXT_MSG), que NÃO casa o regex acima. Detecta essa forma
+# nova pela assinatura estável do direcionamento ao Gestor/Supervisores.
+NO_CONTEXT_SIG_RE = re.compile(
+    r"(recomendo entrar em contato com o Gestor|Supervisor de Projetos (Espec|Gerais))", re.I)
 
 # Subconjunto-padrão: mistura controles "fáceis" (devem SEMPRE responder) com casos de
 # fronteira (financiador/autônomos/prazos) onde o flip costuma aparecer. Sobrescrevível
@@ -75,7 +80,12 @@ def ask(question: str, mode: str):
     return {
         "answer": ans,
         "sources": sources,
-        "abstained": bool(ABSTENTION_RE.search(ans)),
+        # Abstencao real = mensagem de direcionamento (sentinela) OU frase de negativa SEM
+        # nenhuma linha de fonte. Uma resposta fundamentada que observa "o manual nao
+        # detalha [sub-ponto]" (regra 2.2 do prompt) NAO e abstencao — com o "> Fonte:"
+        # presente, o nucleo foi respondido (falso-positivo corrigido em 2026-07-14).
+        "abstained": bool(NO_CONTEXT_SIG_RE.search(ans))
+                     or (bool(ABSTENTION_RE.search(ans)) and "> Fonte:" not in ans),
         "has_sources": bool(sources),
         "chars": len(ans),
         "elapsed": round(time.time() - t0, 1),

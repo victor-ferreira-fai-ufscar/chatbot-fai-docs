@@ -1,0 +1,90 @@
+[
+ {
+  "id": "DOC-1",
+  "pergunta": "Me envia o manual do coordenador, por favor?",
+  "resposta": "Como existem dois manuais relacionados à coordenação, você poderia me informar qual deles deseja baixar?\n\n*   **Manual do Sistema Área de Coordenadores** (focado em procedimentos no sistema e fluxos internos)\n*   **Manual dos Coordenadores** (focado em orientações gerais para a gestão de projetos)",
+  "fontes_cards": [],
+  "tools": [
+   "entregar_documento"
+  ],
+  "latencia_s": 29.2,
+  "downloads": []
+ },
+ {
+  "id": "DOC-2",
+  "pergunta": "Pode me mandar o manual do sistema da Área de Coordenadores para download?",
+  "resposta": "Seguem as orientações para o Manual do Sistema da Área de Coordenadores. Segue o link para download:\n\n📎 [Baixar **Manual_do_Sistema_Area_Coordenadores.pdf**](http://200.136.209.248:8000/storage/v1/object/sign/manuais/Manual_do_Sistema_Area_Coordenadores.pdf?token=eyJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJtYW51YWlzL01hbnVhbF9kb19TaXN0ZW1hX0FyZWFfQ29vcmRlbmFkb3Jlcy5wZGYiLCJpYXQiOjE3ODQwNDE2MjEsImV4cCI6MTc4NDA0NTIyMX0.Ovc5XX2EMWe_M93yslBenahq4lVbFmJ0kGDQv9QbEy8)",
+  "fontes_cards": [],
+  "tools": [
+   "entregar_documento"
+  ],
+  "latencia_s": 15.1,
+  "downloads": [
+   "Manual_do_Sistema_Area_Coordenadores.pdf"
+  ]
+ },
+ {
+  "id": "PLAN-1",
+  "pergunta": "Gere uma planilha com os limites de compra direta por tipo de aquisição (obras, serviços e compras).",
+  "resposta": "Com base no manual, os limites para a modalidade de Compra Direta são divididos entre obras/serviços de engenharia e outros tipos de aquisições (serviços e compras).\n\nA planilha com esses valores foi gerada e está disponível para download abaixo:\n\n> Fonte: [Manual dos Coordenadores.pdf, pág. 32]\n\n📎 [Baixar **Limites_de_Compra_Direta_por_Tipo_de_Aquisicao.xlsx**](http://200.136.209.248:8000/storage/v1/object/sign/gerados/Limites_de_Compra_Direta_por_Tipo_de_Aquisicao.xlsx?token=eyJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJnZXJhZG9zL0xpbWl0ZXNfZGVfQ29tcHJhX0RpcmV0YV9wb3JfVGlwb19kZV9BcXVpc2ljYW8ueGxzeCIsImlhdCI6MTc4NDA0MTY1MywiZXhwIjoxNzg0MDQ1MjUzfQ.t76kfEnLtxsbg8NL9FQO3P-QZFZW6Y9pfrhdk4j0XoE)",
+  "fontes_cards": [
+   "- Manual dos Coordenadores.pdf (pág. 32 · 97%)"
+  ],
+  "tools": [
+   "consultar_base_conhecimento",
+   "gerar_planilha"
+  ],
+  "latencia_s": 31.2,
+  "downloads": [
+   "Limites_de_Compra_Direta_por_Tipo_de_Aquisicao.xlsx"
+  ]
+ },
+ {
+  "id": "SOC-1",
+  "pergunta": "Bom dia! Tudo bem?",
+  "resposta": "Olá! Sou a Lina, assistente virtual da FAI•UFSCar. Como posso ajudar?",
+  "fontes_cards": [],
+  "tools": [],
+  "latencia_s": 5.4,
+  "downloads": []
+ },
+ {
+  "id": "MT-T1",
+  "pergunta": "O que o manual diz sobre adiantamento para viagens?",
+  "resposta": "O manual da FAI•UFSCar estabelece as seguintes orientações sobre o adiantamento para viagens:\n\n**Adiantamento para viagens**\n*   **Condições para concessão:** O adiantamento pode ser concedido pela Fundação caso o projeto preveja essa possibilidade. Os recursos devem ser utilizados exclusivamente para cobrir despesas com hospedagem, alimentação e transportes relacionados a viagens a serviço.\n*   **Público beneficiário:** Podem receber o adiantamento funcionários contratados sob regime CLT, docentes das instituições apoiadas, estagiários, bolsistas, servidores técnico-administrativos e membros externos à instituição apoiada, desde que estejam nomeados na equipe de trabalho do projeto.\n*   **Prestação de contas:** Após o recebimento do adiantamento, a prestação de contas deve ser realizada dentro dos prazos e parâmetros da resolução vigente. Caso não ocorra a prestação de contas, novas solicitações ficam impedidas e poderá ser exigida a devolução do valor adiantado.\n\n**Reembolso de despesas de viagem**\nPara despesas realizadas sem o adiantamento prévio, o reembolso é permitido desde que:\n1.  Estejam permitidas na categoria do projeto;\n2.  Tenham sido autorizadas pela Fundação;\n3.  Sejam comprovadas com documentos fiscais válidos (nota fiscal, recibo ou cupom).\n\n**Requisitos dos documentos fiscais**\nOs documentos (notas fiscais, recibos e invoices) devem:\n*   Ser emitidos em nome da **FAI•UFSCar matriz** ou de suas filiais;\n*   Conter a indicação do projeto ao qual se referem;\n*   Estar legível, sem rasuras e em conformidade com os procedimentos do manual.\n\nAs despesas reembolsáveis devem estar diretamente relacionadas aos objetivos do projeto.\n\n> Fonte: [Manual dos Coordenadores.pdf, págs. 39, 41, 42]",
+  "fontes_cards": [
+   "- Manual dos Coordenadores.pdf (pág. 39 · 92%)",
+   "- Manual dos Coordenadores.pdf (pág. 41 · 92%)",
+   "- Manual dos Coordenadores.pdf (pág. 42 · 92%)",
+   "- Manual do Sistema Área Coordenadores.pdf"
+  ],
+  "tools": [
+   "consultar_base_conhecimento"
+  ],
+  "latencia_s": 37.1,
+  "downloads": []
+ },
+ {
+  "id": "MT-T2",
+  "pergunta": "E quem pode receber esse adiantamento?",
+  "resposta": "O adiantamento para viagens pode ser recebido pelas seguintes categorias:\n\n*   Funcionários contratados sob regime CLT;\n*   Docentes das instituições apoiadas;\n*   Estagiários;\n*   Bolsistas;\n*   Servidores técnico-administrativos;\n*   Membros externos à instituição apoiada.\n\n**Condição para recebimento:** Para que qualquer uma dessas pessoas receba o adiantamento, é necessário que ela esteja nomeada na equipe de trabalho do projeto.\n\n> Fonte: [Manual dos Coordenadores.pdf, pág. 39]",
+  "fontes_cards": [],
+  "tools": [],
+  "latencia_s": 11.3,
+  "downloads": []
+ },
+ {
+  "id": "QUOTED-1",
+  "pergunta": "Esse limite vale também para projetos com recursos privados?",
+  "resposta": "O manual não especifica um limite numérico para projetos com recursos privados (como FAPESP, FINEP ou CNPq). Para esses casos, a Fundação segue a Resolução CD/FAI nº 13/26, e os valores devem ser consultados nas regras internas de cada financiador específico.\n\n> Fonte: [Manual dos Coordenadores.pdf, pág. 70]",
+  "fontes_cards": [
+   "- Manual dos Coordenadores.pdf (pág. 32 · 62%)",
+   "- Manual dos Coordenadores.pdf (pág. 70 · 4%)"
+  ],
+  "tools": [
+   "consultar_base_conhecimento"
+  ],
+  "latencia_s": 32.4,
+  "downloads": []
+ }
+]

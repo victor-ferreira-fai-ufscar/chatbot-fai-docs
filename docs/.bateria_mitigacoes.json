@@ -1,0 +1,87 @@
+[
+ {
+  "id": "SIS-03",
+  "pergunta": "Como faço uma Solicitação de Pagamento (SP) pelo sistema?",
+  "answer": "Para realizar uma Solicitação de Pagamento (SP) por meio da **Área de Coordenadores**, você deve seguir o passo a passo abaixo:\n\n1.  **Acesso ao Sistema**: Acesse o portal [https://sistemas.fai.ufscar.br/coordenadores](https://sistemas.fai.ufscar.br/coordenadores) e realize o login com seu e-mail ou CPF e senha.\n2.  **Seleção do Projeto**: Na tela inicial, selecione o projeto específico ao qual a solicitação de pagamento se refere.\n3.  **Criação do Formulário**: Clique no botão **\"Adicionar\" (ícone +)** e escolha o tipo de formulário que deseja criar.\n4.  **Tipo de Solicitação**: No menu de tipos, selecione a opção **\"SP-Solic. de Pagamento (Antiga SN)\"**.\n5.  **Preenchimento dos Dados**: Preencha os campos obrigatórios conforme as especificações:\n    *   **Tipo de pagamento**: Escolha entre *Pagamento – PJ* (nota fiscal ou cupom emitido), *Adiantamento – PJ* (nota não emitida, com pagamento antecipado) ou *Ressarcimento – PF* (nota já paga que a Fundação irá ressarcir).\n    *   **Fornecedor / Favorecido**: Informe o CNPJ/CPF e clique para realizar a pesquisa.\n    *   **Forma de pagamento**: Indique se é à vista ou parcelado; informe também o número do comprovante, a data de vencimento e o valor da nota fiscal (NF).\n    *   **Banco**: Caso seja um depósito, confirme os dados bancários.\n    *   **Descrição / Objeto** e **Justificativa**.\n6.  **Anexos**: Utilize a opção **\"Upload\"** para anexar os documentos comprobatórios, como nota fiscal, recibo ou cupom eletrônico.\n7.  **Aprovação**: \n    *   Se o emissor for um Auxiliar ou Membro do Grupo de Trabalho, o formulário ficará com o status *Aguardando Aprovação* até que o Coordenador/Aprovador valide.\n    *   Se o emissor for o próprio Coordenador ou Aprovador, o sistema aprova automaticamente e o formulário passa para o status *Em Trâmite*.\n8.  **Assinatura e Protocolo**: O formulário receberá assinatura eletrônica baseada no seu login. Após a aprovação, o sistema gerará um número de **Protocolo Eletrônico**, que poderá ser consultado pelos colaboradores.\n\n> Fonte: [Manual do Sistema Area Coordenadores.pdf, págs. 4, 30, 31, 33]",
+  "sources": [
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 4 · 63%)",
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 30 · 99%)",
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 31 · 99%)",
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 33 · 98%)"
+  ],
+  "tools": [
+   "consultar_base_conhecimento"
+  ]
+ },
+ {
+  "id": "SIS-04",
+  "pergunta": "Como acompanho minha Solicitação de Compra (SC) na Área de Coordenadores?",
+  "answer": "Para acompanhar sua Solicitação de Compra (SC) na Área de Coordenadores, você deve acessar a plataforma oficial da FAI•UFSCar.\n\n**Passo a passo para acompanhamento:**\n\n1.  Acesse o portal: [https://sistemas.fai.ufscar.br/](https://sistemas.fai.ufscar.br/)\n2.  Faça login na **Área de Coordenadores**.\n3.  No menu do sistema, localize a seção correspondente ao acompanhamento de solicitações (como compras ou outros pedidos).\n4.  Verifique o status atual da sua SC e as possíveis pendências apontadas pelo sistema.\n\nCaso encontre dificuldades técnicas no acesso ou precise de esclarecimentos sobre o status específico da sua solicitação, entre em contato com o **Gestor do seu Projeto**. Se não houver um gestor designado, você pode contatar a **Área de Coordenadores** através dos canais oficiais da FAI•UFSCar.\n\n> Fonte: [Manual do Sistema Area Coordenadores.pdf, pág. 12]",
+  "sources": [],
+  "tools": [
+   "consultar_base_conhecimento"
+  ]
+ },
+ {
+  "id": "MIX-02",
+  "pergunta": "Quais as regras para compras no projeto e como envio a Solicitação de Compra pelo sistema?",
+  "answer": "Para realizar compras no projeto e enviar a Solicitação de Compra (SC) pelo sistema, você deve seguir as diretrizes e o passo a passo detalhados abaixo:\n\n### Regras para Compras no Projeto\nAs aquisições devem respeitar os limites de valor para definir a modalidade de contratação:\n\n*   **Compra Direta:** Permitida quando o valor está abaixo dos limites legais.\n    *   **Obras e serviços de engenharia:** até **R$ 100.000,00** (desde que não sejam parcelas da mesma obra ou serviço).\n    *   **Outros serviços e compras:** até **R$ 40.000,00** (desde que não sejam parcelas de um mesmo serviço ou compra maior).\n*   **Seleção Pública:** Deve ser utilizada caso o valor da aquisição exceda os limites mencionados acima.\n*   **Compra Fácil:** Esta modalidade pode ser utilizada para itens já previamente contratados; nestes casos, não é necessário anexar orçamento.\n\n### Passo a Passo: Solicitação de Compra (SC) via Sistema Área de Coordenadores\nPara registrar e enviar uma SC pelo sistema, siga estas etapas:\n\n1.  **Acesso ao Sistema:** Acesse o portal [https://sistemas.fai.ufscar.br/coordenadores](https://sistemas.fai.ufscar.br/coordenadores) utilizando seu e-mail/CPF e senha.\n2.  **Seleção do Projeto:** Na tela inicial, selecione o projeto desejado ou utilize a busca por nome ou número.\n3.  **Abertura do Formulário:** No menu lateral, acesse **Formulários**, selecione a opção **“SC‑Solic.Compra/Termo Referência”** e clique em **Adicionar**.\n4.  **Preenchimento dos Dados:** Preencha os campos obrigatórios:\n    *   **Dados de contato:** nome, e-mail e telefone da pessoa de contato.\n    *   **Logística:** prazo de entrega desejado e local de entrega (instituição, campus, laboratório, etc.).\n    *   **Descrição:** descrição do objeto, objetivo e justificativa da compra.\n    *   **Fornecedor:** se houver um fornecedor específico, informe nome, e-mail e telefone.\n    *   **Itens:** quantidade, unidade de medida, valor unitário, descrição detalhada, conta financeira (alínea/rubrica) e centro de custo. O sistema calculará os valores totais automaticamente.\n    *   **Informações Adicionais:** utilize o campo **Info.Complementares** para observações extras.\n5.  **Anexos:** Utilize o botão **Escolher Arquivos** para incluir especificações técnicas, catálogos ou outros documentos pertinentes.\n6.  **Salvar e Enviar:** Clique em **Salvar** para registrar um rascunho. Após revisar a visualização do formulário, clique em **Enviar para Aprovação do Coordenador** (caso você seja auxiliar/membro) ou o sistema processará a aprovação automática se emitido pelo coordenador/aprovador.\n7.  **Aprovação e Protocolo:** O coordenador ou aprovador designado deve assinar eletronicamente o formulário. Após a assinatura, um número de protocolo eletrônico será gerado e o documento ficará visível para os demais membros da equipe.\n\n**Observação importante:** Caso o projeto apresente bloqueio financeiro, o sistema não permitirá a geração de novos formulários; verifique o status do projeto antes de iniciar a solicitação.\n\n> Fonte: [Manual dos Coordenadores.pdf, pág. 32]\n> Fonte: [Manual do Sistema Area Coordenadores.pdf, págs. 30, 35, 36]",
+  "sources": [
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 30 · 89%)",
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 35 · 98%)",
+   "- Manual do Sistema Área Coordenadores.pdf (pág. 36 · 98%)",
+   "- Manual dos Coordenadores.pdf (pág. 32 · 82%)"
+  ],
+  "tools": [
+   "consultar_base_conhecimento"
+  ]
+ },
+ {
+  "id": "MIX-03",
+  "pergunta": "Não estou conseguindo encontrar a alínea correta ao fazer uma Solicitação de Compra, o que faço?",
+  "answer": "Para escolher a alínea correta ao realizar uma **Solicitação de Compra**, você deve seguir estas orientações baseadas no manual:\n\n1.  **Preenchimento do formulário**: Insira todos os dados do pedido (fornecedor, itens, quantidade, valor unitário, etc.). Na aba *Rateio*, o sistema exibirá a lista de alíneas disponíveis.\n2.  **Seleção da alínea**: As alíneas correspondem às contas financeiras (rubricas) definidas no **Orçamento do seu Projeto**. Você deve selecionar aquela que melhor descreve o tipo de despesa que está sendo solicitada.\n3.  **Verificação de valores**: O sistema atualiza automaticamente os valores conforme o preenchimento, mas a soma dos valores atribuídos às alíneas deve ser igual ao valor da Nota Fiscal (NF) que será anexada.\n4.  **Despesas fora do escopo**: Caso a despesa não esteja prevista no plano de trabalho, é necessária uma autorização prévia do órgão financiador. Nessas situações, a despesa pode ser limitada a 20% do valor da rubrica correspondente.\n5.  **Centro de Custo**: Ao selecionar a alínea, o sistema preencherá automaticamente o *Centro de Custo*.\n\nCaso tenha dúvidas sobre qual alínea específica utilizar ou se há necessidade de autorização adicional para uma despesa, você deve consultar o **Gestor do seu Projeto**.\n\n> Fonte: [Manual dos Coordenadores.pdf, págs. 27, 32]",
+  "sources": [
+   "- Manual dos Coordenadores.pdf (pág. 27 · 35%)",
+   "- Manual dos Coordenadores.pdf (pág. 32 · 61%)",
+   "- Manual do Sistema Área Coordenadores.pdf"
+  ],
+  "tools": [
+   "consultar_base_conhecimento"
+  ]
+ },
+ {
+  "id": "PRO-04",
+  "pergunta": "Como funciona a prestação de contas de um projeto?",
+  "answer": "Para realizar a prestação de contas de um projeto, o manual estabelece as seguintes orientações e procedimentos:\n\n**1. Objetivo da Prestação de Contas**\nA prestação de contas é o processo pelo qual o coordenador demonstra a aplicação dos recursos financeiros recebidos para a execução das atividades previstas no projeto. Ela deve ser realizada dentro do prazo estipulado pelo financiador ou, na ausência deste, conforme as normas da FAI•UFSCar.\n\n**2. Documentação Necessária**\nPara que a prestação de contas seja aceita, é necessário apresentar:\n*   **Relatórios de Execução:** Documentos que descrevam as atividades realizadas e os resultados alcançados.\n*   **Comprovantes Financeiros:** Notas fiscais, recibos, comprovantes de transferência e outros documentos que atestem o gasto dos recursos.\n*   **Documentação Complementar:** Dependendo do financiador ou da natureza do gasto (ex: viagens, compra de equipamentos), podem ser exigidos formulários específicos ou autorizações prévias.\n\n**3. Fluxo e Prazos**\n*   **Prazos:** O prazo para entrega da prestação de contas deve seguir rigorosamente o cronograma estabelecido pelo financiador. Caso não haja um prazo específico do financiador, a coordenação deve observar os prazos internos da FAI•UFSCar.\n*   **Acompanhamento:** O processo é acompanhado pelo **Gestor do seu Projeto**, que validará a documentação antes do envio final ou para fins de prestação ao financiador.\n\n**4. Procedimento via Sistema**\nO envio dos documentos e o acompanhamento do status da prestação de contas devem ser realizados por meio da **Área de Coordenadores**. No sistema, é possível verificar pendências e anexar os arquivos necessários.\n\n> Fonte: [Manual dos Coordenadores.pdf]",
+  "sources": [],
+  "tools": []
+ },
+ {
+  "id": "CTRL-PRO",
+  "pergunta": "Qual o limite percentual para remanejamento entre rubricas?",
+  "answer": "O remanejamento de saldos entre rubricas orçamentárias é permitido apenas quando previsto no edital e está **limitado a 20% da rubrica**. Esse ajuste deve ser autorizado pelo órgão financiador e formalizado junto à FAI•UFSCar.\n\n> Fonte: [Manual dos Coordenadores.pdf, pág. 59]",
+  "sources": [
+   "- Manual dos Coordenadores.pdf (pág. 59 · 88%)",
+   "- Manual do Sistema Área Coordenadores.pdf"
+  ],
+  "tools": [
+   "consultar_base_conhecimento"
+  ]
+ },
+ {
+  "id": "CTRL-NEG",
+  "pergunta": "Qual o prazo máximo que a FINEP concede para a prestação de contas de um projeto?",
+  "answer": "O manual não fornece informações sobre os prazos específicos estabelecidos pela FINEP para a prestação de contas de projetos.",
+  "sources": [],
+  "tools": [
+   "consultar_base_conhecimento"
+  ]
+ },
+ {
+  "id": "CTRL-SOC",
+  "pergunta": "Oi, tudo bem? Quem é você?",
+  "answer": "Olá! Sou a Lina, assistente virtual da FAI•UFSCar. Como posso ajudar?",
+  "sources": [],
+  "tools": []
+ }
+]
