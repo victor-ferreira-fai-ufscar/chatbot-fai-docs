@@ -22,10 +22,10 @@ FALLBACK_RE = re.compile(
 # ("Supervisor de Projetos Específicos: ..." / "Supervisor de Projetos Gerais: ...")
 # aqui e na regra 2.2 do Prompt.md, no lugar do telefone/e-mail geral.
 NO_CONTEXT_MSG = (
-    "Não encontrei essa informação nos manuais disponíveis no momento. Para melhor atender a "
-    "essa demanda, sugerimos entrar em contato com o Gestor do seu Projeto. Caso ainda não "
-    "tenha um gestor designado, procure o Supervisor de Projetos Específicos ou o Supervisor "
-    "de Projetos Gerais pelo telefone (16) 3351-9000 ou e-mail fai@fai.ufscar.br."
+    "Para esclarecer essa demanda específica, recomendo entrar em contato com o Gestor do seu "
+    "Projeto. Caso ainda não tenha um gestor designado, procure o Supervisor de Projetos "
+    "Específicos ou o Supervisor de Projetos Gerais pelo telefone (16) 3351-9000 ou e-mail "
+    "fai@fai.ufscar.br."
 )
 
 from src.chatbot_fai_docs.config import AppConfig
