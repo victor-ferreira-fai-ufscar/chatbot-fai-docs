@@ -225,7 +225,8 @@ services:
       # (2 chamadas gpt-oss: keywords + sintese) e a protecao de regras sutis agora e
       # coberta por guards DETERMINISTICOS no backend (validacao citacao x recuperado +
       # guard de grounding com retry). Rollback: voltar p/ high.
-      THINK_LEVEL: medium
+      # 2026-07-21 ROLLBACK: medium -> high (retomada do raciocinio mais profundo).
+      THINK_LEVEL: high
       THINK_MODELS: gpt-oss
       STRIP_THINKING: "true"
     healthcheck:
