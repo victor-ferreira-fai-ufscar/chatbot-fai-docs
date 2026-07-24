@@ -1,5 +1,6 @@
 from __future__ import annotations
 import json
+import secrets
 import psycopg
 from datetime import datetime
 from typing import Any, Optional
@@ -12,6 +13,8 @@ class ConversationRecord:
     title: str
     rag_engine: str
     created_at: datetime
+    # Token de compartilhamento (link publico read-only). None = nunca compartilhada.
+    share_token: Optional[str] = None
 
 @dataclass
 class MessageRecord:
@@ -51,6 +54,15 @@ class PostgresChatRepository:
                         created_at TIMESTAMPTZ DEFAULT NOW()
                     )
                 """)
+                # Migracao idempotente: coluna de token de compartilhamento + indice unico
+                # (parcial: so entradas com token) para lookup publico O(1) por link.
+                cur.execute(
+                    "ALTER TABLE chat_conversations ADD COLUMN IF NOT EXISTS share_token TEXT"
+                )
+                cur.execute(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS idx_chat_conv_share_token "
+                    "ON chat_conversations(share_token) WHERE share_token IS NOT NULL"
+                )
             conn.commit()
 
     def create_conversation(self, title: str, rag_engine: str, user_id: str = "guest") -> int:
@@ -162,6 +174,56 @@ class PostgresChatRepository:
                 cur.execute("DELETE FROM chat_conversations WHERE user_id = %s", (user_id,))
             conn.commit()
 
+    def create_share_token(self, conversation_id: int, user_id: Optional[str] = None) -> Optional[str]:
+        """Gera (ou REUSA) o token de compartilhamento da conversa. Com user_id, so o DONO
+        compartilha. Idempotente: chamar de novo devolve o mesmo token. Retorna None se a
+        conversa nao existe ou nao e' do usuario."""
+        with psycopg.connect(self.database_url) as conn:
+            with conn.cursor() as cur:
+                if user_id is not None:
+                    cur.execute(
+                        "SELECT share_token FROM chat_conversations WHERE id = %s AND user_id = %s",
+                        (conversation_id, user_id))
+                else:
+                    cur.execute(
+                        "SELECT share_token FROM chat_conversations WHERE id = %s", (conversation_id,))
+                row = cur.fetchone()
+                if row is None:
+                    return None
+                if row[0]:
+                    return row[0]
+                token = secrets.token_urlsafe(16)
+                cur.execute(
+                    "UPDATE chat_conversations SET share_token = %s WHERE id = %s",
+                    (token, conversation_id))
+            conn.commit()
+        return token
+
+    def get_shared(self, token: str):
+        """Busca PUBLICA (sem user scoping) por token de compartilhamento. Retorna
+        (ConversationRecord, list[MessageRecord]) ou None se o token nao existe."""
+        if not token:
+            return None
+        with psycopg.connect(self.database_url) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT id, user_id, title, rag_engine, created_at, share_token "
+                    "FROM chat_conversations WHERE share_token = %s", (token,))
+                row = cur.fetchone()
+                if row is None:
+                    return None
+                conv = ConversationRecord(id=row[0], user_id=row[1], title=row[2],
+                                          rag_engine=row[3], created_at=row[4], share_token=row[5])
+                cur.execute(
+                    "SELECT id, conversation_id, role, content, metadata, created_at "
+                    "FROM chat_messages WHERE conversation_id = %s ORDER BY id ASC", (conv.id,))
+                msgs = [
+                    MessageRecord(id=r[0], conversation_id=r[1], role=r[2], content=r[3],
+                                  metadata=r[4] if r[4] else {}, created_at=r[5])
+                    for r in cur.fetchall()
+                ]
+        return conv, msgs
+
 
 class InMemoryChatRepository:
     """Simple in-memory repository used when no external Postgres is configured.
@@ -221,6 +283,22 @@ class InMemoryChatRepository:
         self._conversations = [c for c in self._conversations if c.user_id != user_id]
         for cid in ids:
             self._messages.pop(cid, None)
+
+    def create_share_token(self, conversation_id: int, user_id: Optional[str] = None) -> Optional[str]:
+        for c in self._conversations:
+            if c.id == conversation_id and (user_id is None or c.user_id == user_id):
+                if not c.share_token:
+                    c.share_token = secrets.token_urlsafe(16)
+                return c.share_token
+        return None
+
+    def get_shared(self, token: str):
+        if not token:
+            return None
+        for c in self._conversations:
+            if c.share_token == token:
+                return c, self._messages.get(c.id, [])
+        return None
 
 
 def get_repo_from_url(database_url: Optional[str]):

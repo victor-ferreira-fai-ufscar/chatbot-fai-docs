@@ -1,9 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { Copy, Check } from "lucide-react";
+import { toast } from "sonner";
 import Sidebar from "@/components/layout/Sidebar";
 import SourcesPanel from "@/components/layout/SourcesPanel";
 import ChatWindow from "@/components/chat/ChatWindow";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 export type SidebarMode = "history" | "settings";
 
@@ -22,6 +26,9 @@ export default function Home() {
   const [activeSources, setActiveSources] = useState<string[]>([]);
   const [activeAnswer, setActiveAnswer] = useState<string>("");
   const [sourcesLoading, setSourcesLoading] = useState(false);
+  // Compartilhamento: URL do link gerado (null = modal fechado) + feedback de "copiado".
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [shareCopied, setShareCopied] = useState(false);
   // Renomeações otimistas ainda não confirmadas pelo servidor (id -> título novo).
   // fetchHistory sobrepõe esses títulos por cima do payload do backend até o servidor
   // refletir o valor — sem isso, um GET obsoleto (poll de 15s) reverteria o rename.
@@ -172,6 +179,36 @@ export default function Home() {
     }
   };
 
+  const handleShareConversation = async (id: number) => {
+    if (!userId) return;
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/history/${id}/share?user_id=${encodeURIComponent(userId)}`,
+        { method: "POST" }
+      );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      // O backend devolve o caminho relativo (/shared/<token>); a origem é a do próprio app.
+      setShareCopied(false);
+      setShareUrl(`${window.location.origin}${data.path}`);
+    } catch (e) {
+      console.error("Erro ao compartilhar conversa", e);
+      toast.error("Não foi possível gerar o link de compartilhamento.");
+    }
+  };
+
+  const handleCopyShareUrl = async () => {
+    if (!shareUrl) return;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setShareCopied(true);
+      toast.success("Link copiado!");
+      setTimeout(() => setShareCopied(false), 2000);
+    } catch {
+      toast.error("Não foi possível copiar automaticamente. Copie o link manualmente.");
+    }
+  };
+
   const handleDeleteConversation = async (id: number) => {
     if (!confirm("Tem certeza que deseja excluir esta conversa?")) return;
 
@@ -222,6 +259,7 @@ export default function Home() {
           onSelectConversation={handleSelectConversation}
           onDeleteConversation={handleDeleteConversation}
           onRenameConversation={handleRenameConversation}
+          onShareConversation={handleShareConversation}
           selectedConversationId={selectedConversationId}
           conversations={conversations}
           isBackendConnected={isBackendConnected}
@@ -243,6 +281,30 @@ export default function Home() {
         </div>
 
         <SourcesPanel sources={activeSources} answerContent={activeAnswer} loading={sourcesLoading} />
+
+        <Dialog open={shareUrl !== null} onOpenChange={(open) => { if (!open) setShareUrl(null); }}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Compartilhar conversa</DialogTitle>
+              <DialogDescription>
+                Qualquer pessoa com este link poderá visualizar a conversa (somente leitura).
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex items-center gap-2">
+              <input
+                readOnly
+                value={shareUrl ?? ""}
+                onFocus={(e) => e.currentTarget.select()}
+                aria-label="Link de compartilhamento"
+                className="flex-1 min-w-0 rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground outline-none focus:ring-1 focus:ring-accent-blue"
+              />
+              <Button type="button" onClick={handleCopyShareUrl} className="shrink-0 gap-1.5">
+                {shareCopied ? <Check className="size-4" /> : <Copy className="size-4" />}
+                {shareCopied ? "Copiado" : "Copiar"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
     </main>
   );
 }

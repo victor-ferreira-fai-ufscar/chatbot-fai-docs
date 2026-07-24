@@ -1,4 +1,4 @@
-import { MessageSquarePlus, Trash2, Settings, History, Plus, ArrowLeft, HelpCircle, ChevronLeft, ChevronRight, Pencil, Check } from 'lucide-react';
+import { MessageSquarePlus, Trash2, Settings, History, Plus, ArrowLeft, HelpCircle, ChevronLeft, ChevronRight, Pencil, Check, Share2, BookOpen } from 'lucide-react';
 import Image from 'next/image';
 import { useState, useEffect, useRef, type MouseEvent } from 'react';
 import { cn } from '@/lib/utils';
@@ -38,6 +38,7 @@ interface SidebarProps {
   onSelectConversation: (id: number) => void;
   onDeleteConversation: (id: number) => void;
   onRenameConversation: (id: number, title: string) => void;
+  onShareConversation: (id: number) => void;
   selectedConversationId: number | null;
   conversations: any[];
   isBackendConnected?: boolean | null;
@@ -61,6 +62,7 @@ export default function Sidebar({
   onSelectConversation,
   onDeleteConversation,
   onRenameConversation,
+  onShareConversation,
   selectedConversationId,
   conversations,
   isBackendConnected,
@@ -69,6 +71,8 @@ export default function Sidebar({
   setConfig
 }: SidebarProps) {
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+  // Manual de uso (botão de livro): instruções amigáveis de como usar o chat.
+  const [isManualModalOpen, setIsManualModalOpen] = useState(false);
   const [ollamaModels, setOllamaModels] = useState<{name: string, label: string}[]>([]);
 
   // Renomear conversa (edição inline): id em edição + rascunho do título. O ref evita
@@ -237,6 +241,18 @@ export default function Sidebar({
                 {!isCollapsed && <span>Configurações</span>}
               </Button>
 
+              <Button
+                onClick={() => setIsManualModalOpen(true)}
+                title="Como usar o chat"
+                className={cn(
+                  "w-full flex items-center bg-sidebar-hover hover:bg-gray-700 text-white rounded transition-all duration-200 border border-gray-600 h-auto",
+                  isCollapsed ? "justify-center p-2" : "gap-2 py-2 px-3 text-sm"
+                )}
+              >
+                <BookOpen size={isCollapsed ? 20 : 18} />
+                {!isCollapsed && <span>Como usar</span>}
+              </Button>
+
               {!isCollapsed && (
                 <Button
                   variant="ghost"
@@ -335,6 +351,20 @@ export default function Sidebar({
                               aria-label={`Renomear conversa: ${conv.title}`}
                             >
                               <Pencil size={13} />
+                            </Button>
+
+                            <Button
+                              variant="ghost"
+                              size="icon-xs"
+                              onClick={(e: MouseEvent<HTMLButtonElement>) => {
+                                e.stopPropagation();
+                                onShareConversation(conv.id);
+                              }}
+                              className="text-gray-400 hover:text-fai-green hover:bg-transparent transition-colors"
+                              title="Compartilhar conversa"
+                              aria-label={`Compartilhar conversa: ${conv.title}`}
+                            >
+                              <Share2 size={13} />
                             </Button>
 
                             <Button
@@ -629,6 +659,82 @@ export default function Sidebar({
           <DialogFooter className="p-4 border-t bg-gray-50 sm:justify-end">
             <Button
               onClick={() => setIsHelpModalOpen(false)}
+              className="px-6 py-2 bg-accent-blue hover:bg-accent-blue-hover text-white rounded-lg font-medium transition-colors h-auto"
+            >
+              Entendido
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Manual de uso: instruções amigáveis de como usar o chat (botão de livro). */}
+      <Dialog open={isManualModalOpen} onOpenChange={setIsManualModalOpen}>
+        <DialogContent className="max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col gap-0 p-0">
+          <DialogHeader className="p-6 border-b bg-gray-50 text-left">
+            <div className="flex items-center gap-3">
+              <BookOpen className="text-accent-blue shrink-0" size={24} />
+              <DialogTitle className="text-xl font-bold text-gray-900">
+                Como usar o chat
+              </DialogTitle>
+            </div>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            {/* Boas-vindas */}
+            <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg">
+              <p className="text-sm text-blue-900 leading-relaxed">
+                Olá! Eu sou a <strong>Lina</strong>, a assistente virtual da <strong>FAI•UFSCar</strong>. 😊
+                Estou aqui para te ajudar a entender os procedimentos e o Manual do Coordenador.
+                Veja abaixo como aproveitar melhor a nossa conversa!
+              </p>
+            </div>
+
+            {/* Funcionalidades */}
+            <div>
+              <h4 className="font-bold text-gray-900 mb-2">O que dá para fazer aqui</h4>
+              <ul className="space-y-1.5 text-sm text-gray-700 leading-relaxed">
+                <li>💬 <strong>Perguntar por texto:</strong> escreva sua dúvida na caixa de mensagem e envie.</li>
+                <li>🎙️ <strong>Perguntar por voz:</strong> use o microfone para falar a sua pergunta.</li>
+                <li>📚 <strong>Conferir as fontes:</strong> cada resposta indica de qual página do manual a informação veio (no painel lateral), e você pode baixar o documento.</li>
+                <li>✏️ <strong>Renomear</strong>, 🔗 <strong>compartilhar</strong> e 🖨️ <strong>imprimir ou exportar em PDF</strong> as suas conversas.</li>
+                <li>🕑 <strong>Histórico:</strong> suas conversas ficam salvas aqui na barra lateral.</li>
+              </ul>
+            </div>
+
+            {/* A dica de ouro: formulação da pergunta */}
+            <div className="p-4 bg-green-50 border border-green-100 rounded-lg">
+              <h4 className="font-bold text-green-900 mb-1">💡 A dica de ouro: capriche na pergunta!</h4>
+              <p className="text-sm text-green-800 leading-relaxed">
+                A qualidade da minha resposta depende <strong>muito</strong> de como você formula a pergunta. 🙏
+                Então vale a pena elaborá-la com calma e clareza: quanto mais <strong>específica e bem escrita</strong>,
+                melhor eu consigo te ajudar!
+              </p>
+              <p className="text-sm text-green-800 leading-relaxed mt-2">
+                Por exemplo, em vez de <em>“e a planilha?”</em>, prefira algo como
+                <em> “como faço para solicitar uma planilha orçamentária no sistema?”</em>.
+              </p>
+            </div>
+
+            {/* Escopo: geral vs. projeto específico */}
+            <div className="p-4 bg-amber-50 border border-amber-100 rounded-lg">
+              <h4 className="font-bold text-amber-900 mb-1">📌 O que eu sei — e o que eu não sei</h4>
+              <p className="text-sm text-amber-800 leading-relaxed">
+                Eu conheço os procedimentos <strong>gerais</strong> dos projetos gerenciados pela FAI•UFSCar
+                (tudo o que está nos manuais). Mas eu <strong>não</strong> tenho acesso aos dados de um
+                projeto específico seu.
+              </p>
+              <p className="text-sm text-amber-800 leading-relaxed mt-2">
+                Por isso, perguntas como <em>“qual o status atual do meu projeto?”</em>,
+                <em> “quanto de saldo ainda tenho?”</em> ou <em>“em que etapa está a minha solicitação?”</em>
+                eu não consigo responder — para essas, o melhor caminho é falar com o
+                <strong> Gestor do seu Projeto</strong>. 🤝
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter className="p-4 border-t bg-gray-50 sm:justify-end">
+            <Button
+              onClick={() => setIsManualModalOpen(false)}
               className="px-6 py-2 bg-accent-blue hover:bg-accent-blue-hover text-white rounded-lg font-medium transition-colors h-auto"
             >
               Entendido

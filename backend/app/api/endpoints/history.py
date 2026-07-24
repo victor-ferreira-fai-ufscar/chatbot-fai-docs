@@ -74,6 +74,23 @@ async def rename_conversation(
         raise HTTPException(status_code=404, detail="Conversa não encontrada.")
     return {"status": "success", "id": conversation_id, "title": title}
 
+@router.post("/{conversation_id}/share")
+async def share_conversation(
+    conversation_id: int,
+    user_id: str = "guest",
+    repo = Depends(get_repo),
+):
+    """Gera (ou reusa) o link de compartilhamento read-only de uma conversa. Escopo pelo
+    user_id: só o dono compartilha. Devolve o token e o caminho relativo da view pública
+    (o frontend prefixa com a origem para montar o link completo)."""
+    try:
+        token = repo.create_share_token(conversation_id, user_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    if not token:
+        raise HTTPException(status_code=404, detail="Conversa não encontrada.")
+    return {"status": "success", "id": conversation_id, "token": token, "path": f"/shared/{token}"}
+
 @router.get("/{conversation_id}/export.pdf")
 async def export_conversation_pdf(
     conversation_id: int,
