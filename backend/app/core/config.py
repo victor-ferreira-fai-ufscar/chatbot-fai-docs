@@ -185,10 +185,15 @@ class Settings(BaseSettings):
     # 65, recuperada a 16% -> alucinou o procedimento). Nesse caso o endpoint FORCA a
     # negativa (NO_CONTEXT_MSG) em vez de deixar a resposta sair. So atua no caminho
     # AGENTICO e SO quando ha score (rerank ON); sem score (rerank-off / reranker fora) fica
-    # inerte para nao super-abster. Limiar < RETRIEVAL_WEAK_MAX_SCORE (0.35): a cascata ja
-    # escala ate 0.35; o que termina abaixo de 0.30 e' irrecuperavel. Rollback: =false.
+    # inerte para nao super-abster.
+    # 2026-07-24: 0.30 -> 0.50 (decisao do usuario). Fica ACIMA do RETRIEVAL_WEAK_MAX_SCORE
+    # (0.35 da cascata): mesmo apos a cascata tentar escalar, resposta cujo MELHOR trecho fica
+    # < 0.50 e' tratada como fracamente ancorada -> negativa. TRADE-OFF: pega mais grounding
+    # parcial, mas arrisca OVER-ABSTENCAO em pergunta legitima de gap lexical rescatada a
+    # 0.35-0.50 — revalidar a distribuicao de scores na bateria ao mexer neste limiar.
+    # Rollback: =false.
     RETRIEVAL_SCORE_GATE_ENABLED: bool = True
-    RETRIEVAL_SCORE_GATE_THRESHOLD: float = 0.30
+    RETRIEVAL_SCORE_GATE_THRESHOLD: float = 0.50
     # Gate de NEGATIVA EM PROSA: o _SentinelGate so troca pela mensagem oficial de
     # direcionamento quando o modelo emite o TOKEN exato (regra 2.1). As vezes ele abstem em
     # texto livre ("nao foi possivel localizar...", "o manual nao menciona...") SEM o token
