@@ -11,7 +11,7 @@ from src.chatbot_fai_docs.llm import ChatSettings, ChatClient
 from src.chatbot_fai_docs.repository import get_repo_from_url
 from src.chatbot_fai_docs.lightrag_service import LightRagService, NO_CONTEXT_MSG
 from src.chatbot_fai_docs.lightrag_resolver import resolve_lightrag_url
-from src.chatbot_fai_docs.smalltalk_gate import is_smalltalk
+from src.chatbot_fai_docs.smalltalk_gate import is_smalltalk, is_social_turn
 from src.chatbot_fai_docs.storage_service import StorageService
 from src.chatbot_fai_docs.document_resolver import resolve_document_request
 from src.chatbot_fai_docs.response_cache import ResponseCache, make_key, prompts_fingerprint
@@ -69,11 +69,95 @@ class _SentinelGate:
         out, self._buf = self._buf, ""
         return out
 
+
+# Relevancia (%) que os cards de fonte carregam: '- Manual X.pdf (pág. 12 · 16%)'.
+_CARD_SCORE_RE = re.compile(r"·\s*(\d+)\s*%")
+
+
+def _max_retrieval_score(sources) -> "float | None":
+    """Maior relevancia (0..1) entre os cards de fonte coletados no turno; None se nenhum
+    card traz score (rerank-off / reranker fora do ar / sem fonte). Alimenta o gate por
+    score de recuperacao: um turno cujo MELHOR trecho e' fraco tem so material tangencial."""
+    vals = [int(m.group(1)) / 100.0
+            for ln in (sources or []) for m in _CARD_SCORE_RE.finditer(ln or "")]
+    return max(vals) if vals else None
+
+
+# Assinatura de NEGATIVA EM PROSA (mesma heuristica das baterias / consistency_probe,
+# mantida em sincronia): "nao consta/detalha/menciona/...". So conta como negativa quando
+# NAO ha linha '> Fonte:' — uma resposta fundamentada que observa "o manual nao detalha
+# [sub-ponto]" (regra 2.2) NAO e negativa.
+_PROSE_ABSTENTION_RE = re.compile(
+    r"n[ãa]o\s+(consta|detalha|est[áa]\s+detalhad|especifica|menciona|trata|aborda|"
+    r"fornece|apresenta|oferece|traz|inclui|cobre|indica|descreve|explica|define|informa|"
+    r"foi\s+poss[íi]vel|encontr|disp[oõ]e|h[áa]\s+informa)", re.I)
+
+
+# --- Texto das paginas citadas p/ a verificacao de grounding ----------------------------
+# Le o manual page-aware (marcadores [PÁGINA N]) e mapeia N -> texto da pagina, para o
+# verificador conferir a resposta contra o conteudo REAL das paginas citadas. Cache por
+# mtime (o arquivo e' bind-mount; editar reflete). Docs em parents[3]/docs (mesmo /app/docs).
+_MANUAL_PAGES_CACHE: dict = {}
+_PAGE_MARK_SPLIT_RE = re.compile(r"\[P[ÁA]GINA\s+(\d{1,4})\]")
+_CARD_PAGE_NUMS_RE = re.compile(r"p[áa]gs?\.?\s*([\d,\s]+)", re.I)
+
+
+def _load_manual_pages(filename: str) -> dict:
+    """{numero_pagina -> texto} do manual page-aware; {} se ausente/ilegivel (fail-open)."""
+    try:
+        path = Path(__file__).resolve().parents[3] / "docs" / filename
+        st = path.stat()
+        hit = _MANUAL_PAGES_CACHE.get(filename)
+        if hit and hit[0] == st.st_mtime_ns:
+            return hit[1]
+        parts = _PAGE_MARK_SPLIT_RE.split(path.read_text(encoding="utf-8"))
+        pages: dict = {}
+        for i in range(1, len(parts), 2):
+            n = int(parts[i])
+            body = parts[i + 1] if i + 1 < len(parts) else ""
+            pages[n] = (pages.get(n, "") + " " + body).strip()
+        pages = {n: " ".join(t.split()) for n, t in pages.items()}
+        _MANUAL_PAGES_CACHE[filename] = (st.st_mtime_ns, pages)
+        return pages
+    except Exception as e:
+        print(f"[grounding_verify] manual page-aware indisponivel ({filename}): "
+              f"{type(e).__name__}: {e}", flush=True)
+        return {}
+
+
+def _cited_page_numbers(source_lines) -> list:
+    """Numeros de pagina citados nos cards de fonte ('- Manual X.pdf (pág. 65 · 64%)')."""
+    out: list = []
+    for ln in source_lines or []:
+        for m in _CARD_PAGE_NUMS_RE.finditer(ln or ""):
+            for tok in re.findall(r"\d+", m.group(1)):
+                n = int(tok)
+                if n not in out:
+                    out.append(n)
+    return out
+
+
+def _manual_excerpts(source_lines, filename: str, max_per_page: int = 1800) -> str:
+    """Texto (capado) das paginas citadas, rotulado por pagina; '' se nao houver."""
+    pages = _load_manual_pages(filename)
+    if not pages:
+        return ""
+    blocks = []
+    for n in _cited_page_numbers(source_lines):
+        body = pages.get(n)
+        if body:
+            blocks.append(f"[PÁGINA {n}] {body[:max_per_page]}")
+    return "\n\n".join(blocks)
+
+
 # Arquivos de prompt cujo CONTEUDO entra na chave do cache (editar prompt -> cache novo).
 # parents[3] = raiz do backend (/app no container): app/api/endpoints/chat.py -> backend/.
+# 2026-07-21: + SKILL.md da skill do manual (a description do frontmatter guia a decisao
+# do agente e a reescrita da consulta; editar ela muda a resposta -> invalida o cache).
 _PROMPT_FILES = [
     Path(__file__).resolve().parents[3] / "src" / "IA" / "Prompt.md",
     Path(__file__).resolve().parents[3] / "src" / "IA" / "Prompt_Skills.md",
+    Path(__file__).resolve().parents[3] / "skills" / "consultar_base_conhecimento" / "SKILL.md",
 ]
 
 # Cache de resposta do processo (LRU+TTL). Singleton: vive entre requisicoes, zera no
@@ -175,12 +259,19 @@ def _bucket_manual_names(storage=None) -> list:
                 service_key=settings.SERVICE_ROLE_KEY,
                 bucket=settings.SUPABASE_BUCKET,
             )
-        return [o.get("name", "") for o in storage.list_objects(limit=100) if o.get("name")]
+        from src.chatbot_fai_docs.config import is_retired_manual
+        retired = settings.retired_manual_patterns()
+        # Filtra manuais APOSENTADOS (removidos do indice por decisao de produto): nao
+        # entram em {{LISTA_MANUAIS}} do prompt nem em known_names da citacao — assim o
+        # modelo nunca os anuncia nem tem seu nome "legitimado" numa citacao inline.
+        return [o.get("name", "") for o in storage.list_objects(limit=100)
+                if o.get("name") and not is_retired_manual(o["name"], retired)]
     except Exception:
         return []
 
 
-def _run_agent(config, question: str, agent_history: list, skill_history: list):
+def _run_agent(config, question: str, agent_history: list, skill_history: list,
+               question_is_social: bool = False):
     """Monta o AgentService (laco de tool calling + Skills) e devolve
     (gerador_de_tuplas, AgentContext). O ctx e populado DURANTE a iteracao do
     gerador (sources/downloads coletados a cada skill), entao leia ctx.sources /
@@ -189,7 +280,10 @@ def _run_agent(config, question: str, agent_history: list, skill_history: list):
 
     Split de historico: o AGENTE raciocina sobre `agent_history` (conversa PLENA),
     mas a RECUPERACAO (skill consultar_base_conhecimento -> LightRAG) recebe so
-    `skill_history` (ultimos HISTORY_TURNS) via ctx.conversation_history."""
+    `skill_history` (ultimos HISTORY_TURNS) via ctx.conversation_history.
+
+    `question_is_social`: is_social_turn() sobre a pergunta CRUA (nao a efetiva, que
+    pode ter bloco de citacao prefixado) — alimenta o guard de grounding nao-social."""
     from src.chatbot_fai_docs.agent import AgentService, ToolRegistry, AgentContext
     from src.IA.Models import OllamaModel, OpenAIModel, GeminiModel
 
@@ -238,25 +332,91 @@ def _run_agent(config, question: str, agent_history: list, skill_history: list):
         signed_url_ttl=settings.SIGNED_URL_TTL,
         available_docs=manual_names,
     )
+    # Ha alguma fonte REAL citada em turno anterior do assistente? Sem isso, a
+    # liberacao de follow-up por citacao inline aceitaria uma linha '> Fonte:'
+    # FABRICADA no retry (a validacao par manual x pagina fica inerte sem skill no
+    # turno) — e a corretiva nao deve sugerir "manter a fonte daquele turno" que
+    # nunca existiu (finding da revisao adversarial).
+    _FONTE_PAGE_RE = re.compile(r">\s*Fonte:.*p[áa]gs?\.?\s*\d", re.I)
+    prior_fonte = any(
+        m.get("role") == "assistant" and _FONTE_PAGE_RE.search(str(m.get("content", "")))
+        for m in (agent_history or [])
+    )
+
     def _grounding_checker(final_text: str, actx) -> "str | None":
-        """Detecta resposta substantiva SEM nenhuma ancora (padrao da bateria multi-manual:
-        passos genericos sintetizados do proprio prompt, sem consultar os manuais).
-        Retorna a instrucao corretiva p/ o retry unico do laco, ou None (resposta ok)."""
+        """Detecta resposta SEM nenhuma ancora. Dois guards, na ordem:
+
+        GUARD NAO-SOCIAL (2026-07-21, bug Alberto Q2): pergunta REAL (nao casa o
+        is_social_turn) respondida sem fontes/downloads dispara a corretiva
+        INDEPENDENTE do tamanho — a saudacao de 69 chars a uma pergunta operacional
+        escapava do limiar de tamanho.
+
+        GUARD SUBSTANTIVO (existente): resposta >= MIN_CHARS sem ancora (padrao da
+        bateria multi-manual: passos genericos sem consultar os manuais).
+
+        Liberacoes deterministicas (sem gastar retry): skill com fontes/downloads;
+        skill que FALHOU no turno (a resposta honesta e relatar a falha);
+        entregar_documento sem download (caminho ambiguo: a resposta esperada E a
+        pergunta de esclarecimento); follow-up com citacao inline QUANDO o
+        historico contem fonte real (prior_fonte).
+
+        Retorna a instrucao corretiva p/ o retry do laco, ou None (resposta ok)."""
         if not settings.AGENT_GROUNDING_RETRY_ENABLED:
             return None
         t = (final_text or "").strip()
-        if len(t) < settings.AGENT_GROUNDING_MIN_CHARS:
-            return None                      # curta: social/confirmacao — nao punir
+        skills_called = actx.extras.get("skills_called") or []
         if NEGATIVA_SENTINEL in t:
-            return None                      # negativa sinalizada: fluxo proprio (gate)
+            # Negativa emitida SEM NENHUMA consulta neste turno, em pergunta nao-social:
+            # o protocolo exige consultar ANTES de negar. Modo de falha medido na
+            # validacao pos-deploy (Alberto Q2: sentinela em 5,8s com skills=[] — o
+            # modelo "aprendeu" a negar de cabeca). Negativas POS-consulta (skills_called
+            # nao-vazio) seguem liberadas — fluxo proprio do gate.
+            if (settings.AGENT_REQUIRE_GROUNDING_NONSOCIAL and not question_is_social
+                    and not skills_called and not actx.sources):
+                return (
+                    "ATENCAO (verificacao automatica): voce emitiu o token de negativa SEM "
+                    "consultar a base de conhecimento neste turno. NAO negue de cabeca. "
+                    "Chame consultar_base_conhecimento AGORA (reescreva a consulta no "
+                    "vocabulario formal dos manuais, mantendo as palavras-chave da pergunta); "
+                    "se o resultado NAO cobrir o nucleo da pergunta, ai sim responda "
+                    f"EXATAMENTE '{NEGATIVA_SENTINEL}', sozinho."
+                )
+            return None                      # negativa sinalizada pos-consulta: fluxo proprio (gate)
         if actx.sources or actx.downloads:
             return None                      # skill ancorou (fontes) ou entregou (download) NESTE turno
+        if actx.extras.get("skill_errors"):
+            return None                      # skill rodou e FALHOU: relatar a falha e honesto, nao punir
+        if "entregar_documento" in skills_called:
+            return None                      # ambiguo/sem match: a pergunta de esclarecimento e a resposta certa
         # Citacao inline SEM nenhuma fonte de skill no turno: legitima apenas em
-        # FOLLOW-UP (o trecho pode ter vindo do historico da conversa) e COM pagina.
-        # Em 1o turno nenhum trecho foi visto -> citacao e fabricada por definicao
-        # (medido no re-teste: PRO-04 citou sem consultar; SIS-04 inventou pagina).
-        if agent_history and re.search(r">\s*Fonte:.*p[áa]gs?\.?\s*\d", t, re.I):
+        # FOLLOW-UP cujo historico TEM fonte real (o trecho pode ter vindo de la) e
+        # COM pagina. Em 1o turno (ou conversa sem fonte previa) nenhum trecho foi
+        # visto -> citacao e fabricada por definicao (medido: PRO-04 citou sem
+        # consultar; SIS-04 inventou pagina).
+        if prior_fonte and _FONTE_PAGE_RE.search(t):
             return None
+        if settings.AGENT_REQUIRE_GROUNDING_NONSOCIAL and not question_is_social:
+            return (
+                "ATENCAO (verificacao automatica): a pergunta do usuario trata de um tema de "
+                "trabalho, mas sua resposta NAO esta ancorada em nenhuma fonte dos manuais. "
+                "NAO envie assim. Escolha UMA opcao e refaca: "
+                "(1) chame consultar_base_conhecimento AGORA (reescreva a consulta no "
+                "vocabulario formal dos manuais, mantendo as palavras-chave) e responda "
+                "APENAS com o que ela retornar, citando manual e pagina (regra 4); "
+                f"(2) se os manuais nao cobrirem o nucleo da pergunta, responda EXATAMENTE "
+                f"'{NEGATIVA_SENTINEL}', sozinho; "
+                + ("(3) se a resposta se apoia integralmente em conteudo ja consultado NESTA "
+                   "conversa, reescreva-a mantendo a linha '> Fonte:' daquele turno; "
+                   if prior_fonte else
+                   "(3) se o tema for claramente alheio a FAI (conhecimento geral), reenvie "
+                   "uma recusa breve, sem contatos; ")
+                + "(4) se voce precisa de um esclarecimento do usuario antes de responder "
+                "(ex.: qual documento), reenvie apenas a pergunta de esclarecimento; "
+                "(5) APENAS se a mensagem do usuario nao contiver nenhuma pergunta nem "
+                "pedido (so agradecimento/despedida), reenvie a resposta cordial breve."
+            )
+        if len(t) < settings.AGENT_GROUNDING_MIN_CHARS:
+            return None                      # curta: social/confirmacao — nao punir
         return (
             "ATENCAO (verificacao automatica): sua resposta anterior e substantiva, mas NAO esta "
             "ancorada em nenhuma fonte — nenhuma consulta aos manuais retornou trechos e nao ha "
@@ -267,8 +427,31 @@ def _run_agent(config, question: str, agent_history: list, skill_history: list):
             "citando manual e pagina (regra 4); "
             f"(2) se os manuais nao cobrirem o nucleo da pergunta, responda EXATAMENTE '{NEGATIVA_SENTINEL}', sozinho; "
             "(3) apenas se a pergunta for puramente social/sobre voce (sem conteudo de manual), "
-            "reescreva a resposta normalmente."
+            "reescreva a resposta normalmente; "
+            "(4) se voce precisa de um esclarecimento do usuario antes de responder, "
+            "reenvie apenas a pergunta de esclarecimento."
         )
+
+    def _exhausted_fallback(final_text: str, actx) -> "str | None":
+        """Retries do guard esgotados e a resposta AINDA sem ancora: sob a flag
+        STRICT_FAIL (off por padrao), troca pelo token de negativa (o _SentinelGate
+        substitui pela mensagem oficial). Conjuncao estrita — 1o turno, pergunta
+        nao-social, nenhuma fonte/download, nenhuma skill falha/desambiguacao —
+        para nunca engolir social nem esclarecimento legitimos; o residuo
+        indistinguivel e a recusa fora-de-escopo (regra 2.3), dai o default off."""
+        if not settings.AGENT_GROUNDING_STRICT_FAIL:
+            return None
+        t = (final_text or "").strip()
+        if NEGATIVA_SENTINEL in t or actx.sources or actx.downloads:
+            return None
+        if agent_history or question_is_social:
+            return None
+        # Desambiguacao/falha operacional: a resposta final legitima e a pergunta
+        # de esclarecimento ou o relato da falha — nao trocar pela negativa.
+        if actx.extras.get("skill_errors") or \
+                "entregar_documento" in (actx.extras.get("skills_called") or []):
+            return None
+        return NEGATIVA_SENTINEL
 
     chat_client = ChatClient()
     agent = AgentService(
@@ -278,6 +461,8 @@ def _run_agent(config, question: str, agent_history: list, skill_history: list):
         instructions_mode=settings.SKILL_INSTRUCTIONS_MODE,
         system_prompt_builder=lambda c: chat_client.build_agent_system_prompt(c.available_docs),
         grounding_checker=_grounding_checker,
+        max_grounding_retries=settings.AGENT_GROUNDING_MAX_RETRIES,
+        exhausted_fallback=_exhausted_fallback,
     )
     # O AGENTE raciocina sobre o historico PLENO (agent_history), nao o truncado.
     return agent.run_stream(question, agent_history, ctx), ctx
@@ -321,6 +506,18 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
             rerank_url=settings.RERANK_URL,
             rerank_fallback_enabled=settings.RERANK_FALLBACK_ENABLED,
             supabase_fallback_enabled=settings.SUPABASE_FALLBACK_ENABLED,
+            retrieval_deepen_enabled=settings.RETRIEVAL_DEEPEN_ENABLED,
+            retrieval_weak_min_chunks=settings.RETRIEVAL_WEAK_MIN_CHUNKS,
+            retrieval_weak_max_score=settings.RETRIEVAL_WEAK_MAX_SCORE,
+            retrieval_escalation_enabled=settings.RETRIEVAL_ESCALATION_ENABLED,
+            retrieval_escalation_top_k=settings.RETRIEVAL_ESCALATION_TOP_K,
+            retrieval_escalation_chunk_top_k=settings.RETRIEVAL_ESCALATION_CHUNK_TOP_K,
+            retrieval_escalation_entity_tokens=settings.RETRIEVAL_ESCALATION_ENTITY_TOKENS,
+            retrieval_escalation_relation_tokens=settings.RETRIEVAL_ESCALATION_RELATION_TOKENS,
+            query_rewrite_enabled=settings.QUERY_REWRITE_ENABLED,
+            query_rewrite_pgvector_hints=settings.QUERY_REWRITE_PGVECTOR_HINTS,
+            recall_channel_pgvector_enabled=settings.RECALL_CHANNEL_PGVECTOR_ENABLED,
+            retired_manual_patterns=tuple(settings.retired_manual_patterns()),
         )
 
         # Carregar historico anterior da conversa (turnos previos) para dar contexto ao LightRAG.
@@ -397,7 +594,14 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
         agent_ctx = None
         try:
             if agent_on:
-                answer, agent_ctx = _run_agent(config, effective_question, full_history, conversation_history)
+                answer, agent_ctx = _run_agent(
+                    config, effective_question, full_history, conversation_history,
+                    # Predicado social PERMISSIVO sobre a pergunta CRUA (a efetiva pode
+                    # ter bloco de citacao prefixado): no guard de grounding, o
+                    # falso-negativo social custaria 2 retries num agradecimento — o
+                    # trade-off e o INVERSO do gate legado (is_smalltalk, alta precisao).
+                    question_is_social=is_social_turn(request.question),
+                )
             else:
                 # Gate conversacional: turnos puramente sociais (oi, obrigado, "quem e voce?")
                 # respondem direto pelo modelo auxiliar, SEM acionar o LightRAG (economiza o
@@ -442,6 +646,10 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
         # 2. Processar Resposta (Streaming ou String)
         full_answer = ""
         last_usage = 0
+        # Predicado social PERMISSIVO sobre a pergunta CRUA (o mesmo passado ao guard de
+        # grounding do agente): os gates de negativa (score / prosa) nunca disparam em turno
+        # puramente social, para nao trocar uma saudacao/agradecimento pela negativa.
+        _q_is_social = is_social_turn(request.question)
 
         # Guard determinístico anti-alucinação de referência legal: descarta frases que
         # citem norma cujo número-base não exista no manual (ex.: ISS Lei 116/2003 inventada).
@@ -492,6 +700,15 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
                     out.setdefault(key, set()).add(int(n))
             return out
 
+        # Barreira DURA de intervalo: pagina citada fora de [1, total do manual] cai
+        # SEMPRE — cobre o caso do mapa de recuperados vazio (validacao por par inerte),
+        # por onde uma 'pág. 74' fabricada vazou num manual de 73.
+        try:
+            _page_bounds = {k: int(v) for k, v in
+                            json.loads(settings.MANUAL_PAGE_BOUNDS or "{}").items()}
+        except Exception:
+            _page_bounds = None
+
         def _fix_cites(text: str) -> str:
             # Indexacao page-aware com marcador [PÁGINA N] no INICIO da pagina -> o modelo
             # ja cita a pagina correta; sem necessidade de deslocar (page_shift=0).
@@ -500,8 +717,9 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
                 # (manual, paginas) contra o que a recuperacao devolveu neste turno
                 # (mata etiqueta trocada tipo PRO-04 e paginas fabricadas).
                 return normalize_source_citations(text, _canon_display, known_names=_display_names,
-                                                  retrieved_pages=_retrieved_pages_map() or None)
-            return normalize_source_citations(text, _canon_display)
+                                                  retrieved_pages=_retrieved_pages_map() or None,
+                                                  page_bounds=_page_bounds)
+            return normalize_source_citations(text, _canon_display, page_bounds=_page_bounds)
 
         # A CONSUMICAO do gerador e onde o streaming do LightRAG realmente acontece
         # (a chamada de rede e preguicosa). O try/except acima so cobre a INVOCACAO;
@@ -519,34 +737,105 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
                 # Consumer dedicado do agente: mapeia as tuplas do laco para eventos SSE.
                 # 'thought' (raciocinio do modelo) e suprimido; 'tool_status' vai como
                 # evento proprio (o frontend ignora por ora; vira chip "Consultando..." depois).
+                # O agente entrega a resposta final BUFFERIZADA de uma vez (agent_service so
+                # emite ('answer', final) apos aprovar o grounding), entao acumulamos o texto
+                # ja processado (guard legal + fix_cites + sentinel gate) e SO decidimos os
+                # gates de score/prosa DEPOIS — nada streamou ao usuario ainda, o que torna a
+                # troca por negativa deterministica (nao ha texto a "des-enviar").
+                agent_out = ""
                 for kind, payload in answer:
                     if kind == "usage":
                         last_usage = payload
                     elif kind == "answer":
-                        cleaned = gate.feed(_fix_cites(guard.feed(payload)))
-                        if cleaned:
-                            full_answer += cleaned
-                            yield f"data: {json.dumps({'content': cleaned})}\n\n"
+                        agent_out += gate.feed(_fix_cites(guard.feed(payload)))
                     elif kind == "tool_status":
                         yield f"data: {json.dumps({'tool_status': payload})}\n\n"
                     # 'thought' suprimido de proposito (nao vai ao usuario)
-                tail = gate.feed(_fix_cites(guard.flush())) + gate.flush()
-                if tail:
-                    full_answer += tail
-                    yield f"data: {json.dumps({'content': tail})}\n\n"
-                if gate.tripped:
-                    # Negativa sinalizada: descarta tudo e emite a frase fixa, sem fontes.
+                agent_out += gate.feed(_fix_cites(guard.flush())) + gate.flush()
+
+                _agent_sources = agent_ctx.sources if agent_ctx else []
+                _has_downloads = bool(agent_ctx and agent_ctx.downloads)
+
+                # Gate por SCORE de recuperacao (grounding PARCIAL de BAIXO score): se a
+                # MELHOR fonte do turno ficou abaixo do limiar, o material e' apenas
+                # tangencial e a sintese tende a inventar procedimento -> forca a negativa.
+                # So com score presente (rerank ON) e fora de turno social; downloads nunca
+                # sao gateados por score.
+                _top_score = _max_retrieval_score(_agent_sources)
+                _score_trip = (
+                    settings.RETRIEVAL_SCORE_GATE_ENABLED and _top_score is not None
+                    and _top_score < settings.RETRIEVAL_SCORE_GATE_THRESHOLD
+                    and not _q_is_social and not _has_downloads)
+
+                # Gate de CITACAO FABRICADA: '> Fonte:' presente, mas NENHUMA fonte recuperada
+                # no turno (skill voltou vazia) -> citacao (e conteudo) inventados -> negativa.
+                _fab_cite_trip = (
+                    settings.FABRICATED_CITATION_GATE_ENABLED and not _q_is_social
+                    and not _agent_sources and not _has_downloads
+                    and "> Fonte:" in agent_out)
+
+                if gate.tripped or _score_trip or _fab_cite_trip:
+                    # Negativa sinalizada (token) OU recuperacao fraca OU citacao fabricada:
+                    # descarta tudo e emite a frase fixa de direcionamento, sem fontes.
+                    if not gate.tripped:
+                        _why = (f"score {_top_score:.2f} < {settings.RETRIEVAL_SCORE_GATE_THRESHOLD}"
+                                if _score_trip else "citacao fabricada (0 fontes recuperadas)")
+                        print(f"[gate] {_why} -> negativa forcada", flush=True)
                     full_answer = NO_CONTEXT_MSG
                     source_lines = []
                     yield f"data: {json.dumps({'content': NO_CONTEXT_MSG})}\n\n"
                 else:
-                    source_lines = agent_ctx.sources if agent_ctx else []
-                    # Downloads produzidos por skills (entregar_documento/gerar_*) -> links inline
-                    # em Markdown, no MESMO formato do fluxo legado (sem mudar o frontend).
-                    for nome, url in (agent_ctx.downloads if agent_ctx else []):
-                        link_md = f"\n\n📎 [Baixar **{nome}**]({url})"
-                        full_answer += link_md
-                        yield f"data: {json.dumps({'content': link_md})}\n\n"
+                    source_lines = _agent_sources
+                    _skills = (agent_ctx.extras.get("skills_called") if agent_ctx else []) or []
+                    # Gate de NEGATIVA EM PROSA (Nilva Q19): abstencao em texto livre (casa a
+                    # assinatura de negativa) SEM token, SEM linha '> Fonte:' e SEM fontes
+                    # coletadas, DEPOIS de consultar a base -> tambem recebe o direcionamento
+                    # oficial (senao a abstencao saia crua, sem o contato ao Gestor). Exigir a
+                    # consulta evita converter recusa fora-de-escopo (regra 2.3, sem contatos).
+                    _prose_trip = (
+                        settings.PROSE_NEGATIVA_GATE_ENABLED and not _q_is_social
+                        and agent_out.strip() and not source_lines
+                        and "> Fonte:" not in agent_out
+                        and bool(_PROSE_ABSTENTION_RE.search(agent_out))
+                        and "consultar_base_conhecimento" in _skills)
+
+                    # Verificacao de GROUNDING (2a opiniao): resposta SUBSTANTIVA e FUNDAMENTADA
+                    # -> confere se o NUCLEO aparece nos trechos das PAGINAS CITADAS. Pega o
+                    # grounding parcial de ALTO score (trecho tangencial com overlap lexical)
+                    # que o gate por score nao pega. Conservador (bloqueia so quando CLARO);
+                    # pula se nao houver excerto das paginas (fail-open). Nao roda em download.
+                    _verify_trip = False
+                    if (not _prose_trip and settings.GROUNDING_VERIFY_ENABLED
+                            and source_lines and not _q_is_social and not _has_downloads
+                            and len(agent_out.strip()) >= settings.GROUNDING_VERIFY_MIN_CHARS):
+                        _excerpts = _manual_excerpts(source_lines, settings.GROUNDING_VERIFY_MANUAL_TXT)
+                        if _excerpts:
+                            from src.chatbot_fai_docs.grounding_verify import answer_is_grounded
+                            _verify_settings = ChatSettings(
+                                provider="Ollama local" if not settings.OPENAI_API_KEY else "OpenAI API",
+                                api_key="ollama" if not settings.OPENAI_API_KEY else settings.OPENAI_API_KEY,
+                                model=settings.OLLAMA_MODEL if not settings.OPENAI_API_KEY else "gpt-4o-mini",
+                                base_url=settings.OLLAMA_BASE_URL if not settings.OPENAI_API_KEY else None,
+                            )
+                            if not answer_is_grounded(request.question, agent_out, _excerpts, _verify_settings):
+                                _verify_trip = True
+                                print("[gate] verificacao de grounding: nucleo nao sustentado "
+                                      "pelos trechos citados -> negativa", flush=True)
+
+                    if _prose_trip or _verify_trip:
+                        full_answer = NO_CONTEXT_MSG
+                        source_lines = []
+                        yield f"data: {json.dumps({'content': NO_CONTEXT_MSG})}\n\n"
+                    else:
+                        full_answer = agent_out
+                        if agent_out:
+                            yield f"data: {json.dumps({'content': agent_out})}\n\n"
+                        # Downloads produzidos por skills (entregar_documento/gerar_*) -> links
+                        # inline em Markdown, no MESMO formato do fluxo legado (sem mudar o front).
+                        for nome, url in (agent_ctx.downloads if agent_ctx else []):
+                            link_md = f"\n\n📎 [Baixar **{nome}**]({url})"
+                            full_answer += link_md
+                            yield f"data: {json.dumps({'content': link_md})}\n\n"
             elif isinstance(answer, str):
                 gated = gate.feed(_fix_cites(guard.feed(answer) + guard.flush())) + gate.flush()
                 if gate.tripped:
