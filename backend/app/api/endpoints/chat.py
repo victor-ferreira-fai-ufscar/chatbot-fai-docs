@@ -800,15 +800,18 @@ async def chat_stream(request: ChatRequest, repo = Depends(get_repo)):
                         and "consultar_base_conhecimento" in _skills)
 
                     # Verificacao de GROUNDING (2a opiniao): resposta SUBSTANTIVA e FUNDAMENTADA
-                    # -> confere se o NUCLEO aparece nos trechos das PAGINAS CITADAS. Pega o
-                    # grounding parcial de ALTO score (trecho tangencial com overlap lexical)
-                    # que o gate por score nao pega. Conservador (bloqueia so quando CLARO);
-                    # pula se nao houver excerto das paginas (fail-open). Nao roda em download.
+                    # -> confere se o NUCLEO aparece nos TRECHOS RECUPERADOS (os chunks em que a
+                    # sintese se baseou, coletados pela skill em ctx.extras['kb_context']). Pega
+                    # o grounding parcial de ALTO score (trecho tangencial com overlap lexical:
+                    # Fernando Q6 recupera "contratacao direta" e responde OUTRA pergunta) que o
+                    # gate por score nao pega. Verificar contra os CHUNKS (nao o texto da pagina)
+                    # evita o falso-positivo do graph-RAG. Conservador (bloqueia so quando CLARO);
+                    # pula sem contexto (fail-open). Nao roda em download.
                     _verify_trip = False
                     if (not _prose_trip and settings.GROUNDING_VERIFY_ENABLED
                             and source_lines and not _q_is_social and not _has_downloads
                             and len(agent_out.strip()) >= settings.GROUNDING_VERIFY_MIN_CHARS):
-                        _excerpts = _manual_excerpts(source_lines, settings.GROUNDING_VERIFY_MANUAL_TXT)
+                        _excerpts = (agent_ctx.extras.get("kb_context") if agent_ctx else "") or ""
                         if _excerpts:
                             from src.chatbot_fai_docs.grounding_verify import answer_is_grounded
                             _verify_settings = ChatSettings(

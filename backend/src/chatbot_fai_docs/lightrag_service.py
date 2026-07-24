@@ -332,6 +332,100 @@ class LightRagService:
         except Exception:
             return []
 
+    # ── Cascata de APROFUNDAMENTO do retrieval (2026-07-21) ─────────────────────────
+    # Generaliza o fallback rerank-off: alem de "contexto VAZIO", trata contexto FRACO
+    # (poucos chunks / score maximo baixo) escalando em estagios ANTES da unica sintese.
+    # Motivacao: 10 falsas negativas com gabarito nas baterias (gap lexical coloquial ->
+    # formal); o binario vazio/nao-vazio nao cobria o caso "veio pouco e ruim" (ex.:
+    # Ernesto Q7 "reforma de laboratorio", o proprio exemplo do comentario do fallback).
+
+    def _probe(self, payload: dict, headers: dict) -> tuple:
+        """Sonda only_need_context + re-score no cross-encoder. -> (chunks, scores),
+        alinhados. Falha suave -> ([], [])."""
+        chunks = self._fetch_context_chunks(payload, headers)
+        scores = self._rerank_scores(payload.get("query", ""), [c for _, c in chunks])
+        return chunks, scores
+
+    def _is_weak(self, chunks: list, scores: list) -> bool:
+        """Contexto fraco = nada recuperado OU nenhum score acima do corte. Só faz
+        sentido com rerank ON (scores do cross-encoder); o estagio rerank-off e
+        terminal e nunca e julgado por aqui.
+
+        O criterio principal e o SCORE: um unico chunk com score alto e um
+        retrieval BOM para pergunta pontual (cascatear ali adicionaria latencia ao
+        caminho feliz). A contagem minima so decide quando NAO ha scores
+        (rerank_url ausente / reranker fora do ar: _rerank_scores devolve []) —
+        um soluco do reranker nao pode disparar a cascata em toda consulta."""
+        cfg = self.config
+        if not chunks:
+            return True
+        if scores:
+            return max(scores) < getattr(cfg, "retrieval_weak_max_score", 0.35)
+        return len(chunks) < getattr(cfg, "retrieval_weak_min_chunks", 3)
+
+    def _deepen_retrieval(self, payload: dict, headers: dict, query_rewriter=None) -> tuple:
+        """Cascata base -> escalada -> reformulacao -> rerank-off. Cada estagio so roda
+        se o anterior ficou FRACO. MUTA `payload` (a sintese herda a query/knobs do
+        estagio vencedor). -> (chunks, scores, rerank_off, stage).
+
+        - escalada: knobs mais fundos POR REQUEST (QueryRequest do LightRAG aceita
+          top_k/chunk_top_k/max_*_tokens); as keywords da query ficam em cache no
+          servidor -> re-probe custa ~1-2s.
+        - reformulacao: `query_rewriter(question)` -> (consulta, hl, ll) | None. As
+          keywords vao por request (pula a extracao gpt-oss). NUNCA piora: se o probe
+          reformulado pontuar abaixo do melhor anterior, reverte query/keywords.
+        - rerank-off: estagio terminal (sem MIN_RERANK_SCORE nao ha corte, entao o
+          probe nunca vem "vazio" — avaliar fraqueza pelo proprio cross-encoder seria
+          circular). Mantem a semantica do fallback antigo, sobre a MELHOR query."""
+        cfg = self.config
+        chunks, scores = self._probe(payload, headers)
+        if not self._is_weak(chunks, scores):
+            return chunks, scores, False, "base"
+
+        stage = "base"
+        if getattr(cfg, "retrieval_escalation_enabled", False):
+            payload["top_k"] = getattr(cfg, "retrieval_escalation_top_k", 32)
+            payload["chunk_top_k"] = getattr(cfg, "retrieval_escalation_chunk_top_k", 20)
+            payload["max_entity_tokens"] = getattr(cfg, "retrieval_escalation_entity_tokens", 5000)
+            payload["max_relation_tokens"] = getattr(cfg, "retrieval_escalation_relation_tokens", 4500)
+            chunks, scores = self._probe(payload, headers)
+            stage = "escalated"
+            if not self._is_weak(chunks, scores):
+                return chunks, scores, False, stage
+
+        if query_rewriter is not None:
+            rewritten = None
+            try:
+                rewritten = query_rewriter(payload.get("query", ""))
+            except Exception as e:
+                print(f"[deepen] query_rewriter falhou: {type(e).__name__}: {e}", flush=True)
+            if rewritten:
+                new_query, hl, ll = rewritten
+                prev_query = payload.get("query", "")
+                payload["query"] = new_query
+                if hl:
+                    payload["hl_keywords"] = hl
+                if ll:
+                    payload["ll_keywords"] = ll
+                r_chunks, r_scores = self._probe(payload, headers)
+                # A reescrita so e ADOTADA se tornar o retrieval FORTE — a sintese
+                # entao responde a query reformulada (o agente re-contextualiza p/ o
+                # fraseado do usuario). Se continuou fraco, REVERTE sempre: comparar
+                # "fraco vs fraco" por score seria circular (0.0 >= 0.0 adotaria ate
+                # probe vazio) e a deriva semantica de uma reescrita que nem ajudou
+                # nao vale o risco de responder OUTRA pergunta (pior que negativa).
+                if not self._is_weak(r_chunks, r_scores):
+                    return r_chunks, r_scores, False, "rewritten"
+                payload["query"] = prev_query
+                payload.pop("hl_keywords", None)
+                payload.pop("ll_keywords", None)
+
+        if getattr(cfg, "rerank_fallback_enabled", False):
+            payload["enable_rerank"] = False
+            chunks = self._fetch_context_chunks(payload, headers)
+            return chunks, [], True, "rerank_off"
+        return chunks, scores, False, stage
+
     def answer_question_stream(
         self,
         question: str,
@@ -339,6 +433,7 @@ class LightRagService:
         conversation_history: list | None = None,
         history_turns: int = 5,
         available_docs: list | None = None,
+        query_rewriter=None,
     ) -> Tuple[Generator[Tuple[str, str], None, None], list, list]:
         """
         Retorna um gerador (para os chunks de resposta e pensamentos), uma lista vazia de search_results
@@ -347,6 +442,8 @@ class LightRagService:
         `conversation_history` é uma lista de dicts {"role", "content"} com os turnos anteriores da
         conversa, repassada ao LightRAG para manter o contexto. `history_turns` limita quantos turnos
         o LightRAG considera. `available_docs` alimenta {{LISTA_MANUAIS}} no prompt (nomes reais do bucket).
+        `query_rewriter` (opcional): callable(question) -> (consulta, hl, ll) | None, usado pelo
+        estagio de reformulacao da cascata de aprofundamento (retrieval_deepen_enabled).
         """
         user_prompt = self._build_user_prompt(available_docs)
 
@@ -363,21 +460,35 @@ class LightRagService:
         if self.config.lightrag_api_key:
             headers["X-API-Key"] = self.config.lightrag_api_key
 
-        # Fallback de recuperacao (gap lexical): sonda o contexto COM reranker (default do
-        # servidor). Se NENHUM chunk de texto passa o corte MIN_RERANK_SCORE, a busca
-        # absteria sem fonte mesmo com o tema no manual (ex.: "reforma de laboratorio" nao
-        # casa "obra/servico de engenharia" no cross-encoder). Nesse caso refaz com
-        # enable_rerank=False: os chunks voltam pela ordem do EMBEDDING (bge-m3), que
-        # recupera esses sinonimos. A sonda VIRA o contexto final (reusada abaixo p/ extrair
-        # paginas), entao NAO adiciona chamada de rede no caminho feliz. Rollback: flag off.
+        # Sondagem/aprofundamento do contexto ANTES da sintese. Dois modos:
+        # - CASCATA (retrieval_deepen_enabled): base -> escalada -> reformulacao ->
+        #   rerank-off, cada estagio so quando o anterior vem FRACO (_is_weak). A sonda
+        #   vencedora VIRA o contexto final (chunks E scores reusados abaixo) -> caminho
+        #   feliz nao ganha chamada de rede (o re-score que era feito na montagem das
+        #   fontes agora acontece na sonda).
+        # - LEGADO (deepen off, rerank_fallback_enabled): fallback binario original —
+        #   contexto VAZIO com reranker -> refaz com enable_rerank=False (ordem do
+        #   embedding bge-m3, que casa sinonimos que o cross-encoder perde).
         prefetched_chunks = None
+        prefetched_scores = None
         rerank_off = False
-        if getattr(self.config, "rerank_fallback_enabled", False):
+        deepen_stage = "off"
+        if getattr(self.config, "retrieval_deepen_enabled", False):
+            prefetched_chunks, prefetched_scores, rerank_off, deepen_stage = (
+                self._deepen_retrieval(payload, headers, query_rewriter))
+        elif getattr(self.config, "rerank_fallback_enabled", False):
             prefetched_chunks = self._fetch_context_chunks(payload, headers)
             if not prefetched_chunks:
                 rerank_off = True
                 payload["enable_rerank"] = False
                 prefetched_chunks = self._fetch_context_chunks(payload, headers)
+
+        # Contexto RECUPERADO (texto dos chunks) exposto p/ a verificacao de grounding do
+        # endpoint conferir a resposta contra os CHUNKS reais — NAO o texto da pagina, que no
+        # graph-RAG e' um subconjunto e gerava falso-positivo (a sintese usa fatos alem da
+        # pagina top-scored). Atributo de instancia lido pela skill apos answer_question.
+        self.last_retrieved_context = "\n\n".join(
+            (c or "") for _, c in (prefetched_chunks or []) if c)[:8000]
 
         # Timeout (connect, read). O read e o GAP entre bytes do stream: com gpt-oss em
         # raciocinio "high" (via ollama-think-shim) a fase de "pensar" pode passar de 2 min
@@ -536,7 +647,14 @@ class LightRagService:
                 # No modo fallback (rerank OFF), NAO exibimos o "· N%": o reranker pontua o
                 # conteudo certo perto de zero justamente para a query que disparou o
                 # fallback, entao o "1%" enganaria. Sem score -> "(pag. N)" limpo.
-                scores = [] if rerank_off else self._rerank_scores(payload.get("query", ""), [c for _, c in chunks])
+                # Com a cascata, os scores da sonda vencedora sao REUSADOS (mesma query,
+                # mesmos chunks) em vez de re-pontuar — caminho feliz sem custo extra.
+                if rerank_off:
+                    scores = []
+                elif prefetched_scores is not None and chunks is prefetched_chunks:
+                    scores = prefetched_scores
+                else:
+                    scores = self._rerank_scores(payload.get("query", ""), [c for _, c in chunks])
                 page_score: dict = {}
                 for (ref_id, content), s in zip(chunks, scores):
                     for p in _marker_pages(content):
@@ -587,7 +705,12 @@ class LightRagService:
                 chunks = prefetched_chunks if prefetched_chunks is not None else self._fetch_context_chunks(payload, headers)
                 pg_best: dict = {}
                 if chunks:
-                    scores = [] if rerank_off else self._rerank_scores(payload.get("query", ""), [c for _, c in chunks])
+                    if rerank_off:
+                        scores = []
+                    elif prefetched_scores is not None and chunks is prefetched_chunks:
+                        scores = prefetched_scores
+                    else:
+                        scores = self._rerank_scores(payload.get("query", ""), [c for _, c in chunks])
                     for i, (_ref, content) in enumerate(chunks):
                         s = scores[i] if i < len(scores) else 0.0
                         for p in _marker_pages(content):
@@ -623,7 +746,9 @@ class LightRagService:
             print(
                 f"[fontes] cited_map={len(cited_map)} refs_stream={len(collected_refs)} "
                 f"native_refs={len(native_refs)} prefetch={prefetched_chunks is not None} "
-                f"rerank_off={rerank_off} reparo={repair_used} linhas={len(source_lines)} "
+                f"rerank_off={rerank_off} deepen={deepen_stage} "
+                f"max_score={round(max(prefetched_scores or [0.0]), 3)} "
+                f"reparo={repair_used} linhas={len(source_lines)} "
                 f"in_thought={in_thought} cut={cut} seen_tail={seen_text[-70:]!r}",
                 flush=True,
             )
@@ -638,6 +763,7 @@ class LightRagService:
         conversation_history: list | None = None,
         history_turns: int = 5,
         available_docs: list | None = None,
+        query_rewriter=None,
     ) -> Tuple[str, list]:
         """Variante NAO-stream para uso como ferramenta de agente (skill
         consultar_base_conhecimento): consome o gerador de answer_question_stream
@@ -653,6 +779,7 @@ class LightRagService:
             conversation_history=conversation_history,
             history_turns=history_turns,
             available_docs=available_docs,
+            query_rewriter=query_rewriter,
         )
         parts = [content for kind, content in gen if kind == "answer"]
         return "".join(parts).strip(), source_lines

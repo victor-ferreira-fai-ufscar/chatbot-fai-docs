@@ -209,16 +209,19 @@ class Settings(BaseSettings):
     # '> Fonte: [Manual..., pág. X]'. Rollback: =false.
     FABRICATED_CITATION_GATE_ENABLED: bool = True
 
-    # Verificacao de GROUNDING por LLM (2a opiniao) — DESLIGADA (2026-07-24). A ideia:
-    # conferir se o NUCLEO da resposta aparece nos trechos das PAGINAS CITADAS. Na pratica
-    # deu LIQUIDO NEGATIVO: o LightRAG e' graph-RAG e a sintese usa entidades/relacoes e
-    # fatos de paginas ALEM do subconjunto top-scored dos cards, entao verificar contra o
-    # texto das paginas citadas VAZA e derruba respostas legitimas multi-fonte (medido:
-    # over-abstencao em Q3 compras e Nilva Q19, ambas COBERTAS — o verificador chamou de
-    # "inventado" o termo real "Processo Seletivo Simplificado" que esta na pag. 43). E nao
-    # pegou os alvos de alto score. Codigo mantido (grounding_verify.py) para retomada FUTURA
-    # so se verificar contra o CONTEXTO RECUPERADO completo (nao a pagina) + modelo mais
-    # confiavel. Ligar aqui NAO e' recomendado sem essa reformulacao.
+    # Verificacao de GROUNDING por LLM (2a opiniao) — DESLIGADA (INVIAVEL neste graph-RAG).
+    # Ideia: apos resposta substantiva/fundamentada, 1 chamada ao modelo LOCAL confere se o
+    # NUCLEO aparece nos trechos. Duas versoes tentadas em 2026-07-24, AMBAS deram LIQUIDO
+    # NEGATIVO (over-abstencao de respostas LEGITIMAS e cobertas):
+    #   (1) contra o texto das PAGINAS CITADAS — derrubou Q3 compras e Nilva Q19;
+    #   (2) contra os CHUNKS recuperados (last_retrieved_context) — derrubou Q3 compras e Q7.
+    # Causa RAIZ arquitetural: o LightRAG e' graph-RAG e a sintese usa ENTIDADES/RELACOES do
+    # grafo que vao ALEM de qualquer subconjunto de texto que o backend consiga reconstruir
+    # para verificar; entao o verificador sempre marca fatos legitimos como "inventados".
+    # NAO ligar sem outra fonte de evidencia (ex.: o proprio contexto que o LightRAG usou na
+    # sintese, hoje nao exposto). Codigo mantido (grounding_verify.py + kb_context) inerte.
+    # A alucinacao de grounding PARCIAL e' tratada pelos gates determinísticos + contra-
+    # exemplos no Prompt (1.5c/1.9b), que NAO super-abstem.
     GROUNDING_VERIFY_ENABLED: bool = False
     GROUNDING_VERIFY_MIN_CHARS: int = 200
     GROUNDING_VERIFY_MANUAL_TXT: str = "manual_coordenadores_page_marked.txt"
