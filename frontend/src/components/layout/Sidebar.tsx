@@ -710,8 +710,8 @@ export default function Sidebar({
                 melhor eu consigo te ajudar!
               </p>
               <p className="text-sm text-green-800 leading-relaxed mt-2">
-                Por exemplo, em vez de <em>“e a planilha?”</em>, prefira algo como
-                <em> “como faço para solicitar uma planilha orçamentária no sistema?”</em>.
+                Por exemplo, em vez de <em>“e a compra?”</em>, prefira algo como
+                <em> “como faço para criar uma solicitação de compra no sistema e quais informações preciso informar?”</em>.
               </p>
             </div>
 
