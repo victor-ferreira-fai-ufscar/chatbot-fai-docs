@@ -28,9 +28,12 @@ class OllamaModel:
 
     def generate(self, system_prompt: str, user_prompt: str, history: list[dict]):
         messages = [{"role": "system", "content": system_prompt}] + history + [{"role": "user", "content": user_prompt}]
+        # 0.0 pelo mesmo motivo do chat() abaixo: reprodutibilidade. Aqui atende titulo
+        # de conversa, turno social e resolucao de documento — todos se beneficiam de
+        # resposta estavel para a mesma entrada.
         response = self.client.chat.completions.create(
             model=self.model_name,
-            temperature=0.2,
+            temperature=0.0,
             messages=messages,
             stream=True,
             stream_options={"include_usage": True}
@@ -78,9 +81,15 @@ class OllamaModel:
 
         Os argumentos das tool_calls chegam FRAGMENTADOS no stream: acumulamos por
         index e so fazemos json.loads no final (erro classico de tool calling)."""
+        # temperature 0.2 -> 0.0 (2026-07-28): o AGENTE decide "responder vs. emitir o
+        # token-sentinela", e com 0.2 essa decisao era AMOSTRADA — probe de 5 repeticoes
+        # na MESMA pergunta deu 4/5, 3/5 e 3/5 (flip sem nenhuma mudanca de config). Nas
+        # vezes em que respondia, o conteudo era consistente e bem citado; o flip estava
+        # so na decisao binaria. A sintese do LightRAG ja roda em 0.0
+        # (OLLAMA_LLM_TEMPERATURE no compose); isto alinha o agente a ela.
         params = {
             "model": self.model_name,
-            "temperature": 0.2,
+            "temperature": 0.0,
             "messages": messages,
             "stream": True,
             "stream_options": {"include_usage": True},
