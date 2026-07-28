@@ -61,7 +61,8 @@ ABSTENTION_RE = re.compile(
     r"fornece|apresenta|oferece|traz|inclui|cobre|indica|descreve|explica|define|informa|"
     r"foi\s+poss[íi]vel|encontr|disp[oõ]e|h[áa]\s+informa)", re.I)
 NO_CONTEXT_SIG_RE = re.compile(
-    r"(recomendo entrar em contato com o Gestor|Supervisor de Projetos (Espec|Gerais))", re.I)
+    r"(sugerimos entrar em contato com o gestor|recomendo entrar em contato com o Gestor"
+    r"|Supervisor de Projetos (Espec|Gerais))", re.I)
 
 
 def classify(ans: str, sources: list, question: str, err) -> tuple:

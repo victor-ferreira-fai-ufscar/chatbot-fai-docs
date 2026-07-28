@@ -58,7 +58,8 @@ ABSTENTION_RE = re.compile(
 # nao casa o ABSTENTION_RE; sem isto, a negativa oficial era contada como "factual
 # sem fonte" no check mole (2026-07-21; sincronizado com bateria/probe).
 NO_CONTEXT_SIG_RE = re.compile(
-    r"(recomendo entrar em contato com o Gestor|Supervisor de Projetos (Espec|Gerais))", re.I)
+    r"(sugerimos entrar em contato com o gestor|recomendo entrar em contato com o Gestor"
+    r"|Supervisor de Projetos (Espec|Gerais))", re.I)
 
 
 def norm_file(s: str) -> str:

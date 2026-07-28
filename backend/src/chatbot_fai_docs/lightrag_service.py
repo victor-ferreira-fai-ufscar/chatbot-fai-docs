@@ -18,14 +18,17 @@ FALLBACK_RE = re.compile(
     r"(?i)(no relevant context found|sorry,?\s*i'?m not able to provide an answer|\[no-context\])"
 )
 # Negativa amigavel em portugues (alinhada ao protocolo de negativa do Prompt.md).
-# TODO: quando houver contato direto dos Supervisores de Projetos, listar cada um
-# ("Supervisor de Projetos Específicos: ..." / "Supervisor de Projetos Gerais: ...")
-# aqui e na regra 2.2 do Prompt.md, no lugar do telefone/e-mail geral.
+# FONTE UNICA da mensagem: o endpoint (_SentinelGate e os gates deterministicos) troca o
+# token-sentinela por ESTA constante. Ao alterar o texto, ajuste TAMBEM os detectores de
+# abstencao das baterias, que casam por frase: bateria_consolidado.py, consistency_probe.py
+# e eval_manual_qa.py -- e a descricao da regra 2.4 do Prompt.md, que diz ao modelo o que
+# o token codifica.
+# 2026-07-28: reescrita a pedido do usuario. Sai a mencao aos Supervisores de Projetos
+# (que nunca tiveram contato direto para divulgar) e ao telefone; fica o e-mail geral.
 NO_CONTEXT_MSG = (
-    "Para esclarecer essa demanda específica, recomendo entrar em contato com o Gestor do seu "
-    "Projeto. Caso ainda não tenha um gestor designado, procure o Supervisor de Projetos "
-    "Específicos ou o Supervisor de Projetos Gerais pelo telefone (16) 3351-9000 ou e-mail "
-    "fai@fai.ufscar.br."
+    "Para melhor atender a essa demanda, sugerimos entrar em contato com o gestor do seu "
+    "projeto. Caso ainda não tenha um gestor designado, entrar em contato com a FAI, "
+    "através do e-mail: fai@fai.ufscar.br"
 )
 
 from src.chatbot_fai_docs.config import AppConfig

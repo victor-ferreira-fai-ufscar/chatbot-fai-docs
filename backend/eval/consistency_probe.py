@@ -41,7 +41,8 @@ ABSTENTION_RE = re.compile(
 # direcionamento (NO_CONTEXT_MSG), que NÃO casa o regex acima. Detecta essa forma
 # nova pela assinatura estável do direcionamento ao Gestor/Supervisores.
 NO_CONTEXT_SIG_RE = re.compile(
-    r"(recomendo entrar em contato com o Gestor|Supervisor de Projetos (Espec|Gerais))", re.I)
+    r"(sugerimos entrar em contato com o gestor|recomendo entrar em contato com o Gestor"
+    r"|Supervisor de Projetos (Espec|Gerais))", re.I)
 
 # Subconjunto-padrão: mistura controles "fáceis" (devem SEMPRE responder) com casos de
 # fronteira (financiador/autônomos/prazos) onde o flip costuma aparecer. Sobrescrevível
