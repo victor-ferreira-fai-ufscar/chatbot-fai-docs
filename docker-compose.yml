@@ -226,7 +226,7 @@ services:
       # coberta por guards DETERMINISTICOS no backend (validacao citacao x recuperado +
       # guard de grounding com retry). Rollback: voltar p/ high.
       # 2026-07-21 ROLLBACK: medium -> high (retomada do raciocinio mais profundo).
-      THINK_LEVEL: high
+      THINK_LEVEL: medium
       THINK_MODELS: gpt-oss
       STRIP_THINKING: "true"
     healthcheck:
