@@ -192,11 +192,15 @@ def _finalize_and_persist(repo, request, conversation_id, quoted_meta,
             # Título SEMPRE por modelo LOCAL (Ollama), independente de OPENAI_API_KEY.
             # É uma chamada barata e frequente (uma por conversa nova): não deve gastar
             # cota da OpenAI nem migrar sozinha para a nuvem quando a chave for adicionada
-            # para OUTRO fim (rollback da síntese / agente). Modelo via OLLAMA_MODEL.
+            # para OUTRO fim (rollback da síntese / agente).
+            # Modelo via OLLAMA_TITLE_MODEL — SEPARADO do OLLAMA_MODEL de propósito:
+            # o título é o único uso auxiliar do caminho quente (toda conversa nova),
+            # então um modelo grande aqui disputa VRAM com o gpt-oss da síntese e faz
+            # o Ollama despejar/recarregar a cada pergunta (ver comentário no config).
             title_settings = ChatSettings(
                 provider="Ollama local",
                 api_key="ollama",
-                model=settings.OLLAMA_MODEL,
+                model=settings.OLLAMA_TITLE_MODEL,
                 base_url=settings.OLLAMA_BASE_URL,
             )
             try:

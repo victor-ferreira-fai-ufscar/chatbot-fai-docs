@@ -26,9 +26,24 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: Optional[str] = None
     GEMINI_API_KEY: Optional[str] = None
     OLLAMA_BASE_URL: str = "http://localhost:11434/v1"
-    # Modelo do Ollama usado em tarefas auxiliares (titulo de conversa,
-    # resolucao de documentos) quando nao ha OPENAI_API_KEY configurada.
+    # Modelo do Ollama usado em tarefas auxiliares (resposta a turno social,
+    # resolucao de documentos, reformulacao da query) quando nao ha OPENAI_API_KEY.
     OLLAMA_MODEL: str = "llama3.2:3b"
+    # Modelo do TITULO de conversa — setting SEPARADO do OLLAMA_MODEL (2026-07-27).
+    # A tarefa e' resumir uma frase em <=5 palavras e NAO participa da resposta final
+    # (o texto ao usuario e' escrito pelo AGENTE, que roda em OLLAMA_MODEL). Ter o
+    # setting proprio permite trocar o modelo de titulo sem tocar no agente.
+    # ESCOLHA DO MODELO — contra-intuitiva, medida em 27/07 nesta maquina: o mais
+    # rapido NAO e' o menor. Um modelo dedicado pequeno (llama3.2:3b) gera titulo em
+    # ~0.17s contra ~2.4s do gemma4:12b, mas vira um 4o modelo residente e estoura o
+    # OLLAMA_MAX_LOADED_MODELS (default do Ollama = 3): o despejo/recarga resultante
+    # custa muito mais que os 2.2s economizados. Apontar para o modelo do AGENTE sai
+    # de graca em VRAM (ele ja esta residente no turno) e o custo aparece so na 1a
+    # mensagem de cada conversa, atrasando apenas o painel de fontes (o texto da
+    # resposta ja foi streamado antes de generate_title). So vale um modelo dedicado
+    # se houver folga p/ um 4o residente (cap >= 4) ou se ele for de contexto curto
+    # (o llama3.2:3b carrega com num_ctx 32k = 5.9GB, absurdo p/ um titulo).
+    OLLAMA_TITLE_MODEL: str = "llama3.2:3b"
     
     # External Services
     DATABASE_URL: Optional[str] = None

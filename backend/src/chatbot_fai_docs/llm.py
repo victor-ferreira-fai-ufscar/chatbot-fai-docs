@@ -180,6 +180,40 @@ class ChatClient:
             return f"{prompt_with_vars}\n\n{self.skills_protocol_base}"
         return prompt_with_vars
 
+    @staticmethod
+    def _clean_title(raw: str, fallback: str = "") -> str:
+        """Higieniza o título devolvido pelo modelo.
+
+        Modelos pequenos (OLLAMA_TITLE_MODEL é de propósito um modelo enxuto)
+        desobedecem o "sem aspas" do system prompt e às vezes prefixam
+        "Título:" ou devolvem mais de uma linha. Nada disso pode vazar para o
+        rótulo da sidebar, então a limpeza é feita aqui e não no prompt.
+        """
+        title = (raw or "").strip()
+        # Só a primeira linha não-vazia (modelo pode "explicar" o título embaixo).
+        for line in title.splitlines():
+            if line.strip():
+                title = line.strip()
+                break
+        # Prefixo rotulado ("Titulo: X" / "Título - X").
+        low = title.lower()
+        for pref in ("titulo:", "título:", "titulo -", "título -"):
+            if low.startswith(pref):
+                title = title[len(pref):].strip()
+                break
+        # Aspas envolventes (retas, curvas e angulares).
+        pairs = (('"', '"'), ("'", "'"), ("“", "”"), ("‘", "’"), ("«", "»"))
+        for _ in range(2):  # pode vir aspas duplicada: «"X"»
+            for op, cl in pairs:
+                if len(title) >= 2 and title.startswith(op) and title.endswith(cl):
+                    title = title[1:-1].strip()
+                    break
+        title = " ".join(title.split())  # colapsa espaços/quebras internas
+        if not title:
+            return (fallback[:30] + "...") if fallback else "Nova conversa"
+        # Teto de tamanho: o modelo pequeno às vezes ecoa a pergunta inteira.
+        return title if len(title) <= 60 else title[:57].rstrip() + "..."
+
     def generate_title(self, question: str, settings: ChatSettings) -> str:
         """Gera um título curto para a conversa baseado na primeira pergunta."""
         system_prompt = "Voce e um assistente que gera titulos curtos e descritivos. Responda apenas com o titulo, sem aspas, com no maximo 5 palavras."
@@ -206,6 +240,6 @@ class ChatClient:
                         full_title += content
                 else:
                     full_title += chunk
-            return full_title.strip()
-        
-        return title.strip()
+            return self._clean_title(full_title, question)
+
+        return self._clean_title(title, question)
