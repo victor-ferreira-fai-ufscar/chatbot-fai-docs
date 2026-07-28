@@ -228,6 +228,8 @@ class AgentService:
         instructions_mode: str = "preamble",
         system_prompt_builder: Callable[[AgentContext], str] | None = None,
         grounding_checker: Callable[[str, AgentContext], "str | None"] | None = None,
+        max_grounding_retries: int = 1,
+        exhausted_fallback: Callable[[str, AgentContext], "str | None"] | None = None,
     ):
         self.model = model
         self.registry = registry
@@ -242,6 +244,14 @@ class AgentService:
         # coletada por skill) — padrao medido na bateria multi-manual: 100% dos
         # cenarios multi-documento falharam assim. None = resposta ok / guard off.
         self._grounding_checker = grounding_checker
+        # Quantas vezes a corretiva do guard volta ao modelo (2026-07-21: era retry
+        # unico fixo). O cenario encadeado tipico precisa de 2 (sem-skill -> consulta
+        # -> sem-citacao -> citada); cada retry consome 1 passo do max_steps.
+        self.max_grounding_retries = max_grounding_retries
+        # Ao ESGOTAR os retries com o guard ainda reclamando: se este callable
+        # (injetavel; politica no endpoint) devolver texto, ele SUBSTITUI a resposta
+        # final (ex.: token de negativa em vez de texto sem ancora). None = aceita.
+        self._exhausted_fallback = exhausted_fallback
 
     def run_stream(
         self, question: str, conversation_history: list[dict], ctx: AgentContext
@@ -255,7 +265,7 @@ class AgentService:
 
         schemas = self.registry.schemas
         instructed: set[str] = set()  # skills cujas instrucoes ja foram injetadas (disclosure)
-        grounding_retried = False     # o guard de grounding devolve ao modelo NO MAXIMO 1 vez
+        grounding_retries = 0         # corretivas do guard ja devolvidas ao modelo
 
         for _step in range(self.max_steps):
             answer_buf = ""
@@ -276,20 +286,34 @@ class AgentService:
                 # "harmony") nunca vaze ao usuario; depois funde as citacoes de
                 # fonte do mesmo arquivo numa unica linha (paginas agrupadas).
                 final = consolidate_sources(sanitize_harmony(answer_buf))
-                # Guard de grounding: resposta substantiva sem NENHUMA fonte nao sai
-                # na primeira — devolve ao modelo UMA vez com a instrucao corretiva
-                # (consultar a base / emitir o token de negativa / reafirmar se for
-                # social). A 2a resposta e aceita como vier. So funciona porque o
-                # texto final e BUFFERIZADO (nada vazou ao stream ainda).
-                if not grounding_retried and self._grounding_checker:
+                # Guard de grounding: resposta sem NENHUMA fonte nao sai na primeira —
+                # devolve ao modelo ate max_grounding_retries vezes com a instrucao
+                # corretiva (consultar a base / emitir o token de negativa / reafirmar
+                # se for social). So funciona porque o texto final e BUFFERIZADO (nada
+                # vazou ao stream ainda). Esgotados os retries com o guard ainda
+                # reclamando, o exhausted_fallback (politica do endpoint) pode
+                # substituir a resposta (ex.: token de negativa) em vez de aceitar.
+                if self._grounding_checker:
                     corrective = self._grounding_checker(final, ctx)
                     if corrective:
-                        grounding_retried = True
-                        print("[agente] guard de grounding: resposta substantiva sem fonte -> retry corretivo")
-                        yield ("tool_status", "verificando_fontes")
-                        messages.append({"role": "assistant", "content": answer_buf})
-                        messages.append({"role": "user", "content": corrective})
-                        continue
+                        # So gasta um retry se AINDA HOUVER passo no laco para a resposta
+                        # corrigida sair: um `continue` na ULTIMA iteracao descartaria o
+                        # `final` bufferizado e entregaria o fallback generico da exaustao
+                        # ("Nao consegui concluir...") — regressao vs. aceitar a resposta.
+                        if (grounding_retries < self.max_grounding_retries
+                                and _step < self.max_steps - 1):
+                            grounding_retries += 1
+                            print(f"[agente] guard de grounding: resposta sem fonte -> retry corretivo "
+                                  f"({grounding_retries}/{self.max_grounding_retries})")
+                            yield ("tool_status", "verificando_fontes")
+                            messages.append({"role": "assistant", "content": answer_buf})
+                            messages.append({"role": "user", "content": corrective})
+                            continue
+                        if self._exhausted_fallback:
+                            fb = self._exhausted_fallback(final, ctx)
+                            if fb:
+                                print("[agente] guard de grounding: retries esgotados -> fallback estrito")
+                                final = fb
                 yield ("answer", final)
                 return
 
@@ -305,6 +329,15 @@ class AgentService:
                 name = call.get("name") or ""
                 yield ("tool_status", name)
                 result = self.registry.dispatch(name, call.get("arguments") or {}, ctx)
+                # Rastreio p/ diagnostico e para o guard de grounding do endpoint:
+                # "alguma skill rodou NESTE turno?" (actx.sources nao serve de proxy —
+                # uma consulta que voltou vazia tem sources=[] mas a skill FOI chamada).
+                # skill_errors separa "rodou e FALHOU" (erro operacional: a resposta
+                # honesta e relatar a falha, nao consultar/negar) de "rodou e voltou
+                # vazio" (ai sim o guard deve cochear consulta/negativa).
+                ctx.extras.setdefault("skills_called", []).append(name)
+                if result is not None and result.error:
+                    ctx.extras.setdefault("skill_errors", []).append(name)
                 ctx.collect(result)
 
                 content = result.for_model

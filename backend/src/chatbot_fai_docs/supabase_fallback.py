@@ -50,11 +50,17 @@ def answer_with_fallback(question, config, chat_settings, *, top_k: int = 6, max
     # LightRAG (reforma != obra) e produz logits NEGATIVOS que o threshold 0.0 zera ->
     # contexto vazio. O embedding bge-m3 casa esses sinonimos (mesma licao do fallback
     # rerank-off do LightRAG), entao usamos os top_k por similaridade de embedding.
+    from src.chatbot_fai_docs.config import is_retired_manual, retired_ilike_patterns
+    retired = getattr(config, "retired_manual_patterns", ())
     query_embedding = svc.embedder.embed_query(question)
-    results = svc.vector_store.search(query_embedding, top_k=top_k)
+    # Exclui do fallback os chunks de manuais aposentados (seguem no pgvector p/
+    # resiliencia, mas nao podem reaparecer numa resposta ao usuario).
+    results = svc.vector_store.search(query_embedding, top_k=top_k,
+                                      exclude_sources=retired_ilike_patterns(retired))
 
     from src.chatbot_fai_docs.pdfs import list_pdf_files
-    available = [f.name for f in list_pdf_files(config.docs_dir)] if config.docs_dir.exists() else []
+    available = [f.name for f in list_pdf_files(config.docs_dir)
+                 if not is_retired_manual(f.name, retired)] if config.docs_dir.exists() else []
 
     # A síntese do Ollama chega como gerador de tuplas ("answer"/"thought"/"usage").
     # Só o canal "answer" vai ao usuário (o "thought" é raciocínio interno).

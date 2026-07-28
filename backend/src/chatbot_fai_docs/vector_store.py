@@ -94,11 +94,22 @@ class PostgresVectorStore:
                 )
             connection.commit()
 
-    def search(self, query_embedding: list[float], top_k: int) -> list[SearchResult]:
+    def search(self, query_embedding: list[float], top_k: int,
+               exclude_sources: list[str] | None = None) -> list[SearchResult]:
+        # `exclude_sources`: padroes ILIKE (ex.: '%sistema%') de fontes a NAO retornar —
+        # usado p/ manter fora manuais aposentados do indice cujos chunks seguem no
+        # pgvector (resiliencia). Filtra no SQL p/ o LIMIT ainda devolver top_k VALIDOS.
+        patterns = [p for p in (exclude_sources or []) if p]
+        where = ""
+        params: list = [Vector(query_embedding)]
+        if patterns:
+            where = "WHERE " + " AND ".join(["source NOT ILIKE %s"] * len(patterns))
+            params.extend(patterns)
+        params.extend([Vector(query_embedding), top_k])
         with self._connect() as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
-                    """
+                    f"""
                     SELECT
                         chunk_id,
                         source,
@@ -107,10 +118,11 @@ class PostgresVectorStore:
                         content_hash,
                         1 - (embedding <=> %s) AS score
                     FROM document_chunks
+                    {where}
                     ORDER BY embedding <=> %s
                     LIMIT %s
                     """,
-                    (Vector(query_embedding), Vector(query_embedding), top_k),
+                    tuple(params),
                 )
                 rows = cursor.fetchall()
 

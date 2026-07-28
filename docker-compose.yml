@@ -100,7 +100,7 @@ services:
       # filtram), dando mais recall factual sem voltar ao "PDF inteiro".
       # 2026-07-14 LATENCIA: 14 -> 10 (recuo da Onda 5; agora sao 2 manuais/51 chunks no
       # indice, 10 segue proporcional ao que o 14 era p/ 1 manual). Menos prefill na sintese.
-      CHUNK_TOP_K: "10"
+      CHUNK_TOP_K: "16"
       # Onda 2: entidades/relacoes do grafo recuperadas. Default do LightRAG = 40, que num
       # grafo de ~22 chunks traz quase tudo e dilui. 24 e mais focado e reproduzivel.
       # Onda 5: 24 -> 32 (mais candidatos do grafo p/ os caps maiores de entity/relation).

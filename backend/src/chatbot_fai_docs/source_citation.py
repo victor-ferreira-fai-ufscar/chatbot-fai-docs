@@ -99,9 +99,31 @@ def canonicalize_source_line(line: str, canonical: Optional[str]) -> str:
     return f"{m.group(1)}{canonical}{pages}"
 
 
+def _clamp_pages(page: str, max_page: int) -> str:
+    """Remove do rotulo citado ('pág. 74' / 'págs. 59, 74' / '4-6') os numeros de
+    pagina FORA de [1, max_page] — barreira dura contra pagina fabricada alem do fim
+    do manual (caso real: 'pág. 74' num manual de 73). Reconstroi o rotulo com os
+    numeros validos; vazio se nenhum sobrar."""
+    out: list = []
+    for tok in re.split(r"[,\s]+", page or ""):
+        m = re.match(r"^(\d{1,4})(?:-(\d{1,4}))?$", tok.strip().rstrip(".;"))
+        if not m:
+            continue
+        a = int(m.group(1))
+        b = int(m.group(2)) if m.group(2) else a
+        if a <= b and b - a < 200:
+            out.extend(n for n in range(a, b + 1) if 1 <= n <= max_page)
+    uniq = sorted(set(out))
+    if not uniq:
+        return ""
+    label = "pág." if len(uniq) == 1 else "págs."
+    return f"{label} {', '.join(map(str, uniq))}"
+
+
 def normalize_source_citations(text: str, canonical: Optional[str], page_shift: int = 0,
                                known_names: Optional[list] = None,
-                               retrieved_pages: Optional[dict] = None) -> str:
+                               retrieved_pages: Optional[dict] = None,
+                               page_bounds: Optional[dict] = None) -> str:
     """Reescreve toda citacao '[arquivo, pag. N]' do texto.
 
     - Com `known_names` (MULTI-DOC): resolve o nome POR CITACAO — casa o arquivo citado
@@ -117,6 +139,10 @@ def normalize_source_citations(text: str, canonical: Optional[str], page_shift: 
     - `retrieved_pages` ({nome_display -> set de paginas RECUPERADAS neste turno}):
       valida cada par (manual, paginas) citado contra o que a recuperacao de fato
       devolveu — ver _validate_pair. Nunca exibe par fabricado.
+    - `page_bounds` ({nome_display -> total de paginas do manual}): barreira DURA e
+      INCONDICIONAL — pagina fora de [1, total] e removida SEMPRE, mesmo quando o
+      mapa de recuperados esta vazio (o furo por onde 'pág. 74' vazou: a validacao
+      por par so age com evidencia de recuperacao).
     """
     if not text or "[" not in text:
         return text
@@ -128,6 +154,12 @@ def normalize_source_citations(text: str, canonical: Optional[str], page_shift: 
         # Multi-doc: o nome sai da resolucao por citacao (o citado e a dica); doc unico
         # usa o canonico fixo. None nos dois casos -> so a pagina (nunca nome fabricado/errado).
         name = _match_cited(m.group(1) or "", known_names) if known_names else canonical
+        # Barreira de intervalo ANTES da validacao por par (age mesmo com mapa vazio).
+        if page and page_bounds:
+            hint = name or (m.group(1) or "")
+            key = _match_cited(hint, list(page_bounds)) if hint else None
+            if key:
+                page = _clamp_pages(page, page_bounds[key])
         if name and page and retrieved_pages:
             name, page = _validate_pair(name, page, retrieved_pages)
         if name:
@@ -239,4 +271,34 @@ if __name__ == "__main__":
     assert normalize_source_citations("> Fonte: [Manual dos Coordenadores.pdf, pág. 12]",
                                       None, known_names=MANS, retrieved_pages={}) == \
         "> Fonte: [Manual dos Coordenadores.pdf, pág. 12]"
+
+    # --- BARREIRA DE INTERVALO (page_bounds): pagina fabricada alem do fim do manual ---
+    BOUNDS = {"Manual dos Coordenadores.pdf": 73, "Manual do Sistema Area Coordenadores.pdf": 42}
+    # caso real do prof. Fernando: 'pág. 74' num manual de 73, com mapa de recuperados
+    # VAZIO (validacao por par inerte) -> a pagina cai mesmo assim
+    assert normalize_source_citations("> Fonte: [Manual dos Coordenadores.pdf, pág. 74]",
+                                      None, known_names=MANS, retrieved_pages={},
+                                      page_bounds=BOUNDS) == \
+        "> Fonte: [Manual dos Coordenadores.pdf]"
+    # mista: mantem so as validas
+    assert normalize_source_citations("> Fonte: [Manual dos Coordenadores.pdf, págs. 59, 74]",
+                                      None, known_names=MANS, page_bounds=BOUNDS) == \
+        "> Fonte: [Manual dos Coordenadores.pdf, pág. 59]"
+    # faixa que atravessa o limite: corta no fim do manual
+    assert normalize_source_citations("> Fonte: [Manual dos Coordenadores.pdf, págs. 72-75]",
+                                      None, known_names=MANS, page_bounds=BOUNDS) == \
+        "> Fonte: [Manual dos Coordenadores.pdf, págs. 72, 73]"
+    # limite POR manual: pág. 60 vale no Coordenadores (73), cai no Sistema (42)
+    assert normalize_source_citations("> Fonte: [Manual do Sistema Área Coordenadores.pdf, pág. 60]",
+                                      None, known_names=MANS, page_bounds=BOUNDS) == \
+        "> Fonte: [Manual do Sistema Area Coordenadores.pdf]"
+    # pagina valida passa intacta com bounds ativos
+    assert normalize_source_citations("> Fonte: [Manual dos Coordenadores.pdf, pág. 73]",
+                                      None, known_names=MANS, page_bounds=BOUNDS) == \
+        "> Fonte: [Manual dos Coordenadores.pdf, pág. 73]"
+    # doc unico (canonical) tambem respeita bounds
+    assert normalize_source_citations("> Fonte: [x.pdf, pág. 99]",
+                                      "Manual dos Coordenadores.pdf",
+                                      page_bounds=BOUNDS) == \
+        "> Fonte: [Manual dos Coordenadores.pdf]"
     print("OK: source_citation self-check passou")

@@ -31,6 +31,24 @@ class AppConfig:
     # Fallback de resiliencia: se o LightRAG falhar, responde pela base vetorial Supabase
     # (pgvector) + Ollama. Preenchido pelo endpoint a partir de SUPABASE_FALLBACK_ENABLED.
     supabase_fallback_enabled: bool = False
+    # Cascata de APROFUNDAMENTO do retrieval (2026-07-21; ver comentarios em
+    # app/core/config.py). Defaults conservadores (off) no dataclass — quem liga e o
+    # endpoint, a partir das Settings (mesmo padrao do rerank_fallback_enabled).
+    retrieval_deepen_enabled: bool = False
+    retrieval_weak_min_chunks: int = 3
+    retrieval_weak_max_score: float = 0.35
+    retrieval_escalation_enabled: bool = False
+    retrieval_escalation_top_k: int = 32
+    retrieval_escalation_chunk_top_k: int = 20
+    retrieval_escalation_entity_tokens: int = 5000
+    retrieval_escalation_relation_tokens: int = 4500
+    query_rewrite_enabled: bool = False
+    query_rewrite_pgvector_hints: bool = False
+    recall_channel_pgvector_enabled: bool = False
+    # Substrings (lower) dos manuais APOSENTADOS que nao podem reaparecer em saida
+    # nenhuma (ver RETIRED_MANUAL_PATTERNS em app/core/config.py). Usado p/ excluir
+    # seus chunks do pgvector no fallback e nas dicas de vocabulario. () = nao filtra.
+    retired_manual_patterns: tuple = ()
 
     @classmethod
     def from_env(cls, *, docs_dir: Path | None = None) -> "AppConfig":
@@ -50,4 +68,19 @@ class AppConfig:
             lightrag_api_url=os.getenv("LIGHTRAG_API_URL", "http://localhost:9621").strip(),
             lightrag_api_key=(os.getenv("LIGHTRAG_API_KEY") or "").strip() or None,
             rerank_url=(os.getenv("RERANK_URL", "http://localhost:7997/rerank").strip() or None),
+            retired_manual_patterns=tuple(
+                p.strip().lower() for p in os.getenv("RETIRED_MANUAL_PATTERNS", "").split(",")
+                if p.strip()
+            ),
         )
+
+
+def is_retired_manual(name: str, patterns) -> bool:
+    """True se `name` (nome de manual/source) casa qualquer substring aposentada."""
+    low = (name or "").lower()
+    return any(p in low for p in (patterns or ()))
+
+
+def retired_ilike_patterns(patterns) -> list:
+    """Converte as substrings aposentadas em padroes ILIKE ('%sistema%') p/ o SQL."""
+    return [f"%{p}%" for p in (patterns or ()) if p]

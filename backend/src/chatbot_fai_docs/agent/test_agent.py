@@ -90,6 +90,41 @@ class LeakyHarmonyModel:
             yield ("answer", "Aqui esta o seu documento: http://x/manual.pdf")
 
 
+class GreetingThenSkillModel:
+    """Reproduz o bug Alberto Q2: 1a chamada responde SAUDACAO sem tools a uma
+    pergunta factual (viola o guard de grounding); recebida a corretiva, chama a
+    skill; com o resultado, redige a resposta final fundamentada."""
+
+    def __init__(self):
+        self.calls = 0
+
+    def chat(self, messages, tools=None):
+        self.calls += 1
+        has_corrective = any(
+            m.get("role") == "user" and "verificacao automatica" in str(m.get("content", ""))
+            for m in messages
+        )
+        has_tool_result = any(m.get("role") == "tool" for m in messages)
+        if has_tool_result:
+            yield ("answer", "O prazo e 30 dias. > Fonte: [teste.pdf, pag. 1]")
+        elif has_corrective:
+            yield ("tool_calls", [{"id": "c1", "name": "echo", "arguments": {"texto": "prazo"}}])
+        else:
+            yield ("answer", "Ola! Sou a Lina. Como posso ajudar?")
+
+
+class StubbornModel:
+    """SEMPRE responde sem tools e sem fonte (nunca se corrige) — exercita o
+    esgotamento dos retries e o exhausted_fallback."""
+
+    def __init__(self):
+        self.calls = 0
+
+    def chat(self, messages, tools=None):
+        self.calls += 1
+        yield ("answer", "Resposta teimosa sem fonte nenhuma.")
+
+
 def _make_skill_dir(base: Path) -> Path:
     d = base / "echo"
     d.mkdir()
@@ -169,6 +204,102 @@ def main():
             and "The user wants" not in final,
             "run_stream: nenhum artefato harmony chega ao usuario",
         )
+
+        # --- guard de grounding: corretiva -> consulta -> resposta fundamentada ---
+        def _checker(final_text, actx):
+            # Simula o guard nao-social do endpoint: sem fontes/downloads no turno
+            # -> corretiva, independente do tamanho (pega a saudacao de 69 chars).
+            if actx.sources or actx.downloads:
+                return None
+            return "ATENCAO (verificacao automatica): consulte a base antes de responder."
+
+        gm = GreetingThenSkillModel()
+        svc3 = AgentService(gm, reg, max_steps=5, grounding_checker=_checker,
+                            max_grounding_retries=2)
+        ctx4 = AgentContext()
+        ev3 = list(svc3.run_stream("qual o prazo de matricula?", [], ctx4))
+        final3 = next((p for k, p in reversed(ev3) if k == "answer"), None)
+        check(gm.calls == 3, "guard: saudacao -> corretiva -> skill -> resposta (3 chamadas)")
+        check(("tool_status", "verificando_fontes") in ev3, "guard: emitiu tool_status do retry")
+        check(final3 is not None and "Fonte" in final3, "guard: resposta final fundamentada")
+        check(ctx4.extras.get("skills_called") == ["echo"], "guard: skills_called rastreado no ctx")
+
+        # --- guard: retries esgotados SEM fallback -> aceita a ultima resposta ---
+        sm = StubbornModel()
+        svc4 = AgentService(sm, reg, max_steps=5, grounding_checker=_checker,
+                            max_grounding_retries=2)
+        ev4 = list(svc4.run_stream("pergunta factual", [], AgentContext()))
+        final4 = next((p for k, p in reversed(ev4) if k == "answer"), None)
+        check(sm.calls == 3, "guard: 1 chamada + 2 retries = 3 (contador respeitado)")
+        check(final4 == "Resposta teimosa sem fonte nenhuma.",
+              "guard: sem strict-fail, ultima resposta e aceita")
+
+        # --- guard: retries esgotados COM exhausted_fallback -> substitui a resposta ---
+        sm2 = StubbornModel()
+        svc5 = AgentService(sm2, reg, max_steps=5, grounding_checker=_checker,
+                            max_grounding_retries=2,
+                            exhausted_fallback=lambda t, c: "TOKEN_NEGATIVA_TESTE")
+        ev5 = list(svc5.run_stream("pergunta factual", [], AgentContext()))
+        final5 = next((p for k, p in reversed(ev5) if k == "answer"), None)
+        check(final5 == "TOKEN_NEGATIVA_TESTE", "guard: strict-fail substitui pela negativa")
+
+        # --- guard: checker liberando (ex.: pergunta social) -> zero retry ---
+        gm2 = GreetingThenSkillModel()
+        svc6 = AgentService(gm2, reg, max_steps=5, grounding_checker=lambda t, c: None,
+                            max_grounding_retries=2)
+        ev6 = list(svc6.run_stream("bom dia", [], AgentContext()))
+        final6 = next((p for k, p in reversed(ev6) if k == "answer"), None)
+        check(gm2.calls == 1 and final6 == "Ola! Sou a Lina. Como posso ajudar?",
+              "guard: social passa direto (sem retry)")
+
+        # --- regressao: skill de geracao sem consulta NAO dispara o guard ---
+        # (o checker real libera por actx.downloads; simulamos coletando um download)
+        fake2 = FakeModel()
+        svc7 = AgentService(fake2, reg, max_steps=5, grounding_checker=_checker,
+                            max_grounding_retries=2)
+        ctx7 = AgentContext()
+        ev7 = list(svc7.run_stream("gera um pdf disso", [], ctx7))
+        final7 = next((p for k, p in reversed(ev7) if k == "answer"), None)
+        check(fake2.calls == 2 and final7 == "Resultado final: feito.",
+              "guard: skill com fontes no turno passa sem retry")
+
+        # --- guard: corretiva no ULTIMO passo do laco NAO descarta a resposta ---
+        # (finding da revisao adversarial: o `continue` na ultima iteracao caia no
+        # fallback generico "Nao consegui concluir..." jogando fora o buffer)
+        sm3 = StubbornModel()
+        svc8 = AgentService(sm3, reg, max_steps=2, grounding_checker=_checker,
+                            max_grounding_retries=2)
+        ev8 = list(svc8.run_stream("pergunta factual", [], AgentContext()))
+        final8 = next((p for k, p in reversed(ev8) if k == "answer"), None)
+        check(sm3.calls == 2 and final8 == "Resposta teimosa sem fonte nenhuma.",
+              "guard: sem passo restante, entrega a resposta em vez do generico")
+
+        # --- guard: skill que FALHOU registra skill_errors no ctx ---
+        class FailingSkillModel:
+            def __init__(self):
+                self.calls = 0
+            def chat(self, messages, tools=None):
+                self.calls += 1
+                if not any(m.get("role") == "tool" for m in messages):
+                    yield ("tool_calls", [{"id": "c9", "name": "naoexiste", "arguments": {}}])
+                else:
+                    yield ("answer", "Houve um erro ao executar a ferramenta.")
+
+        fsm = FailingSkillModel()
+        # checker que reproduz a liberacao real por skill_errors
+        def _checker_err(final_text, actx):
+            if actx.extras.get("skill_errors"):
+                return None
+            return _checker(final_text, actx)
+        svc9 = AgentService(fsm, reg, max_steps=5, grounding_checker=_checker_err,
+                            max_grounding_retries=2)
+        ctx9 = AgentContext()
+        ev9 = list(svc9.run_stream("gera a planilha", [], ctx9))
+        final9 = next((p for k, p in reversed(ev9) if k == "answer"), None)
+        check(ctx9.extras.get("skill_errors") == ["naoexiste"],
+              "guard: skill com erro registrada em skill_errors")
+        check(fsm.calls == 2 and final9 == "Houve um erro ao executar a ferramenta.",
+              "guard: falha de skill libera o relato honesto (sem retry)")
 
     # --- sanitizacao do formato "harmony" (anti-vazamento de raciocinio) ---
     s = sanitize_harmony

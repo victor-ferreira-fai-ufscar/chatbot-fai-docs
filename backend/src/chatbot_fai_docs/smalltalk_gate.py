@@ -74,3 +74,39 @@ def is_smalltalk(question: str) -> bool:
     if not norm or len(norm) > _MAX_LEN:
         return False
     return bool(_SMALLTALK_RE.match(norm) or _IDENTITY_RE.match(norm))
+
+
+# ── Predicado PERMISSIVO p/ o guard de grounding do agente (2026-07-21) ─────────
+# O is_smalltalk foi desenhado p/ ALTA PRECISAO com recall baixo: o falso-negativo
+# social custava so uma consulta RAG a mais. O guard de grounding INVERTE esse
+# trade-off: la, um falso-negativo social ("Muito obrigado pela ajuda, consegui
+# enviar o relatorio!") viraria "pergunta real sem fonte" -> 2 retries corretivos
+# num agradecimento. Este predicado aceita mensagens sociais de forma LIVRE
+# (agradecimento/despedida/elogio) desde que NAO haja marcador de pedido real —
+# o custo do falso-positivo aqui e apenas "guard pulado neste turno" (comportamento
+# pre-guard), nao "RAG pulado". O gate legado continua usando is_smalltalk.
+_SOCIAL_HINT_RE = re.compile(
+    r"(?:obrigad|valeu|vlw|agradec|grat[oa]|tchau|ate logo|ate mais|ate breve|"
+    r"abraco|abracos|abs\b|otimo dia|boa semana|bom fim de semana|bom final de semana|"
+    r"parabens|excelente|muito bom|perfeito|deu tudo certo|deu certo|consegui|"
+    r"bom dia|boa tarde|boa noite)"
+)
+_TASK_HINT_RE = re.compile(
+    r"(?:^|\s)(?:como|qual|quais|quando|onde|quem|por ?que|preciso|quero|gostaria|"
+    r"pode(?:ria)? me|me (?:envia|manda|passa|ajuda|explica|mostra|diz|informa)|"
+    r"gera|gere|faca|faz|crie|cria|baixa|baixar|download|duvida|ajuda com)(?:\s|$)"
+)
+
+
+def is_social_turn(question: str) -> bool:
+    """True se a mensagem e um turno social (mesmo fora do vocabulario fechado do
+    is_smalltalk): contem sinal social explicito E nenhum marcador de pergunta/pedido.
+    Uso: guard de grounding do agente (question_is_social)."""
+    if is_smalltalk(question):
+        return True
+    if "?" in (question or ""):
+        return False
+    norm = _normalize(question)
+    if not norm:
+        return False
+    return bool(_SOCIAL_HINT_RE.search(norm)) and not _TASK_HINT_RE.search(norm)

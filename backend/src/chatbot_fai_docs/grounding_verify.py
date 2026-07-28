@@ -23,9 +23,9 @@ import json
 
 _VERIFY_SYSTEM = (
     "Voce e um verificador de FUNDAMENTACAO de respostas de um chatbot de manual "
-    "institucional. Recebe uma PERGUNTA, os TRECHOS do manual (exatamente as paginas que a "
-    "resposta citou) e a RESPOSTA gerada por outro assistente. Decida se o NUCLEO da "
-    "RESPOSTA — o procedimento, os passos, os valores ou as afirmacoes que ela apresenta "
+    "institucional. Recebe uma PERGUNTA, os TRECHOS RECUPERADOS do manual (o contexto em "
+    "que a resposta se baseou) e a RESPOSTA gerada por outro assistente. Decida se o NUCLEO "
+    "da RESPOSTA — o procedimento, os passos, os valores ou as afirmacoes que ela apresenta "
     "como sendo do manual — REALMENTE aparece nos TRECHOS. "
     "Marque fundamentado=false APENAS quando estiver CLARO que a resposta afirma um "
     "procedimento/dado que NAO esta nos trechos — o caso tipico: a pergunta pede COMO fazer "
@@ -87,7 +87,7 @@ def answer_is_grounded(question: str, answer: str, excerpts: str, llm_settings,
 
         user = (
             f"PERGUNTA:\n{question}\n\n"
-            f"TRECHOS DO MANUAL (paginas citadas na resposta):\n{excerpts[:max_excerpt_chars]}\n\n"
+            f"TRECHOS RECUPERADOS DO MANUAL (contexto da resposta):\n{excerpts[:max_excerpt_chars]}\n\n"
             f"RESPOSTA GERADA:\n{answer[:max_answer_chars]}"
         )
         text = _consume_text(model.generate(system_prompt=_VERIFY_SYSTEM,
