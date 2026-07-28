@@ -176,4 +176,37 @@ test.describe("Renomear conversa (ícone de lápis)", () => {
     await expect(page.getByText("A renomeada")).toBeVisible();
     await expect(page.getByText("Conversa A")).toHaveCount(0);
   });
+
+  test("título muito longo trunca e NÃO corta os botões de renomear/excluir", async ({ page }) => {
+    // Regressão do bug do viewport do Radix ScrollArea (display: table dimensiona
+    // pelo conteúdo): um título longo alargava a linha além da sidebar, o truncate
+    // nunca agia e o lápis/lixeira saíam cortados pela borda direita.
+    const longo =
+      "Negociação de Taxa Administrativa FAI com condições especiais para projetos " +
+      "de extensão de longa duração e múltiplos financiadores envolvidos";
+    await mockApi(page, { initialTitles: [[7, longo], [8, "Curta"]] });
+    await page.goto("/");
+    await expect(page.getByText("Curta")).toBeVisible();
+
+    // Dois <aside> na página (sidebar + painel de fontes); a sidebar é o primeiro.
+    const aside = page.locator("aside").first();
+    const asideBox = await aside.boundingBox();
+    expect(asideBox).not.toBeNull();
+
+    for (const name of [`Renomear conversa: ${longo}`, `Excluir conversa: ${longo}`]) {
+      const btn = page.getByRole("button", { name });
+      await expect(btn).toBeVisible();
+      const box = await btn.boundingBox();
+      expect(box).not.toBeNull();
+      // O botão inteiro precisa caber DENTRO da sidebar (não cortado à direita).
+      expect(box!.x + box!.width).toBeLessThanOrEqual(asideBox!.x + asideBox!.width + 1);
+    }
+
+    // E o título de fato truncou (conteúdo maior que a área visível).
+    const truncated = await page
+      .getByRole("button", { name: longo, exact: false })
+      .first()
+      .evaluate((el) => el.scrollWidth > el.clientWidth);
+    expect(truncated).toBe(true);
+  });
 });

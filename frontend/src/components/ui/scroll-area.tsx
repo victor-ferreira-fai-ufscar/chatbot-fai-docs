@@ -18,7 +18,13 @@ function ScrollArea({
     >
       <ScrollAreaPrimitive.Viewport
         data-slot="scroll-area-viewport"
-        className="size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1"
+        // O Radix envolve o conteúdo num div com `display: table; min-width: 100%`
+        // (medição de overflow horizontal). Table dimensiona pelo CONTEÚDO: um título
+        // longo sem quebra alargava a linha além da sidebar, o `truncate` nunca agia
+        // e os botões (lápis/lixeira) saíam cortados pela direita. Como todos os usos
+        // são listas VERTICAIS (histórico, configurações, fontes), forçamos o wrapper
+        // a bloco com largura do viewport — truncate volta a funcionar.
+        className="size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1 [&>div]:!block [&>div]:!w-full [&>div]:!min-w-0"
       >
         {children}
       </ScrollAreaPrimitive.Viewport>
