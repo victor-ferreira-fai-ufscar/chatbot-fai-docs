@@ -16,7 +16,8 @@ correção. Sem dependências externas (só stdlib): roda no host.
 
 Verificações DURAS (anti-alucinação; falham o teste):
   A. fonte_fabricada     -> citou um arquivo que NÃO é um manual conhecido.
-  B. pagina_invalida     -> citou página fora de [1, N_PAGINAS] do manual.
+  B. pagina_invalida     -> citou página fora de [1, N] do MANUAL citado (per-manual;
+                            páginas sem manual atribuível: teto global).
   C. ref_legal_fabricada -> citou Lei/Decreto/Resolução/Portaria cujo número NÃO
                             existe no texto indexado do manual (alucinação factual).
 Verificação MOLE (reportada, não falha): resposta factual sem nenhuma fonte.
@@ -38,14 +39,26 @@ API = "http://localhost:8000/api/v1/chat/stream"
 OLLAMA = "http://localhost:11434/api/chat"
 JUDGE_MODEL = "gpt-oss:latest"
 
-N_PAGINAS = 73
-# Manuais conhecidos (normalizados). O índice atual tem só o Manual do Coordenador;
-# aceitamos as grafias com espaço e com underscore (ambas normalizam igual).
-KNOWN_FILES = {"manualdocoordenadorpdf"}
+# Manuais conhecidos (normalizados) -> nº de páginas. A validação de página é POR
+# manual citado (a global de 73 deixava passar "pág. 60" no manual do Sistema, que
+# tem 42). A grafia antiga ("Manual do Coordenador.pdf") fica p/ runs históricos.
+MANUAL_PAGES = {
+    "manualdoscoordenadorespdf": 73,
+    "manualdosistemaareacoordenadorespdf": 42,
+    "manualdocoordenadorpdf": 73,  # grafia antiga (histórico)
+}
+MAX_PAGES_ANY = max(MANUAL_PAGES.values())
 
+# 2026-07-21: + fornece|apresenta|... (sincronizado com bateria/probe).
 ABSTENTION_RE = re.compile(
     r"n[ãa]o\s+(consta|detalha|est[áa]\s+detalhad|especifica|menciona|trata|aborda|"
+    r"fornece|apresenta|oferece|traz|inclui|cobre|indica|descreve|explica|define|informa|"
     r"foi\s+poss[íi]vel|encontr|disp[oõ]e|h[áa]\s+informa)", re.I)
+# Negativa por token-sentinela substituida pela mensagem oficial de direcionamento —
+# nao casa o ABSTENTION_RE; sem isto, a negativa oficial era contada como "factual
+# sem fonte" no check mole (2026-07-21; sincronizado com bateria/probe).
+NO_CONTEXT_SIG_RE = re.compile(
+    r"(recomendo entrar em contato com o Gestor|Supervisor de Projetos (Espec|Gerais))", re.I)
 
 
 def norm_file(s: str) -> str:
@@ -126,25 +139,62 @@ def cited_files(res) -> list:
     return sorted(files)
 
 
-def cited_pages(res) -> list:
+def _pages_in(text: str) -> set:
     pages = set()
-    blob = " ".join(res.get("sources", [])) + " " + res.get("answer", "")
-    for m in _PAGE_RE.finditer(blob):
+    for m in _PAGE_RE.finditer(text or ""):
         for tok in re.split(r"[,\s]+", m.group(1).strip()):
             for part in tok.split("-"):
                 if part.isdigit():
                     pages.add(int(part))
-    return sorted(pages)
+    return pages
+
+
+# Citação inline "[arquivo.pdf, pág(s). N, M]" — associa páginas ao manual citado.
+_INLINE_CITE_RE = re.compile(r"\[([^\[\]]+?\.pdf)\s*,([^\]]*)\]", re.I)
+
+
+def cited_file_pages(res) -> tuple:
+    """-> (pares [(arquivo, página)], páginas soltas sem manual atribuível).
+
+    Pares vêm dos cards ("- arquivo.pdf (pág. N ...)") e das citações inline.
+    Páginas do corpo que não aparecem em nenhum par ficam "soltas" (validadas
+    contra o teto global — conservador, não fabrica violação por manual errado).
+    """
+    pairs, loose = set(), set()
+    for s in res.get("sources", []):
+        m = _SRC_FILE_RE.match(s)
+        ps = _pages_in(s)
+        if m:
+            pairs |= {(m.group(1).strip(), p) for p in ps}
+        else:
+            loose |= ps
+    ans = res.get("answer", "")
+    for m in _INLINE_CITE_RE.finditer(ans):
+        pairs |= {(m.group(1).strip(), p) for p in _pages_in(m.group(2))}
+    attributed = {p for _, p in pairs}
+    loose |= (_pages_in(ans) - attributed)
+    return sorted(pairs), sorted(loose)
 
 
 def cited_legal_refs(res) -> list:
     return sorted({m.group(1) for m in _LEGAL_RE.finditer(res.get("answer", ""))})
 
 
-def check():
-    if not RUN_OUT.exists():
-        print("Sem coleta. Rode primeiro: --collect"); return 2
-    results = json.loads(RUN_OUT.read_text(encoding="utf-8"))
+def _load_results(path: Path) -> list:
+    """Carrega .last_run.json OU um JSON da bateria (sintetiza id Professor:N)."""
+    results = json.loads(path.read_text(encoding="utf-8"))
+    for r in results:
+        if "id" not in r:
+            prof = (r.get("professor") or "?").split()[-1]
+            r["id"] = f"{prof}:{r.get('num', '?')}"
+    return results
+
+
+def check(input_path: Path = None):
+    src = input_path or RUN_OUT
+    if not src.exists():
+        print(f"Sem coleta em {src}. Rode primeiro: --collect (ou passe --input)"); return 2
+    results = _load_results(src)
     manual = load_manual_text()
     # números-base de norma que EXISTEM no manual (allowlist); ref citada fora disso = fabricada.
     manual_law_bases = {m.group(1).replace(" ", "") for m in _LEGAL_RE.finditer(manual)}
@@ -156,18 +206,24 @@ def check():
         viol = []
         # A) fonte fabricada
         for f in cited_files(r):
-            if norm_file(f) not in KNOWN_FILES:
+            if norm_file(f) not in MANUAL_PAGES:
                 viol.append(f"fonte_fabricada:{f}")
-        # B) página inválida
-        for p in cited_pages(r):
-            if p < 1 or p > N_PAGINAS:
+        # B) página inválida — POR manual citado; páginas soltas contra o teto global
+        pairs, loose = cited_file_pages(r)
+        for f, p in pairs:
+            limit = MANUAL_PAGES.get(norm_file(f))
+            if limit and (p < 1 or p > limit):
+                viol.append(f"pagina_invalida:{f}:{p}")
+        for p in loose:
+            if p < 1 or p > MAX_PAGES_ANY:
                 viol.append(f"pagina_invalida:{p}")
         # C) ref legal fabricada (número não existe no manual)
         if manual_law_bases:
             for ref in cited_legal_refs(r):
                 if ref not in manual_law_bases:
                     viol.append(f"ref_legal_fabricada:{ref}")
-        is_abst = bool(ABSTENTION_RE.search(r.get("answer", "")))
+        is_abst = bool(ABSTENTION_RE.search(r.get("answer", ""))
+                       or NO_CONTEXT_SIG_RE.search(r.get("answer", "")))
         # D) (mole) resposta factual sem fonte
         factual_no_src = (len(r.get("answer", "")) > 200 and not r.get("sources") and not is_abst)
         if factual_no_src:
@@ -230,12 +286,28 @@ def judge():
 
 
 def main(argv):
-    flags = set(argv)
+    # Consome "--input <path>" (ou "--input=<path>") ANTES de montar as flags — sem
+    # isso o path vazava para `flags` e "--input x.json" sozinho virava no-op.
+    args = list(argv)
+    input_path = None
+    for i, a in enumerate(args):
+        if a == "--input":
+            try:
+                input_path = Path(args[i + 1])
+            except IndexError:
+                print("--input exige um caminho de JSON"); return 2
+            del args[i:i + 2]
+            break
+        if a.startswith("--input="):
+            input_path = Path(a.split("=", 1)[1])
+            del args[i]
+            break
+    flags = set(args)
     if "--collect" in flags or "--all" in flags:
         collect()
     rc = 0
     if "--check" in flags or "--all" in flags or not flags:
-        rc = check()
+        rc = check(input_path)
     if "--judge" in flags or "--all" in flags:
         judge()
     return rc

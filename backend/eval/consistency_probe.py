@@ -32,8 +32,10 @@ QUESTIONS = HERE / "eval_questions.json"
 API = "http://localhost:8000/api/v1/chat/stream"
 
 # Mesma heurística de abstenção do eval_manual_qa.py (mantida em sincronia).
+# 2026-07-21: + fornece|apresenta|... ("não fornece informações" escapava).
 ABSTENTION_RE = re.compile(
     r"n[ãa]o\s+(consta|detalha|est[áa]\s+detalhad|especifica|menciona|trata|aborda|"
+    r"fornece|apresenta|oferece|traz|inclui|cobre|indica|descreve|explica|define|informa|"
     r"foi\s+poss[íi]vel|encontr|disp[oõ]e|h[áa]\s+informa)", re.I)
 # Negativa por TOKEN-SENTINELA: o sistema substitui o token pela mensagem fixa de
 # direcionamento (NO_CONTEXT_MSG), que NÃO casa o regex acima. Detecta essa forma

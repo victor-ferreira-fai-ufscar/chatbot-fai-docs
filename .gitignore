@@ -30,3 +30,14 @@ caddy/config/
 # Ignore de Sistema Operacional
 .DS_Store
 Thumbs.db
+# Artefatos de eval das baterias (snapshots de run, não código): JSONs de apoio
+# gravados por backend/eval/*.py e os arquivamentos de runs antigos. São grandes,
+# mudam a cada execução e poluíam ~34 linhas do `git status`.
+backend/eval/.bateria_consolidado*.json
+backend/eval/.last_run*.json
+# .probe_*.json NAO entram aqui: .probe_high/medium/tuned.json sao RASTREADOS no git
+# (gitignore nao afeta arquivo ja rastreado, mas listar confunde quem le)
+backend/eval/.recall_*.json
+backend/eval/.flips_*.json
+backend/eval/_arquivo/
+docs/Perguntas e respostas Recentes/_arquivo/

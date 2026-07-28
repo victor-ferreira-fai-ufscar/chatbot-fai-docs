@@ -1,0 +1,62 @@
+[
+  {
+    "id": "SIST-02",
+    "question": "Para que serve o ícone de notificações com aquele numerozinho vermelho no topo da tela?",
+    "manual": "Manual do Sistema Área Coordenadores.pdf",
+    "pages": [5, 42]
+  },
+  {
+    "id": "SIST-03",
+    "question": "No balancete do projeto, qual a diferença entre a visão de saldo 'Projeto' e a visão 'Contábil'?",
+    "manual": "Manual do Sistema Área Coordenadores.pdf",
+    "pages": [8]
+  },
+  {
+    "id": "SIST-04",
+    "question": "Cadastrei a proposta de bolsa, o membro aceitou a proposta e eu aprovei o pagamento, mas o bolsista não recebeu. O que pode estar faltando?",
+    "manual": "Manual do Sistema Área Coordenadores.pdf",
+    "pages": [12]
+  },
+  {
+    "id": "SIST-05",
+    "question": "Qual a diferença entre suspender e cancelar um pagamento de bolsa pendente?",
+    "manual": "Manual do Sistema Área Coordenadores.pdf",
+    "pages": [13]
+  },
+  {
+    "id": "SIST-11",
+    "question": "Acabei de aprovar um formulário. Por que o pessoal da FAI ainda não está conseguindo visualizá-lo?",
+    "manual": "Manual do Sistema Área Coordenadores.pdf",
+    "pages": [30]
+  },
+  {
+    "id": "SIST-12",
+    "question": "Estava preenchendo uma SP e a aba do navegador fechou antes de eu anexar a nota fiscal. Perdi tudo?",
+    "manual": "Manual do Sistema Área Coordenadores.pdf",
+    "pages": [33]
+  },
+  {
+    "id": "SIST-13",
+    "question": "Quais tipos de transferência eu consigo fazer pelo formulário TR e ele chega na hora para o Setor de Projetos?",
+    "manual": "Manual do Sistema Área Coordenadores.pdf",
+    "pages": [35]
+  },
+  {
+    "id": "SIST-14",
+    "question": "Como faço a prestação de contas de um suprimento de fundos pelo sistema?",
+    "manual": "Manual do Sistema Área Coordenadores.pdf",
+    "pages": [39]
+  },
+  {
+    "id": "SIST-15",
+    "question": "Quero que minha auxiliar veja todos os formulários do projeto, não só os que ela mesma emitiu. Que perfil de acesso eu dou para ela?",
+    "manual": "Manual do Sistema Área Coordenadores.pdf",
+    "pages": [40, 41]
+  },
+  {
+    "id": "COORD-15",
+    "question": "Sobrou saldo em uma rubrica do orçamento e falta em outra. Posso remanejar esses recursos? Quais são as condições?",
+    "manual": "Manual dos Coordenadores.pdf",
+    "pages": [59]
+  }
+]
