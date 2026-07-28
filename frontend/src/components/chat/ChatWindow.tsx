@@ -307,10 +307,12 @@ function WelcomeScreen({
       <div className="max-w-md space-y-1.5">
         <h2 className="text-xl font-bold text-foreground">Olá! Eu sou a Lina 👋</h2>
         <p className="text-sm leading-relaxed text-muted-foreground">
+          {/* 2026-07-27: menção à "Área de Coordenadores" REMOVIDA — o Manual do Sistema
+              Área de Coordenadores foi aposentado do índice (ver RETIRED_MANUAL_PATTERNS
+              no backend), então prometer respostas sobre ele criava expectativa que o
+              chat não cumpre. Reintroduzir apenas se aquele manual voltar a ser indexado. */}
           Sou a assistente virtual da FAI-UFSCar e tiro suas dúvidas sobre o
-          <span className="font-medium text-foreground"> Manual do Coordenador </span>
-          e a
-          <span className="font-medium text-foreground"> Área de Coordenadores</span>.
+          <span className="font-medium text-foreground"> Manual do Coordenador</span>.
           Como posso ajudar hoje?
         </p>
       </div>
@@ -1097,7 +1099,9 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
             {/* Menu "+" : opções (modo agêntico) + anexos */}
             <div ref={attachmentRef} className="relative">
               {showAttachments && (
-                <div className="absolute bottom-full left-0 mb-3 min-w-[248px] rounded-2xl border border-border bg-card p-2 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-300 z-50">
+                /* min-w 248 -> 292: o selo "Em desenvolvimento" ao lado de "Enviar para
+                   o chat" não caberia na largura antiga e ambos quebravam em 2 linhas. */
+                <div className="absolute bottom-full left-0 mb-3 min-w-[292px] rounded-2xl border border-border bg-card p-2 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-300 z-50">
                   {/* Modo agêntico */}
                   <div className="px-3 py-2">
                     <div className="flex items-center justify-between gap-3">
@@ -1115,21 +1119,46 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
 
                   <div className="my-1 h-px bg-border" />
 
-                  {/* Anexos */}
-                  <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Enviar para o chat</div>
-                  <button className="group flex w-full items-center gap-3 rounded-xl p-3 text-sm text-foreground transition-colors hover:bg-muted">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-blue/10 transition-colors group-hover:bg-accent-blue/20">
-                      <FileText size={18} className="text-accent-blue" />
+                  {/* Anexos — EM DESENVOLVIMENTO (2026-07-27). Estes dois botões nunca
+                      tiveram onClick: ficavam clicáveis e silenciosamente inertes, o que
+                      lia como bug. Agora estão desabilitados e rotulados. Ao implementar,
+                      remover `disabled`/`aria-disabled`, o selo e as classes de opacidade. */}
+                  <div className="flex items-center justify-between gap-2 px-3 py-1.5">
+                    <span className="whitespace-nowrap text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Enviar para o chat
+                    </span>
+                    <span className="shrink-0 whitespace-nowrap rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-700">
+                      Em desenvolvimento
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    disabled
+                    aria-disabled="true"
+                    title="Anexar arquivo — funcionalidade em desenvolvimento"
+                    className="flex w-full cursor-not-allowed items-center gap-3 rounded-xl p-3 text-sm text-muted-foreground opacity-60"
+                  >
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
+                      <FileText size={18} className="text-muted-foreground" />
                     </div>
                     <span>Anexar Arquivo</span>
                   </button>
-                  <button className="group flex w-full items-center gap-3 rounded-xl p-3 text-sm text-foreground transition-colors hover:bg-muted">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-fai-cyan/10 transition-colors group-hover:bg-fai-cyan/20">
+                  <button
+                    type="button"
+                    disabled
+                    aria-disabled="true"
+                    title="Anexar imagem — funcionalidade em desenvolvimento"
+                    className="flex w-full cursor-not-allowed items-center gap-3 rounded-xl p-3 text-sm text-muted-foreground opacity-60"
+                  >
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
                       {/* eslint-disable-next-line jsx-a11y/alt-text */}
-                      <Image size={18} className="text-fai-cyan" />
+                      <Image size={18} className="text-muted-foreground" />
                     </div>
                     <span>Anexar Imagem</span>
                   </button>
+                  <p className="px-3 pb-1.5 pt-0.5 text-[10px] leading-snug text-muted-foreground">
+                    O envio de arquivos e imagens ainda não está disponível.
+                  </p>
                 </div>
               )}
               <Tooltip>

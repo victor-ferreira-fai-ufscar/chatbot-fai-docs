@@ -1,4 +1,4 @@
-import { MessageSquarePlus, Trash2, Settings, History, Plus, ArrowLeft, HelpCircle, ChevronLeft, ChevronRight, Pencil, Check, Share2, BookOpen } from 'lucide-react';
+import { MessageSquarePlus, Trash2, Settings, History, Plus, ArrowLeft, HelpCircle, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Pencil, Check, Share2, BookOpen, NotebookText } from 'lucide-react';
 import Image from 'next/image';
 import { useState, useEffect, useRef, type MouseEvent } from 'react';
 import { cn } from '@/lib/utils';
@@ -73,6 +73,16 @@ export default function Sidebar({
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   // Manual de uso (botão de livro): instruções amigáveis de como usar o chat.
   const [isManualModalOpen, setIsManualModalOpen] = useState(false);
+  // Lista de recursos do modal "Como utilizar": RECOLHIDA por padrão. O objetivo do
+  // modal é caber inteiro na tela, sem barra de rolagem — a lista é o bloco mais alto,
+  // então fica atrás do botão do caderninho e só aparece sob demanda.
+  const [showRecursos, setShowRecursos] = useState(false);
+  // Fecha o modal SEMPRE recolhendo a lista — se reabrisse expandida, o modal voltaria
+  // a ter barra de rolagem no segundo acesso.
+  const closeManual = () => {
+    setIsManualModalOpen(false);
+    setShowRecursos(false);
+  };
   const [ollamaModels, setOllamaModels] = useState<{name: string, label: string}[]>([]);
 
   // Renomear conversa (edição inline): id em edição + rascunho do título. O ref evita
@@ -243,14 +253,14 @@ export default function Sidebar({
 
               <Button
                 onClick={() => setIsManualModalOpen(true)}
-                title="Como usar o chat"
+                title="Como utilizar o chat"
                 className={cn(
                   "w-full flex items-center bg-sidebar-hover hover:bg-gray-700 text-white rounded transition-all duration-200 border border-gray-600 h-auto",
                   isCollapsed ? "justify-center p-2" : "gap-2 py-2 px-3 text-sm"
                 )}
               >
                 <BookOpen size={isCollapsed ? 20 : 18} />
-                {!isCollapsed && <span>Como usar</span>}
+                {!isCollapsed && <span>Como utilizar</span>}
               </Button>
 
               {!isCollapsed && (
@@ -668,73 +678,94 @@ export default function Sidebar({
       </Dialog>
 
       {/* Manual de uso: instruções amigáveis de como usar o chat (botão de livro). */}
-      <Dialog open={isManualModalOpen} onOpenChange={setIsManualModalOpen}>
-        <DialogContent className="max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col gap-0 p-0">
-          <DialogHeader className="p-6 border-b bg-gray-50 text-left">
-            <div className="flex items-center gap-3">
+      {/* closeManual em vez de setIsManualModalOpen direto: o botão "Entendido" fecha
+          por estado e NÃO passa pelo onOpenChange do Radix, então o reset da lista
+          precisa estar num handler único usado pelos dois caminhos de fechamento. */}
+      <Dialog
+        open={isManualModalOpen}
+        onOpenChange={(open) => (open ? setIsManualModalOpen(true) : closeManual())}
+      >
+        {/* max-h 85vh -> 90vh e o conteúdo com espaçamento menor: com a lista recolhida
+            o modal precisa caber SEM rolagem também em telas baixas (~700px), onde os
+            85vh deixavam o conteúdo 28px maior que a área útil. */}
+        <DialogContent className="max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col gap-0 p-0">
+          <DialogHeader className="p-4 border-b bg-gray-50 text-center">
+            <div className="flex items-center justify-center gap-3">
               <BookOpen className="text-accent-blue shrink-0" size={24} />
               <DialogTitle className="text-xl font-bold text-gray-900">
-                Como usar o chat
+                Como utilizar o chat
               </DialogTitle>
             </div>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto p-6 space-y-4">
-            {/* Boas-vindas */}
-            <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg">
-              <p className="text-sm text-blue-900 leading-relaxed">
-                Olá! Eu sou a <strong>Lina</strong>, a assistente virtual da <strong>FAI•UFSCar</strong>. 😊
-                Estou aqui para te ajudar a entender os procedimentos e o Manual do Coordenador.
-                Veja abaixo como aproveitar melhor a nossa conversa!
-              </p>
-            </div>
+          {/* Registro FORMAL CORDIAL (2026-07-27): mantém o tratamento direto e a persona
+              Lina, sem exclamações nem coloquialismos. Emojis são PONTUAIS por decisão do
+              usuário ("pode conter emotes, sem exageros"): um por título de seção, como
+              âncora visual — não no texto corrido nem nos itens da lista, que usam
+              marcadores normais. Títulos e texto corrido centralizados; a LISTA fica
+              alinhada à esquerda — item centralizado perde a margem de retorno da vista. */}
+          <div className="flex-1 overflow-y-auto p-5 space-y-3">
+            {/* Bloco de apresentação REMOVIDO em 2026-07-27 (pedido do usuário): a
+                persona já se apresenta na tela de boas-vindas, e repetir isso aqui só
+                atrasava o acesso às orientações, que é o objetivo do modal. */}
 
-            {/* Funcionalidades */}
+            {/* Funcionalidades — recolhidas atrás do "caderninho" para o modal caber
+                sem barra de rolagem. Volta ao estado fechado sempre que o modal fecha. */}
             <div>
-              <h4 className="font-bold text-gray-900 mb-2">O que dá para fazer aqui</h4>
-              <ul className="space-y-1.5 text-sm text-gray-700 leading-relaxed">
-                <li>💬 <strong>Perguntar por texto:</strong> escreva sua dúvida na caixa de mensagem e envie.</li>
-                <li>🎙️ <strong>Perguntar por voz:</strong> use o microfone para falar a sua pergunta.</li>
-                <li>📚 <strong>Conferir as fontes:</strong> cada resposta indica de qual página do manual a informação veio (no painel lateral), e você pode baixar o documento.</li>
-                <li>✏️ <strong>Renomear</strong>, 🔗 <strong>compartilhar</strong> e 🖨️ <strong>imprimir ou exportar em PDF</strong> as suas conversas.</li>
-                <li>🕑 <strong>Histórico:</strong> suas conversas ficam salvas aqui na barra lateral.</li>
-              </ul>
+              <button
+                type="button"
+                onClick={() => setShowRecursos((v) => !v)}
+                aria-expanded={showRecursos}
+                aria-controls="manual-recursos"
+                className="mx-auto flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm font-bold text-gray-900 transition-colors hover:border-accent-blue/40 hover:bg-accent-blue/5"
+              >
+                <NotebookText size={16} className="text-accent-blue shrink-0" />
+                Recursos disponíveis
+                {showRecursos
+                  ? <ChevronUp size={14} className="text-gray-500" />
+                  : <ChevronDown size={14} className="text-gray-500" />}
+              </button>
+              {showRecursos && (
+                <ul id="manual-recursos" className="mt-3 space-y-1.5 text-sm text-gray-700 leading-relaxed list-disc pl-5">
+                  <li><strong>Consultas por texto:</strong> digite sua dúvida no campo de mensagem e envie.</li>
+                  <li><strong>Consultas por voz:</strong> utilize o microfone para ditar a pergunta.</li>
+                  <li><strong>Verificação das fontes:</strong> cada resposta indica a página do manual de onde a informação foi extraída, no painel lateral, e o documento pode ser baixado.</li>
+                  <li><strong>Gestão das conversas:</strong> renomeie, compartilhe por link ou exporte em PDF.</li>
+                  <li><strong>Histórico:</strong> as conversas ficam registradas na barra lateral.</li>
+                </ul>
+              )}
             </div>
 
-            {/* A dica de ouro: formulação da pergunta */}
+            {/* Formulação da consulta */}
             <div className="p-4 bg-green-50 border border-green-100 rounded-lg">
-              <h4 className="font-bold text-green-900 mb-1">💡 A dica de ouro: capriche na pergunta!</h4>
+              <h4 className="font-bold text-green-900 mb-1 text-center">💡 Dica de Pergunta</h4>
               <p className="text-sm text-green-800 leading-relaxed">
-                A qualidade da minha resposta depende <strong>muito</strong> de como você formula a pergunta. 🙏
-                Então vale a pena elaborá-la com calma e clareza: quanto mais <strong>específica e bem escrita</strong>,
-                melhor eu consigo te ajudar!
+                Capriche na pergunta! Quanto mais objetiva e específica ela for, melhor
+                será a minha resposta.
               </p>
               <p className="text-sm text-green-800 leading-relaxed mt-2">
-                Por exemplo, em vez de <em>“e a compra?”</em>, prefira algo como
-                <em> “como faço para criar uma solicitação de compra no sistema e quais informações preciso informar?”</em>.
+                👉 Em vez de: <em>“E a compra?”</em>
+                <br />
+                👉 Prefira: <em>“Como crio uma solicitação de compra no sistema?”</em>
               </p>
             </div>
 
             {/* Escopo: geral vs. projeto específico */}
             <div className="p-4 bg-amber-50 border border-amber-100 rounded-lg">
-              <h4 className="font-bold text-amber-900 mb-1">📌 O que eu sei — e o que eu não sei</h4>
-              <p className="text-sm text-amber-800 leading-relaxed">
-                Eu conheço os procedimentos <strong>gerais</strong> dos projetos gerenciados pela FAI•UFSCar
-                (tudo o que está nos manuais). Mas eu <strong>não</strong> tenho acesso aos dados de um
-                projeto específico seu.
-              </p>
-              <p className="text-sm text-amber-800 leading-relaxed mt-2">
-                Por isso, perguntas como <em>“qual o status atual do meu projeto?”</em>,
-                <em> “quanto de saldo ainda tenho?”</em> ou <em>“em que etapa está a minha solicitação?”</em>
-                eu não consigo responder — para essas, o melhor caminho é falar com o
-                <strong> Gestor do seu Projeto</strong>. 🤝
+              <h4 className="font-bold text-amber-900 mb-1 text-center">📌 Escopo de Atendimento</h4>
+              <p className="text-sm font-medium text-amber-900">O que posso responder?</p>
+              <p className="text-sm text-amber-800 leading-relaxed mt-1">
+                Conheço os procedimentos de gestão dos projetos da FAI•UFSCar, mas não tenho
+                acesso a dados específicos de um determinado projeto. Para consultar saldos,
+                status ou etapas de um projeto específico, recomendo que entre em contato
+                diretamente com o <strong>Gestor de seu Projeto</strong>.
               </p>
             </div>
           </div>
 
-          <DialogFooter className="p-4 border-t bg-gray-50 sm:justify-end">
+          <DialogFooter className="p-3 border-t bg-gray-50 sm:justify-end">
             <Button
-              onClick={() => setIsManualModalOpen(false)}
+              onClick={closeManual}
               className="px-6 py-2 bg-accent-blue hover:bg-accent-blue-hover text-white rounded-lg font-medium transition-colors h-auto"
             >
               Entendido
