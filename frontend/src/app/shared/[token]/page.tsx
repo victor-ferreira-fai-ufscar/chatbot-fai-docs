@@ -50,7 +50,7 @@ export default function SharedConversationPage() {
   }, [token]);
 
   return (
-    <main className="h-screen overflow-y-auto bg-gradient-to-br from-white to-gray-50">
+    <main className="h-screen max-lg:h-dvh overflow-y-auto bg-gradient-to-br from-white to-gray-50">
       {/* Cabecalho fixo com a marca da FAI e o titulo da conversa */}
       <header className="sticky top-0 z-10 border-b border-border bg-card/80 backdrop-blur-sm">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">

@@ -247,7 +247,7 @@ export default function Home() {
   };
 
   return (
-    <main className="flex h-screen overflow-hidden">
+    <main className="flex h-screen max-lg:h-dvh overflow-hidden">
         <Sidebar 
           mode={sidebarMode}
           setMode={setSidebarMode}
@@ -268,7 +268,9 @@ export default function Home() {
           setConfig={setConfig}
         />
         
-        <div className="flex-1 relative bg-gradient-to-br from-white to-gray-50 flex flex-col">
+        {/* min-w-0: sem isso o flex child não encolhe abaixo do min-content do
+            conteúdo (input/chips) e estoura o layout em telas estreitas. */}
+        <div className="flex-1 min-w-0 relative bg-gradient-to-br from-white to-gray-50 flex flex-col">
           <ChatWindow
             config={config}
             userId={userId}
@@ -296,7 +298,7 @@ export default function Home() {
                 value={shareUrl ?? ""}
                 onFocus={(e) => e.currentTarget.select()}
                 aria-label="Link de compartilhamento"
-                className="flex-1 min-w-0 rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground outline-none focus:ring-1 focus:ring-accent-blue"
+                className="flex-1 min-w-0 rounded-md border border-border bg-muted px-3 py-2 text-sm max-lg:text-base text-foreground outline-none focus:ring-1 focus:ring-accent-blue"
               />
               <Button type="button" onClick={handleCopyShareUrl} className="shrink-0 gap-1.5">
                 {shareCopied ? <Check className="size-4" /> : <Copy className="size-4" />}

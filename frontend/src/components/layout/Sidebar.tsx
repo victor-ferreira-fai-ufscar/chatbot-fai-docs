@@ -317,7 +317,7 @@ export default function Sidebar({
                               }}
                               onBlur={() => commitRename(conv.id, conv.title)}
                               maxLength={200}
-                              className="flex-1 min-w-0 rounded bg-sidebar-dark px-3 py-2 text-sm text-white outline-none ring-1 ring-accent-blue"
+                              className="flex-1 min-w-0 rounded bg-sidebar-dark px-3 py-2 text-sm max-lg:text-base text-white outline-none ring-1 ring-accent-blue"
                               aria-label="Novo título da conversa"
                             />
                             <Button
@@ -551,7 +551,7 @@ export default function Sidebar({
                             value={config.model}
                             onChange={(e) => handleConfigChange("model", e.target.value)}
                             placeholder="Digitando ou conectando Ollama..."
-                            className="bg-sidebar-hover border-none text-gray-200 text-xs rounded p-2 h-auto shadow-none placeholder:text-gray-500 focus-visible:ring-1 focus-visible:ring-accent-blue"
+                            className="bg-sidebar-hover border-none text-gray-200 text-xs max-lg:text-base rounded p-2 h-auto shadow-none placeholder:text-gray-500 focus-visible:ring-1 focus-visible:ring-accent-blue"
                           />
                         )
                       )}

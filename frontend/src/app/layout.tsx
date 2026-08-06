@@ -44,6 +44,10 @@ export const viewport: Viewport = {
   themeColor: "#3c8dbc",
   width: "device-width",
   initialScale: 1,
+  // Teclado virtual (Chrome Android): o layout viewport encolhe quando o teclado
+  // abre, então o app flex-column sobe o input automaticamente em vez de cobri-lo.
+  // iOS Safari ignora (usa o scroll nativo do elemento focado).
+  interactiveWidget: "resizes-content",
 };
 
 export default function RootLayout({
@@ -53,7 +57,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" className={sourceSans.variable}>
-      <body className="antialiased flex flex-col h-screen overflow-hidden bg-background text-foreground">
+      {/* max-lg:h-dvh: em mobile 100vh inclui a barra de URL dinâmica e cobria o
+          input; dvh acompanha o viewport real. Em desktop dvh == vh (intocado). */}
+      <body className="antialiased flex flex-col h-screen max-lg:h-dvh overflow-hidden bg-background text-foreground">
         <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
         <Toaster richColors position="top-center" />
       </body>

@@ -1207,9 +1207,16 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
               data-testid="chat-input"
               rows={1}
               placeholder={isRecording ? "Gravando... fale sua dúvida" : isTranscribing ? "Transcrevendo áudio..." : "Digite sua dúvida aqui..."}
-              className="flex-1 min-h-9 max-h-32 resize-none overflow-y-auto border-none bg-transparent px-1 py-2 text-sm shadow-none focus-visible:ring-0 focus-visible:border-none"
+              className="flex-1 min-w-0 min-h-9 max-h-32 resize-none overflow-y-auto border-none bg-transparent px-1 py-2 text-sm max-lg:text-base shadow-none focus-visible:ring-0 focus-visible:border-none"
               value={input}
               onChange={(e) => setInput(e.target.value)}
+              onFocus={() => {
+                // iOS Safari não implementa interactive-widget: quando o teclado abre,
+                // rola até a última mensagem para o fim da conversa não ficar coberto.
+                if (window.matchMedia("(pointer: coarse)").matches) {
+                  setTimeout(() => scrollToBottom("auto"), 300);
+                }
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
