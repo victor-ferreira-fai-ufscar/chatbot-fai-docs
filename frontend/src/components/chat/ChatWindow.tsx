@@ -961,6 +961,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
         ref={messagesContainerRef}
         onScroll={handleMessagesScroll}
         tabIndex={-1}
+        data-testid="messages-container"
         className="flex-1 overflow-y-auto p-6 max-lg:p-4 space-y-6 max-lg:space-y-5 focus:outline-none"
       >
         {/* Boas-vindas SÓ no estado de conversa nova: sem mensagens, sem carregamento
