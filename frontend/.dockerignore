@@ -1,0 +1,16 @@
+# O Dockerfile instala dependências (npm install) e builda (next build) DENTRO
+# do container — nada disso deve vir do host. Sem este arquivo, o `COPY . .`
+# arrastava node_modules/ e .next/ locais (contexto gordo e risco do build
+# antigo do host sobrescrever o recém-instalado no builder).
+node_modules
+.next
+out
+
+# Artefatos de execução dos testes E2E (não participam do build).
+test-results
+playwright-report
+tests/**/*-snapshots
+
+# Diversos
+.git
+*.log
