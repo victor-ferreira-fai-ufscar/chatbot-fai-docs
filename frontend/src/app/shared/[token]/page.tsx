@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { FileText, Loader2, Link2Off } from "lucide-react";
+import { markdownComponents } from "@/components/chat/markdown";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
@@ -94,7 +95,7 @@ export default function SharedConversationPage() {
             )}
             {messages.map((m, idx) => (
               <div key={idx} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[85%] space-y-2 ${m.role === "user" ? "items-end" : "items-start"}`}>
+                <div className={`max-w-[85%] max-lg:max-w-[92%] min-w-0 space-y-2 ${m.role === "user" ? "items-end" : "items-start"}`}>
                   <div
                     className={`rounded-2xl px-4 py-2 shadow-sm ${
                       m.role === "user"
@@ -103,13 +104,13 @@ export default function SharedConversationPage() {
                     }`}
                   >
                     <div
-                      className={`prose prose-sm max-w-none prose-p:leading-relaxed ${
+                      className={`prose prose-sm max-w-none prose-p:leading-relaxed max-lg:break-words ${
                         m.role === "user"
                           ? "prose-invert prose-p:text-white prose-headings:text-white prose-a:text-blue-200"
                           : "prose-gray"
                       }`}
                     >
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>{m.content}</ReactMarkdown>
                     </div>
                   </div>
 
@@ -122,7 +123,7 @@ export default function SharedConversationPage() {
                         {m.sources.map((s, i) => (
                           <span
                             key={i}
-                            className="rounded-md border border-border bg-muted px-2 py-1 text-[10px] text-muted-foreground"
+                            className="max-w-full break-words rounded-md border border-border bg-muted px-2 py-1 text-[10px] text-muted-foreground"
                           >
                             {sourceLabel(s)}
                           </span>
