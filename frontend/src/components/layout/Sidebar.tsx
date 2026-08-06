@@ -616,7 +616,7 @@ export default function Sidebar({
 
       {/* Unified Help Modal */}
       <Dialog open={isHelpModalOpen} onOpenChange={setIsHelpModalOpen}>
-        <DialogContent className="max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col gap-0 p-0">
+        <DialogContent className="max-w-2xl w-full max-h-[80vh] max-sm:max-w-[calc(100%-2rem)] overflow-hidden flex flex-col gap-0 p-0">
           <DialogHeader className="p-6 border-b bg-gray-50 text-left">
             <div className="flex items-center gap-3">
               <HelpCircle className="text-accent-blue shrink-0" size={24} />
@@ -693,7 +693,7 @@ export default function Sidebar({
         {/* max-h 85vh -> 90vh e o conteúdo com espaçamento menor: com a lista recolhida
             o modal precisa caber SEM rolagem também em telas baixas (~700px), onde os
             85vh deixavam o conteúdo 28px maior que a área útil. */}
-        <DialogContent className="max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col gap-0 p-0">
+        <DialogContent className="max-w-2xl w-full max-h-[90vh] max-sm:max-w-[calc(100%-2rem)] overflow-hidden flex flex-col gap-0 p-0">
           <DialogHeader className="p-4 border-b bg-gray-50 text-center">
             <div className="flex items-center justify-center gap-3">
               <BookOpen className="text-accent-blue shrink-0" size={24} />

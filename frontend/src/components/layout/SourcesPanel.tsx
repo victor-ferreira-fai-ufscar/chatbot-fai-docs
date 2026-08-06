@@ -205,7 +205,7 @@ function SourceCard({ item, terms }: { item: SourceItem; terms: Set<string> }) {
                 variant="link"
                 size="xs"
                 onClick={() => setExpanded((e) => !e)}
-                className="mt-1.5 h-auto p-0 text-[10px] font-medium text-accent-blue"
+                className="mt-1.5 h-auto p-0 text-[10px] font-medium text-accent-blue max-lg:pointer-coarse:py-1.5 max-lg:pointer-coarse:text-xs"
               >
                 {expanded ? <><ChevronUp size={11} /> ver menos</> : <><ChevronDown size={11} /> ver trecho completo</>}
               </Button>

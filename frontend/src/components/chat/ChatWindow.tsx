@@ -21,6 +21,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 
 interface QuotedRef {
   role: "user" | "assistant";
@@ -303,7 +304,7 @@ function WelcomeScreen({
     // com altura fixa + justify-center, o topo (avatar) ficaria cortado sem scroll.
     <div
       data-testid="welcome-message"
-      className="flex min-h-full flex-col items-center justify-center gap-4 px-6 text-center animate-in fade-in slide-in-from-bottom-4 duration-500"
+      className="flex min-h-full flex-col items-center justify-center gap-4 max-lg:gap-3 px-6 max-lg:px-4 text-center animate-in fade-in slide-in-from-bottom-4 duration-500"
     >
       <Tooltip>
         <TooltipTrigger asChild>
@@ -313,7 +314,7 @@ function WelcomeScreen({
             aria-label="Sobre a Lina"
             className="rounded-full transition-transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue/60"
           >
-            <Avatar className="size-20 shadow-md ring-4 ring-accent-blue/10">
+            <Avatar className="size-20 max-lg:size-16 shadow-md ring-4 max-lg:ring-2 ring-accent-blue/10">
               <AvatarImage
                 src="/Lina.jpg"
                 alt="Lina, assistente virtual da FAI-UFSCar"
@@ -357,7 +358,7 @@ function WelcomeScreen({
               // chip fica na largura de linha única (max-content) e estoura o contêiner.
               // Texto do hover em accent-blue-hover (não accent-blue): sobre o fundo
               // accent-blue/10, o tom claro fica em ~3,9:1 — abaixo do AA para 12px.
-              className="h-auto max-w-full shrink whitespace-normal rounded-full bg-card px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent-blue/10 hover:text-accent-blue-hover hover:border-accent-blue/30"
+              className="h-auto max-w-full shrink whitespace-normal rounded-full bg-card px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent-blue/10 hover:text-accent-blue-hover hover:border-accent-blue/30 max-lg:w-full max-lg:justify-start max-lg:rounded-xl max-lg:px-3.5 max-lg:py-2.5 max-lg:text-left"
             >
               {question}
             </Button>
@@ -411,6 +412,9 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
   const [input, setInput] = useState("");
   const [replyingTo, setReplyingTo] = useState<QuotedRef | null>(null);
   const [showAttachments, setShowAttachments] = useState(false);
+  // Superfície do menu "+": popover ancorado (desktop) ou bottom sheet (mobile).
+  // Decidida NO CLIQUE via matchMedia — nunca no render (SSR/hidratação idênticos).
+  const [attachmentsSurface, setAttachmentsSurface] = useState<"popover" | "sheet">("popover");
   const [showAbout, setShowAbout] = useState(false);
   // "Modo agêntico": ligado = tool calling + Skills (pode gerar planilha/PDF/DOCX);
   // desligado (default) = RAG direto pelo manual (útil para testar precisão/alucinação), sem gerar docs.
@@ -498,13 +502,17 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
   // Close attachments menu when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
+      // Superfície "sheet" (mobile): o conteúdo vive num portal FORA do attachmentRef,
+      // então qualquer toque dentro dele fecharia o menu na hora. O dismiss do sheet
+      // (overlay/Escape/arrastar) é responsabilidade do Radix.
+      if (attachmentsSurface === "sheet") return;
       if (attachmentRef.current && !attachmentRef.current.contains(event.target as Node)) {
         setShowAttachments(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [attachmentsSurface]);
 
   const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
     messagesEndRef.current?.scrollIntoView({ behavior, block: "end" });
@@ -843,6 +851,69 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
     onNewChat?.();
   };
 
+  // Miolo do menu "+" (modo agêntico + anexos), compartilhado entre as duas
+  // superfícies: popover ancorado (desktop) e bottom sheet (mobile). Só uma
+  // renderiza por vez, então o id "agentic-mode" nunca duplica.
+  const attachmentsMenu = (
+    <>
+      {/* Modo agêntico — a linha inteira é o <label>: alvo de toque generoso. */}
+      <div className="px-3 py-2">
+        <label htmlFor="agentic-mode" className="flex cursor-pointer select-none items-center justify-between gap-3">
+          <span className="text-sm font-medium text-foreground">Modo agêntico</span>
+          <Switch id="agentic-mode" checked={agenticMode} onCheckedChange={setAgenticMode} />
+        </label>
+        <p className="mt-1 text-[11px] leading-snug text-muted-foreground">
+          {agenticMode
+            ? "A Lina decide quando consultar o manual e pode gerar planilha, PDF e DOCX."
+            : "Responde direto com base no manual, sem gerar documentos."}
+        </p>
+      </div>
+
+      <div className="my-1 h-px bg-border" />
+
+      {/* Anexos — EM DESENVOLVIMENTO (2026-07-27). Estes dois botões nunca
+          tiveram onClick: ficavam clicáveis e silenciosamente inertes, o que
+          lia como bug. Agora estão desabilitados e rotulados. Ao implementar,
+          remover `disabled`/`aria-disabled`, o selo e as classes de opacidade. */}
+      <div className="flex items-center justify-between gap-2 px-3 py-1.5">
+        <span className="whitespace-nowrap text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          Enviar para o chat
+        </span>
+        <span className="shrink-0 whitespace-nowrap rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-700">
+          Em desenvolvimento
+        </span>
+      </div>
+      <button
+        type="button"
+        disabled
+        aria-disabled="true"
+        title="Anexar arquivo — funcionalidade em desenvolvimento"
+        className="flex w-full cursor-not-allowed items-center gap-3 rounded-xl p-3 text-sm text-muted-foreground opacity-60"
+      >
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
+          <FileText size={18} className="text-muted-foreground" />
+        </div>
+        <span>Anexar Arquivo</span>
+      </button>
+      <button
+        type="button"
+        disabled
+        aria-disabled="true"
+        title="Anexar imagem — funcionalidade em desenvolvimento"
+        className="flex w-full cursor-not-allowed items-center gap-3 rounded-xl p-3 text-sm text-muted-foreground opacity-60"
+      >
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
+          {/* eslint-disable-next-line jsx-a11y/alt-text */}
+          <Image size={18} className="text-muted-foreground" />
+        </div>
+        <span>Anexar Imagem</span>
+      </button>
+      <p className="px-3 pb-1.5 pt-0.5 text-[10px] leading-snug text-muted-foreground">
+        O envio de arquivos e imagens ainda não está disponível.
+      </p>
+    </>
+  );
+
   return (
     <div className="flex flex-col h-full bg-muted/30">
       {/* Barra de ações da conversa: exportar/imprimir. Só com conversa salva
@@ -1138,76 +1209,44 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
 
             {/* Menu "+" : opções (modo agêntico) + anexos */}
             <div ref={attachmentRef} className="relative">
-              {showAttachments && (
+              {showAttachments && attachmentsSurface === "popover" && (
                 /* min-w 248 -> 292: o selo "Em desenvolvimento" ao lado de "Enviar para
                    o chat" não caberia na largura antiga e ambos quebravam em 2 linhas. */
                 <div className="absolute bottom-full left-0 mb-3 min-w-[292px] rounded-2xl border border-border bg-card p-2 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-300 z-50">
-                  {/* Modo agêntico */}
-                  <div className="px-3 py-2">
-                    <div className="flex items-center justify-between gap-3">
-                      <label htmlFor="agentic-mode" className="cursor-pointer select-none text-sm font-medium text-foreground">
-                        Modo agêntico
-                      </label>
-                      <Switch id="agentic-mode" checked={agenticMode} onCheckedChange={setAgenticMode} />
-                    </div>
-                    <p className="mt-1 text-[11px] leading-snug text-muted-foreground">
-                      {agenticMode
-                        ? "A Lina decide quando consultar o manual e pode gerar planilha, PDF e DOCX."
-                        : "Responde direto com base no manual, sem gerar documentos."}
-                    </p>
-                  </div>
-
-                  <div className="my-1 h-px bg-border" />
-
-                  {/* Anexos — EM DESENVOLVIMENTO (2026-07-27). Estes dois botões nunca
-                      tiveram onClick: ficavam clicáveis e silenciosamente inertes, o que
-                      lia como bug. Agora estão desabilitados e rotulados. Ao implementar,
-                      remover `disabled`/`aria-disabled`, o selo e as classes de opacidade. */}
-                  <div className="flex items-center justify-between gap-2 px-3 py-1.5">
-                    <span className="whitespace-nowrap text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                      Enviar para o chat
-                    </span>
-                    <span className="shrink-0 whitespace-nowrap rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-700">
-                      Em desenvolvimento
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    disabled
-                    aria-disabled="true"
-                    title="Anexar arquivo — funcionalidade em desenvolvimento"
-                    className="flex w-full cursor-not-allowed items-center gap-3 rounded-xl p-3 text-sm text-muted-foreground opacity-60"
-                  >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
-                      <FileText size={18} className="text-muted-foreground" />
-                    </div>
-                    <span>Anexar Arquivo</span>
-                  </button>
-                  <button
-                    type="button"
-                    disabled
-                    aria-disabled="true"
-                    title="Anexar imagem — funcionalidade em desenvolvimento"
-                    className="flex w-full cursor-not-allowed items-center gap-3 rounded-xl p-3 text-sm text-muted-foreground opacity-60"
-                  >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
-                      {/* eslint-disable-next-line jsx-a11y/alt-text */}
-                      <Image size={18} className="text-muted-foreground" />
-                    </div>
-                    <span>Anexar Imagem</span>
-                  </button>
-                  <p className="px-3 pb-1.5 pt-0.5 text-[10px] leading-snug text-muted-foreground">
-                    O envio de arquivos e imagens ainda não está disponível.
-                  </p>
+                  {attachmentsMenu}
                 </div>
               )}
+              {/* Mobile: o mesmo miolo em bottom sheet — o popover de 292px ficava
+                  colado na borda e sem gesto natural de fechamento em telas estreitas. */}
+              <Sheet
+                open={showAttachments && attachmentsSurface === "sheet"}
+                onOpenChange={(open) => { if (!open) setShowAttachments(false); }}
+              >
+                <SheetContent
+                  side="bottom"
+                  // Sem o X: ele ficava colado no switch do modo agêntico; fechar é
+                  // pelo toque no overlay ou Escape (padrão de bottom sheet).
+                  showCloseButton={false}
+                  className="rounded-t-2xl border-border p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+                >
+                  <SheetTitle className="sr-only">Mais opções</SheetTitle>
+                  <SheetDescription className="sr-only">Modo agêntico e envio de anexos.</SheetDescription>
+                  {attachmentsMenu}
+                </SheetContent>
+              </Sheet>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    onClick={() => setShowAttachments(!showAttachments)}
+                    onClick={() => {
+                      // Decide a superfície no momento do toque (nunca no render).
+                      if (!showAttachments) {
+                        setAttachmentsSurface(window.matchMedia("(min-width: 1024px)").matches ? "popover" : "sheet");
+                      }
+                      setShowAttachments(!showAttachments);
+                    }}
                     aria-label="Mais opções"
                     className={cn(
                       "relative rounded-full text-muted-foreground transition-all duration-300 hover:text-accent-blue",
@@ -1325,7 +1364,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
 
       {/* Modal "Sobre a Lina" */}
       <Dialog open={showAbout} onOpenChange={setShowAbout}>
-        <DialogContent className="max-w-sm" aria-label="Sobre a Lina">
+        <DialogContent className="max-w-sm max-sm:max-w-[calc(100%-2rem)]" aria-label="Sobre a Lina">
           <DialogHeader className="items-center text-center sm:text-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
