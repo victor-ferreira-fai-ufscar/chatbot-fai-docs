@@ -341,6 +341,7 @@ export default function Home() {
               onNewChat={handleNewChat}
               onActiveSources={(s, a) => { setActiveSources(s); setActiveAnswer(a); }}
               onGenerating={(g) => { setSourcesLoading(g); if (g) { setActiveSources([]); setActiveAnswer(""); } }}
+              onOpenSourcesPanel={() => setSourcesOpen(true)}
             />
           </div>
         </div>

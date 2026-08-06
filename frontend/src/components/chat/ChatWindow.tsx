@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, User, Mic, Square, Loader2, Plus, Trash2, Image, FileText, X, Copy, Check, Download, Reply, ArrowDown, Sparkles, Printer } from "lucide-react";
+import { Send, User, Mic, Square, Loader2, Plus, Trash2, Image, FileText, X, Copy, Check, Download, Reply, ArrowDown, Sparkles, Printer, PanelRight } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
+import { markdownComponents } from "@/components/chat/markdown";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -47,6 +48,9 @@ interface ChatWindowProps {
   // Limpa a conversa atual da tela (nova conversa), SEM apagar o histórico. Acionado
   // pela lixeira do input; o pai apenas desseleciona a conversa (setSelectedConversationId(null)).
   onNewChat?: () => void;
+  // Abre a gaveta de fontes (mobile): em <lg o painel lateral não existe, então o
+  // botão "Ver fontes" da resposta publica as fontes E abre a gaveta.
+  onOpenSourcesPanel?: () => void;
 }
 
 // Efeito "digitando" (estilo ChatGPT): revela o texto recebido progressivamente, suave mesmo
@@ -74,7 +78,7 @@ function StreamingMarkdown({ content, animate }: { content: string; animate: boo
 
   const text = animate ? content.slice(0, shown) : content;
   const typing = animate && shown < content.length;
-  return <ReactMarkdown remarkPlugins={[remarkGfm]}>{typing ? text + "▍" : text}</ReactMarkdown>;
+  return <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>{typing ? text + "▍" : text}</ReactMarkdown>;
 }
 
 function CopyButton({ text }: { text: string }) {
@@ -195,9 +199,27 @@ function groupSourceLines(sources: string[]): string[] {
   return order.map((file) => {
     const pages = [...pagesByFile.get(file)!].sort((a, b) => a - b);
     if (pages.length === 0) return `- ${file}`;
-    const label = pages.length === 1 ? `pág. ${pages[0]}` : `págs. ${pages.join(", ")}`;
+    const label = pages.length === 1 ? `pág. ${pages[0]}` : `págs. ${formatPageRanges(pages)}`;
     return `- ${file} (${label})`;
   });
+}
+
+// Comprime páginas ordenadas em intervalos: [26,27,28,29,30,31] -> "26-31";
+// [4,5,6,9] -> "4-6, 9". Sem isso o chip agrupado listava todas as páginas uma a
+// uma e crescia sem limite ("págs. 26, 27, 28, 29, 30, 31" ≈ 300-400px nowrap).
+// O formato "a-b" é o mesmo que o backend já emite — extractAllPages e o
+// parsePages da SourcesPanel entendem intervalos.
+function formatPageRanges(pages: number[]): string {
+  const parts: string[] = [];
+  let start = pages[0];
+  let prev = pages[0];
+  for (const p of pages.slice(1)) {
+    if (p === prev + 1) { prev = p; continue; }
+    parts.push(start === prev ? `${start}` : `${start}-${prev}`);
+    start = prev = p;
+  }
+  parts.push(start === prev ? `${start}` : `${start}-${prev}`);
+  return parts.join(", ");
 }
 
 // Procura, no texto da resposta, a pagina citada para um arquivo no formato
@@ -384,7 +406,7 @@ function TypingDots() {
   );
 }
 
-export default function ChatWindow({ config, userId, selectedConversationId, onConversationCreated, onActiveSources, onGenerating, onNewChat }: ChatWindowProps) {
+export default function ChatWindow({ config, userId, selectedConversationId, onConversationCreated, onActiveSources, onGenerating, onNewChat, onOpenSourcesPanel }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [replyingTo, setReplyingTo] = useState<QuotedRef | null>(null);
@@ -828,7 +850,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
           pode ser exportada. Fica MONTADA durante a geração (botões desabilitados)
           para não piscar / dar salto de layout a cada turno. */}
       {conversationId && messages.length > 0 && (
-        <div className="flex items-center justify-end gap-2 border-b border-border bg-card/60 px-4 py-1.5 backdrop-blur-sm">
+        <div className="flex flex-wrap items-center justify-end gap-2 border-b border-border bg-card/60 px-4 py-1.5 backdrop-blur-sm">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -868,7 +890,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
         ref={messagesContainerRef}
         onScroll={handleMessagesScroll}
         tabIndex={-1}
-        className="flex-1 overflow-y-auto p-6 space-y-6 focus:outline-none"
+        className="flex-1 overflow-y-auto p-6 max-lg:p-4 space-y-6 max-lg:space-y-5 focus:outline-none"
       >
         {/* Boas-vindas SÓ no estado de conversa nova: sem mensagens, sem carregamento
             em curso (isTyping) e sem conversa selecionada — se o load de uma conversa
@@ -908,7 +930,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
         )}
 
         {messages.map((m, idx) => (
-          <div key={idx} className={`flex gap-4 ${m.role === 'user' ? 'justify-end' : ''}`}>
+          <div key={idx} className={`flex gap-4 max-lg:gap-2.5 ${m.role === 'user' ? 'justify-end' : ''}`}>
             {m.role === 'assistant' && (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -932,7 +954,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
               </Tooltip>
             )}
 
-            <div data-testid={m.role === 'assistant' ? 'assistant-message' : 'user-message'} className={`max-w-[85%] flex flex-col gap-2 ${m.role === 'user' ? 'items-end' : ''}`}>
+            <div data-testid={m.role === 'assistant' ? 'assistant-message' : 'user-message'} className={`max-w-[85%] max-lg:max-w-[90%] min-w-0 flex flex-col gap-2 ${m.role === 'user' ? 'items-end' : ''}`}>
               <div
                 onClick={() => { if (m.role === 'assistant' && m.sources?.length && onActiveSources) onActiveSources(m.sources, m.content); }}
                 title={m.role === 'assistant' && m.sources?.length ? 'Ver as fontes desta resposta no painel' : undefined}
@@ -946,7 +968,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
                 )}
                 <div
                   data-testid={m.role === 'assistant' ? 'assistant-content' : 'user-content'}
-                  className={`prose prose-sm max-w-none prose-p:leading-relaxed ${
+                  className={`prose prose-sm max-w-none prose-p:leading-relaxed max-lg:break-words ${
                   m.role === 'user'
                     ? 'prose-invert prose-p:text-white prose-headings:text-white prose-a:text-blue-200'
                     : 'prose-gray'
@@ -958,7 +980,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
                         animate={isTyping && idx === messages.length - 1 && !m.genTime}
                       />
                     ) : (
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>{m.content}</ReactMarkdown>
                     )
                   ) : (isTyping && idx === messages.length - 1 ? (
                     toolStatus ? (
@@ -982,9 +1004,27 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
 
               {m.role === 'assistant' && m.content && (
                 <div className="px-1 space-y-2">
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-3 max-lg:gap-2">
                     <CopyButton text={m.content} />
                     <ReplyButton onClick={() => setReplyingTo({ role: 'assistant', content: m.content })} />
+                    {m.sources && m.sources.length > 0 && onOpenSourcesPanel && (
+                      // Mobile: o painel lateral não existe (<lg) e a pista da bolha
+                      // clicável é hover-only — botão explícito abre a gaveta de fontes.
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="xs"
+                        data-testid="message-view-sources"
+                        className="lg:hidden text-[10px] text-muted-foreground"
+                        onClick={() => {
+                          onActiveSources?.(m.sources!, m.content);
+                          onOpenSourcesPanel();
+                        }}
+                      >
+                        <PanelRight />
+                        <span>Ver fontes</span>
+                      </Button>
+                    )}
                     {m.genTime && (
                       <div data-testid="message-done" className="text-[9px] text-muted-foreground italic">
                         Resposta gerada em {m.genTime.toFixed(2)}s
@@ -1006,7 +1046,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
                             size="xs"
                             onClick={() => handleDownloadSource(s, m.content)}
                             title={`Baixar ${extractFilename(s)}`}
-                            className="group/src text-[10px] bg-muted text-muted-foreground hover:bg-accent-blue/10 hover:text-accent-blue hover:border-accent-blue/30"
+                            className="group/src text-[10px] bg-muted text-muted-foreground hover:bg-accent-blue/10 hover:text-accent-blue hover:border-accent-blue/30 max-lg:h-auto max-lg:max-w-full max-lg:whitespace-normal max-lg:break-words max-lg:py-1 max-lg:text-left"
                           >
                             <Download className="opacity-60 group-hover/src:opacity-100" />
                             {extractFilename(s)}
@@ -1040,7 +1080,7 @@ export default function ChatWindow({ config, userId, selectedConversationId, onC
       </div>
 
       {/* Input Area (flutuante) */}
-      <div className="relative px-4 pb-4 pt-2">
+      <div className="relative px-4 pb-4 pt-2 max-lg:px-2.5 max-lg:pb-2.5">
         {/* Setinha "ir para a última mensagem" (aparece ao rolar para cima). Exige
             mensagens: sem elas a sentinela não existe (scrollToBottom seria no-op) e o
             rótulo nem faria sentido — em janelas baixas a welcome também gera scroll. */}
