@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Copy, Check } from "lucide-react";
+import Image from "next/image";
+import { Copy, Check, Menu, FileText, MessageSquarePlus } from "lucide-react";
 import { toast } from "sonner";
 import Sidebar from "@/components/layout/Sidebar";
-import SourcesPanel from "@/components/layout/SourcesPanel";
+import SourcesPanel, { parseSourceItems } from "@/components/layout/SourcesPanel";
 import ChatWindow from "@/components/chat/ChatWindow";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 
 export type SidebarMode = "history" | "settings";
 
@@ -15,6 +17,11 @@ export default function Home() {
   const [conversations, setConversations] = useState<any[]>([]);
   const [sidebarMode, setSidebarMode] = useState<SidebarMode>("history");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  // Superfícies exclusivas de mobile (<lg): gaveta do menu (hambúrguer do header)
+  // e gaveta de fontes (botão do header). Estado independente do viewport — só
+  // muda por toque em botões lg:hidden, então SSR/hidratação são idênticos.
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [sourcesOpen, setSourcesOpen] = useState(false);
   const [selectedConversationId, setSelectedConversationId] = useState<number | null>(null);
   const [isBackendConnected, setIsBackendConnected] = useState<boolean | null>(null);
   // Estado do servico de RAG (LightRAG), sondado pelo backend em /status.
@@ -246,9 +253,13 @@ export default function Home() {
     }
   };
 
+  // Badge do botão de fontes do header mobile: mesma contagem que o painel
+  // (um item por página citada), via o parse exportado pelo SourcesPanel.
+  const mobileSourceCount = parseSourceItems(activeSources).length;
+
   return (
     <main className="flex h-screen max-lg:h-dvh overflow-hidden">
-        <Sidebar 
+        <Sidebar
           mode={sidebarMode}
           setMode={setSidebarMode}
           isCollapsed={isSidebarCollapsed}
@@ -266,23 +277,118 @@ export default function Home() {
           lightragStatus={lightragStatus}
           config={config}
           setConfig={setConfig}
+          className="max-lg:hidden"
         />
-        
+
         {/* min-w-0: sem isso o flex child não encolhe abaixo do min-content do
             conteúdo (input/chips) e estoura o layout em telas estreitas. */}
         <div className="flex-1 min-w-0 relative bg-gradient-to-br from-white to-gray-50 flex flex-col">
-          <ChatWindow
-            config={config}
-            userId={userId}
-            selectedConversationId={selectedConversationId}
-            onConversationCreated={fetchHistory}
-            onNewChat={handleNewChat}
-            onActiveSources={(s, a) => { setActiveSources(s); setActiveAnswer(a); }}
-            onGenerating={(g) => { setSourcesLoading(g); if (g) { setActiveSources([]); setActiveAnswer(""); } }}
-          />
+          {/* Header exclusivo de mobile (<lg): hambúrguer (gaveta do menu), marca,
+              fontes (gaveta) e nova conversa. Em desktop não existe (display:none). */}
+          <header className="lg:hidden flex h-12 shrink-0 items-center gap-1 border-b border-border bg-card px-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              data-testid="mobile-menu-button"
+              aria-label="Abrir menu"
+              className="text-muted-foreground"
+              onClick={() => setMobileSidebarOpen(true)}
+            >
+              <Menu size={20} />
+            </Button>
+            <Image src="/fai-icone.png" alt="" width={22} height={22} className="ml-1 shrink-0 object-contain" />
+            <span className="truncate text-sm font-semibold text-foreground">
+              Lina <span className="font-light text-muted-foreground">· FAI-UFSCar</span>
+            </span>
+            <div className="flex-1" />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              data-testid="mobile-sources-button"
+              aria-label="Ver fontes"
+              className="relative text-muted-foreground"
+              onClick={() => setSourcesOpen(true)}
+            >
+              <FileText size={20} />
+              {mobileSourceCount > 0 && (
+                <span className="absolute top-0.5 right-0.5 flex h-[15px] min-w-[15px] items-center justify-center rounded-full bg-accent-orange px-1 text-[9px] font-bold text-white">
+                  {mobileSourceCount}
+                </span>
+              )}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              data-testid="mobile-new-chat"
+              aria-label="Nova conversa"
+              className="text-muted-foreground"
+              onClick={handleNewChat}
+            >
+              <MessageSquarePlus size={20} />
+            </Button>
+          </header>
+          {/* Wrapper flex-1 min-h-0: reserva a altura restante abaixo do header
+              mobile; em desktop (header display:none) equivale ao layout antigo. */}
+          <div className="flex min-h-0 flex-1 flex-col">
+            <ChatWindow
+              config={config}
+              userId={userId}
+              selectedConversationId={selectedConversationId}
+              onConversationCreated={fetchHistory}
+              onNewChat={handleNewChat}
+              onActiveSources={(s, a) => { setActiveSources(s); setActiveAnswer(a); }}
+              onGenerating={(g) => { setSourcesLoading(g); if (g) { setActiveSources([]); setActiveAnswer(""); } }}
+            />
+          </div>
         </div>
 
-        <SourcesPanel sources={activeSources} answerContent={activeAnswer} loading={sourcesLoading} />
+        <SourcesPanel
+          sources={activeSources}
+          answerContent={activeAnswer}
+          loading={sourcesLoading}
+          mobileOpen={sourcesOpen}
+          onMobileOpenChange={setSourcesOpen}
+        />
+
+        {/* Gaveta do menu em mobile: renderiza a MESMA <Sidebar> (o Radix desmonta o
+            conteúdo com a gaveta fechada, então em desktop nunca há duplicata no DOM).
+            isCollapsed fixo em false: o chevron "Minimizar menu" passa a fechar a gaveta. */}
+        <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
+          <SheetContent
+            side="left"
+            showCloseButton={false}
+            className="w-72 max-w-[85vw] gap-0 border-sidebar-hover bg-sidebar-dark p-0 text-gray-300"
+            // Sem auto-foco no primeiro botão: o foco programático abria o tooltip
+            // "Minimizar menu" junto com a gaveta (artefato visual em toque).
+            onOpenAutoFocus={(e) => e.preventDefault()}
+          >
+            <SheetTitle className="sr-only">Menu</SheetTitle>
+            <SheetDescription className="sr-only">Histórico de conversas e configurações.</SheetDescription>
+            <Sidebar
+              mode={sidebarMode}
+              setMode={setSidebarMode}
+              isCollapsed={false}
+              setIsCollapsed={(v) => { if (v) setMobileSidebarOpen(false); }}
+              onNewChat={() => { handleNewChat(); setMobileSidebarOpen(false); }}
+              onClearHistory={handleClearHistory}
+              onOpenSettings={toggleSettings}
+              onSelectConversation={(id) => { handleSelectConversation(id); setMobileSidebarOpen(false); }}
+              onDeleteConversation={handleDeleteConversation}
+              onRenameConversation={handleRenameConversation}
+              onShareConversation={(id) => { setMobileSidebarOpen(false); handleShareConversation(id); }}
+              selectedConversationId={selectedConversationId}
+              conversations={conversations}
+              isBackendConnected={isBackendConnected}
+              lightragStatus={lightragStatus}
+              config={config}
+              setConfig={setConfig}
+              className="w-full"
+            />
+          </SheetContent>
+        </Sheet>
 
         <Dialog open={shareUrl !== null} onOpenChange={(open) => { if (!open) setShareUrl(null); }}>
           <DialogContent className="sm:max-w-md">

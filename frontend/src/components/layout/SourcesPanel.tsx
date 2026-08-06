@@ -89,10 +89,33 @@ function Highlighted({ text, terms }: { text: string; terms: Set<string> }) {
   );
 }
 
-interface SourceItem {
+export interface SourceItem {
   file: string;
   page: number | null;
   score: number | null;
+}
+
+// Expande cada linha de fonte (que pode citar várias páginas) num card por página,
+// com dedup por arquivo+página. Exportado para o badge de fontes do header mobile
+// contar exatamente o que o painel mostra.
+export function parseSourceItems(sources: string[]): SourceItem[] {
+  const items: SourceItem[] = [];
+  const seen = new Set<string>();
+  const push = (it: SourceItem) => {
+    const key = `${it.file}|${it.page ?? ""}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    items.push(it);
+  };
+  for (const line of sources || []) {
+    const file = parseFilename(line);
+    if (!file) continue;
+    const pages = parsePages(line);
+    const score = parseScore(line);
+    if (pages.length === 0) push({ file, page: null, score });
+    else for (const p of pages) push({ file, page: p, score });
+  }
+  return items;
 }
 
 function SourceCard({ item, terms }: { item: SourceItem; terms: Set<string> }) {
@@ -198,29 +221,25 @@ interface SourcesPanelProps {
   sources: string[];
   answerContent: string;
   loading?: boolean;
+  // Controle externo da gaveta mobile (botão de fontes do header). Sem as duas
+  // props, o painel mantém o estado interno (compatibilidade com o uso antigo).
+  mobileOpen?: boolean;
+  onMobileOpenChange?: (open: boolean) => void;
 }
 
-export default function SourcesPanel({ sources, answerContent, loading = false }: SourcesPanelProps) {
-  const [mobileOpen, setMobileOpen] = useState(false);
+export default function SourcesPanel({
+  sources,
+  answerContent,
+  loading = false,
+  mobileOpen,
+  onMobileOpenChange,
+}: SourcesPanelProps) {
+  const [internalMobileOpen, setInternalMobileOpen] = useState(false);
+  const isMobileOpen = mobileOpen ?? internalMobileOpen;
+  const setMobileOpen = onMobileOpenChange ?? setInternalMobileOpen;
   const [collapsed, setCollapsed] = useState(false);
 
-  // Expande cada linha de fonte (que pode citar varias paginas) num card por pagina.
-  const items: SourceItem[] = [];
-  const seenItems = new Set<string>(); // dedup por arquivo+página: nunca repetir a mesma página
-  const pushItem = (it: SourceItem) => {
-    const key = `${it.file}|${it.page ?? ""}`;
-    if (seenItems.has(key)) return;
-    seenItems.add(key);
-    items.push(it);
-  };
-  for (const line of sources || []) {
-    const file = parseFilename(line);
-    if (!file) continue;
-    const pages = parsePages(line);
-    const score = parseScore(line);
-    if (pages.length === 0) pushItem({ file, page: null, score });
-    else for (const p of pages) pushItem({ file, page: p, score });
-  }
+  const items = parseSourceItems(sources);
   const terms = answerTerms(answerContent);
 
   const header = (onCollapse?: () => void) => (
@@ -314,28 +333,10 @@ export default function SourcesPanel({ sources, answerContent, loading = false }
         </aside>
       )}
 
-      {/* Mobile/telas estreitas: botao flutuante que abre a gaveta (Sheet) */}
-      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type="button"
-              size="icon-lg"
-              onClick={() => setMobileOpen(true)}
-              className="fixed bottom-5 right-5 z-30 rounded-full bg-accent-blue text-white shadow-lg hover:bg-accent-blue-hover lg:hidden"
-              aria-label="Ver fontes"
-            >
-              <FileText size={20} />
-              {items.length > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-accent-orange px-1 text-[10px] font-bold text-white">
-                  {items.length}
-                </span>
-              )}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="left">Ver fontes</TooltipContent>
-        </Tooltip>
-
+      {/* Mobile/telas estreitas: gaveta (Sheet) aberta pelo botão de fontes do
+          header mobile (page.tsx). O antigo FAB flutuante foi removido — ele
+          sobrepunha o botão Enviar do chat em toda tela < 1024px. */}
+      <Sheet open={isMobileOpen} onOpenChange={setMobileOpen}>
         <SheetContent
           side="right"
           showCloseButton

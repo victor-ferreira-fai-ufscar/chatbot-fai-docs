@@ -45,6 +45,9 @@ interface SidebarProps {
   lightragStatus?: "online" | "offline" | null;
   config: any;
   setConfig: (v: any) => void;
+  // Sobreposições de classe da <aside> (ex.: "max-lg:hidden" na instância desktop,
+  // "w-full" na instância dentro da gaveta mobile).
+  className?: string;
 }
 
 // Classes compartilhadas para os SelectTrigger no fundo escuro da sidebar.
@@ -68,7 +71,8 @@ export default function Sidebar({
   isBackendConnected,
   lightragStatus,
   config,
-  setConfig
+  setConfig,
+  className
 }: SidebarProps) {
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   // Manual de uso (botão de livro): instruções amigáveis de como usar o chat.
@@ -169,7 +173,8 @@ export default function Sidebar({
     <>
       <aside className={cn(
         "bg-sidebar-dark flex flex-col text-gray-300 h-full transition-all duration-300 ease-in-out z-20",
-        isCollapsed ? "w-16" : "w-64"
+        isCollapsed ? "w-16" : "w-64",
+        className
       )}>
 
         {/* Topo: marca FAI-UFSCar + minimizar/expandir (estilo ChatGPT) */}
