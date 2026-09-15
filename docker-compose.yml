@@ -170,7 +170,14 @@ services:
     volumes:
       # Cache do HuggingFace (layout do TEI): baixa o modelo (~2 GB) UMA vez e persiste.
       - ./reranker/tei-cache:/data
-    command: ["--model-id", "BAAI/bge-reranker-v2-m3", "--port", "7998"]
+    # --prometheus-port: com network_mode host, o default 9000 do TEI colide com outro
+    # servico que passou a ocupar essa porta. O container so descobre isso ao reiniciar.
+    # --max-client-batch-size: o default do TEI e 32, mas a busca hibrida do open-webui
+    # manda ate 2x top_k candidatos (vetorial + BM25). Com top_k=30 sao ate 60, e o TEI
+    # devolvia 502 ("batch size N > maximum allowed batch size 32"). Pior: o open-webui
+    # engole esse erro ("No valid scores found... returning original documents") e
+    # entrega os trechos SEM rerankear, em silencio. 64 cobre o top_k=30 atual.
+    command: ["--model-id", "BAAI/bge-reranker-v2-m3", "--port", "7998", "--max-client-batch-size", "64", "--prometheus-port", "9310"]
     # Sem healthcheck aqui: a imagem TEI e um binario Rust (sem python/curl). A prontidao
     # e verificada pelo adaptador abaixo, cujo /health faz proxy do /health do TEI.
     restart: always
