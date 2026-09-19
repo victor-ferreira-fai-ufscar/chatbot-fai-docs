@@ -264,6 +264,14 @@ services:
     gpus: all
     env_file:
       - .env
+    environment:
+      # LLM local via gateway central (LiteLLM). As variaveis seguem chamadas
+      # OLLAMA_* porque e o que o codigo le -- o destino e que mudou.
+      # Antes (ver .env): OLLAMA_BASE_URL=http://localhost:11434/v1, OLLAMA_MODEL=gemma4:12b
+      OLLAMA_BASE_URL: http://localhost:4000/v1
+      OLLAMA_MODEL: fai-docs
+      OLLAMA_TITLE_MODEL: fai-docs
+      OLLAMA_API_KEY: ${CHATBOT_LLM_API_KEY:?defina em .env}
     volumes:
       - ./docs:/app/docs
       # Pasta src/IA montada do host: permite editar o Prompt.md (lido a cada
