@@ -23,24 +23,40 @@ services:
       LIGHTRAG_API_KEY: ${LIGHTRAG_API_KEY:?defina LIGHTRAG_API_KEY no .env}
       WORKING_DIR: /app/data/rag_storage
       INPUT_DIR: /app/data/inputs
-      # ── LLM de SINTESE: alternavel Ollama local (padrao/ATIVO) <-> OpenAI (testes) ──
-      # Trocar p/ OpenAI (testes): comente o bloco "OLLAMA local (ATIVO)" e descomente o
-      # "OPENAI (ROLLBACK)" logo abaixo; depois: docker compose up -d --force-recreate lightrag.
+      # ── LLM de SINTESE: gateway central LiteLLM (ATIVO) <-> Ollama local direto (ROLLBACK) <-> OpenAI real (ROLLBACK testes) ──
+      # 2026-09-19: migrado do Ollama direto para o gateway central (LiteLLM em
+      # :4000/v1). O gateway fala com o shim :11435 (think="medium" via THINK_LEVEL,
+      # remove `thinking` da resposta) e o gpt-oss:latest por baixo do alias
+      # fai-rag -- o LightRAG nao precisa mais saber disso.
+      # Rollback p/ Ollama direto: comente o bloco GATEWAY abaixo, descomente o
+      # bloco "OLLAMA local (ROLLBACK)" logo depois; depois:
+      # docker compose up -d --no-deps --force-recreate lightrag.
       # Embeddings NAO mudam (bge-m3 local) -> nao precisa reindexar em nenhum dos lados.
       #
-      # === OLLAMA local (ATIVO) — gpt-oss:20b (MoE 20.9B/MXFP4) via PROXY-SHIM :11435 ===
-      # O shim injeta think="high" (THINK_LEVEL) e remove o `thinking` da resposta. (gpt-oss
-      # substituiu gemma4:26b, que tinha loop de repeticao degenerada upstream.) Embeddings
-      # sempre direto no :11434. Temperatura da sintese via OLLAMA_LLM_TEMPERATURE (abaixo).
-      LLM_BINDING: ollama
+      # === GATEWAY (LiteLLM) — ATIVO ===
+      # LLM via gateway central (LiteLLM). O binding deixa de ser "ollama": o
+      # gateway fala OpenAI, e é ele quem sabe que por trás tem o shim :11435
+      # (reasoning + strip das tags) e o gpt-oss.
+      # Antes: LLM_BINDING=ollama, LLM_BINDING_HOST=http://127.0.0.1:11435,
+      #        LLM_MODEL=gpt-oss:latest
+      LLM_BINDING: openai
+      LLM_BINDING_HOST: http://localhost:4000/v1
+      LLM_BINDING_API_KEY: ${LIGHTRAG_LLM_API_KEY:?defina em .env}
+      LLM_MODEL: fai-rag
+      #
+      # === OLLAMA local (ROLLBACK — direto, sem gateway; descomente p/ reativar) ===
+      # gpt-oss:20b (MoE 20.9B/MXFP4) via PROXY-SHIM :11435. O shim injeta
+      # think="high" (THINK_LEVEL) e remove o `thinking` da resposta. (gpt-oss
+      # substituiu gemma4:26b, que tinha loop de repeticao degenerada upstream.)
       # === HISTORICO do A/B de sintese (candidatos testados vao DIRETO no :11434, sem shim) ===
       # qwen3:32b-nothink (2026-07-01): REPROVADO — ~80-220s/resposta (denso 32B) e 0 fontes +
       #   abstencao no caso "reforma" (gap lexical). Bateria em backend/eval/consistency_probe.py.
       # gemma4:12b (2026-07-02): passou a bateria reforma/negativa (fontes ok, sem loop de
       #   repeticao — o bug e da familia MoE 26B/31B), mas ~54-71s vs ~30-40s do gpt-oss.
       # P/ retestar um candidato: LLM_MODEL=<modelo> + LLM_BINDING_HOST=http://127.0.0.1:11434.
-      LLM_MODEL: gpt-oss:latest
-      LLM_BINDING_HOST: http://127.0.0.1:11435
+      # LLM_BINDING: ollama
+      # LLM_MODEL: gpt-oss:latest
+      # LLM_BINDING_HOST: http://127.0.0.1:11435
       #
       # === OPENAI (ROLLBACK p/ testes — descomente as 5 linhas abaixo) ===
       # gpt-4.1-mini via API OpenAI (vai DIRETO, nao usa o shim :11435). Requer OPENAI_API_KEY no .env.
@@ -49,25 +65,35 @@ services:
       # LLM_BINDING_HOST: https://api.openai.com/v1
       # LLM_BINDING_API_KEY: ${OPENAI_API_KEY:?defina OPENAI_API_KEY no .env (necessario enquanto o bloco OpenAI estiver ativo)}
       # OPENAI_LLM_TEMPERATURE: "0.0"
+      #
       # Temperatura da sintese. ANTES nao era setada -> caia no DEFAULT_TEMPERATURE=1.0
       # do LightRAG (pior caso para fundamentacao estrita: incentiva divagacao e
       # citacao inconsistente). Fixada baixa (0.1) via binding_options do LightRAG
-      # (lightrag/llm/binding_options.py injeta como options.temperature no Ollama).
+      # (lightrag/llm/binding_options.py injeta como options.temperature no binding ativo).
       # O QueryRequest da API NAO expoe temperature; so da pra fixar por env do servidor.
       # 0.1 -> 0.0 (greedy) p/ consistencia: a SINTESE oscilava entre resposta completa e
       # abstencao p/ a MESMA pergunta; greedy reduz o sampling. (0.5 foi testado p/ mais
       # variabilidade e revertido p/ 0.0 — a consistencia e prioridade aqui.)
-      OLLAMA_LLM_TEMPERATURE: "0.0"
+      # Espelho de quando o binding era ollama (OLLAMA_LLM_TEMPERATURE=0.0, ver bloco
+      # ROLLBACK acima): o binding openai le OPENAI_LLM_*, nao OLLAMA_LLM_*. Sem esta
+      # linha a temperatura vira o default do LightRAG e a reprodutibilidade se perde
+      # sem nenhum erro.
+      OPENAI_LLM_TEMPERATURE: "0.0"
       # Janela total (entrada+saida) por requisicao, alocada por slot paralelo do
       # Ollama (KV cache na VRAM). 65536 da folga de geracao para um modelo de
       # RACIOCINIO (gpt-oss "pensa" antes de responder e consome tokens nisso): com
       # MAX_TOTAL_TOKENS=48000 de contexto-fonte, sobram ~17000 tokens para raciocinio
       # + resposta. O KV cache do gpt-oss e barato, entao 65536 cabe na VRAM da RTX 5090.
-      OLLAMA_LLM_NUM_CTX: "65536"
+      # O binding openai nao tem campo equivalente a este num_ctx do Ollama; o valor
+      # (65536) agora vive no alias fai-rag do gateway (/srv/docker/litellm/config.yaml).
+      # OLLAMA_LLM_NUM_CTX: "65536"
       # Teto de geracao ILIMITADO (-1): o raciocinio "high" do gpt-oss (via shim) usa ~4-5k
       # tokens de pensamento + resposta, cabendo nos ~17.5k livres (65536 - 48000 de contexto).
       # Explicito para nunca truncar o raciocinio; NAO setar valor baixo (ex.: 128/8192).
-      OLLAMA_LLM_NUM_PREDICT: "-1"
+      # O binding openai expoe max_completion_tokens (default None) no lugar deste
+      # num_predict; fixado como num_predict: -1 no alias fai-rag do gateway em vez
+      # de aqui, pois o default do Ollama varia por versao.
+      # OLLAMA_LLM_NUM_PREDICT: "-1"
       # 48000 de contexto montado dentro dos 52224 de num_ctx -> sobram ~4000 tokens
       # para a geracao da resposta. Mais contexto-fonte = respostas mais aprofundadas,
       # mesmo quando o grafo retorna muitas entidades/relacoes.
