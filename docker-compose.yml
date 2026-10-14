@@ -1,9 +1,10 @@
 # Stack completa: LightRAG (grafo) + Backend FastAPI + Frontend Next.js.
 # Todos em network_mode: host para alcancar o Ollama do host (127.0.0.1:11434)
 # sem precisar reconfigura-lo — mesmo padrao do open-webui nesta maquina.
-#  - frontend: 0.0.0.0:3000 (acessivel pela rede)
-#  - backend:  0.0.0.0:8000 (acessivel pela rede; CORS restrito ao frontend)
-#  - lightrag: 127.0.0.1:9621 (APENAS local — sem autenticacao, nao expor)
+# Desde 14/10/2026 TODOS escutam so em 127.0.0.1: quem fala com eles (Caddy, LiteLLM, Open WebUI) esta
+# no host. Acesso de fora so pelo Caddy: manual.sup (frontend :3000 + /api -> backend :8000), lightrag.sup (:9621).
+#  - frontend 127.0.0.1:3000 · backend 127.0.0.1:8000 · lightrag 127.0.0.1:9621 (API key)
+#  - reranker TEI 127.0.0.1:7998 · adapter Cohere 127.0.0.1:7997 · shim de raciocinio 127.0.0.1:11435
 services:
   lightrag:
     # Imagem FIXADA por digest (era :latest): o patch de prompt abaixo (volumes) sobrepoe um
@@ -18,7 +19,7 @@ services:
       # X-API-Key. A chave vem do .env (mesma var usada pelo backend) via
       # interpolacao do compose; NAO colocar o valor literal aqui (vaza no git).
       # A guarda :? faz o `docker compose up` falhar claro se a var faltar.
-      HOST: "0.0.0.0"
+      HOST: "127.0.0.1"
       PORT: "9621"
       LIGHTRAG_API_KEY: ${LIGHTRAG_API_KEY:?defina LIGHTRAG_API_KEY no .env}
       WORKING_DIR: /app/data/rag_storage
@@ -203,7 +204,7 @@ services:
     # devolvia 502 ("batch size N > maximum allowed batch size 32"). Pior: o open-webui
     # engole esse erro ("No valid scores found... returning original documents") e
     # entrega os trechos SEM rerankear, em silencio. 64 cobre o top_k=30 atual.
-    command: ["--model-id", "BAAI/bge-reranker-v2-m3", "--port", "7998", "--max-client-batch-size", "64", "--prometheus-port", "9310"]
+    command: ["--model-id", "BAAI/bge-reranker-v2-m3", "--hostname", "127.0.0.1", "--port", "7998", "--max-client-batch-size", "64", "--prometheus-port", "9310"]
     # Sem healthcheck aqui: a imagem TEI e um binario Rust (sem python/curl). A prontidao
     # e verificada pelo adaptador abaixo, cujo /health faz proxy do /health do TEI.
     restart: always
@@ -220,6 +221,7 @@ services:
       dockerfile: Dockerfile
     container_name: fai_reranker_adapter
     network_mode: host
+    command: ["uvicorn", "app:app", "--host", "127.0.0.1", "--port", "7997"]
     environment:
       TEI_URL: http://127.0.0.1:7998
     depends_on:
@@ -247,6 +249,7 @@ services:
       dockerfile: Dockerfile
     container_name: fai_ollama_think_shim
     network_mode: host
+    command: ["uvicorn", "app:app", "--host", "127.0.0.1", "--port", "11435"]
     environment:
       OLLAMA_UPSTREAM: http://127.0.0.1:11434
       # A/B de consistencia: 'medium' vs 'high'. Racicionio mais curto = menos pontos de
@@ -276,6 +279,7 @@ services:
       dockerfile: Dockerfile
     container_name: fai_chatbot_backend
     network_mode: host
+    command: ["uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8000"]
     # --- Aceleracao por GPU (Whisper / Speech-to-Text) ---
     # O backend usa a GPU (RTX 5090) para transcrever audio com o Whisper.
     # Pre-requisito (UMA vez, exige root no host):
@@ -315,6 +319,7 @@ services:
       dockerfile: Dockerfile
     container_name: fai_chatbot_frontend
     network_mode: host
+    command: ["npm", "start", "--", "-H", "127.0.0.1"]
     depends_on:
       - backend
     restart: always
